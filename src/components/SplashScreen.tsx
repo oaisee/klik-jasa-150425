@@ -30,10 +30,12 @@ const SplashScreen = () => {
         <img 
           src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" 
           alt="KlikJasa Logo" 
-          className="w-40 h-40" // Increased from w-24 h-24 to w-40 h-40
+          className="w-48 h-48" 
         />
       </div>
-      <h1 className="text-3xl font-bold text-marketplace-primary animate-pulse">KlikJasa</h1>
+      <h1 className="text-3xl font-bold text-marketplace-primary relative overflow-hidden">
+        <span className="animate-scribble inline-block">KlikJasa</span>
+      </h1>
     </div>
   );
 };

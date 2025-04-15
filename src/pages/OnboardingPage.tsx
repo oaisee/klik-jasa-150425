@@ -50,12 +50,12 @@ const OnboardingPage = () => {
     }
   };
 
-  // Fixed skip function to properly navigate to the home page
+  // Skip function - navigate to the last slide
   const handleSkip = () => {
-    navigate('/', { replace: true });
+    setCurrentSlide(onboardingSlides.length - 1);
   };
 
-  // Fixed user type selection to properly navigate
+  // Handle user type selection with proper navigation
   const handleUserTypeSelection = (type: 'user' | 'provider') => {
     if (type === 'provider') {
       navigate('/provider-mode', { replace: true });
@@ -78,12 +78,17 @@ const OnboardingPage = () => {
           <div className="w-8"></div>
         )}
         
-        <button 
-          onClick={handleSkip} 
-          className="text-sm font-medium text-marketplace-primary"
-        >
-          Lewati
-        </button>
+        {currentSlide < onboardingSlides.length - 1 && (
+          <button 
+            onClick={handleSkip} 
+            className="text-sm font-medium text-marketplace-primary"
+          >
+            Lewati
+          </button>
+        )}
+        {currentSlide === onboardingSlides.length - 1 && (
+          <div className="w-8"></div>
+        )}
       </div>
       
       <Carousel 

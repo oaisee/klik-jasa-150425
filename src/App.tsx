@@ -25,6 +25,8 @@ import EditProfilePage from "./pages/EditProfilePage";
 import ProviderModePage from "./pages/ProviderModePage";
 import SplashScreen from "./components/SplashScreen";
 import OnboardingPage from "./pages/OnboardingPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 const App = () => {
   // Create a new QueryClient instance inside the component
@@ -39,6 +41,8 @@ const App = () => {
           <Routes>
             <Route path="/splash" element={<SplashScreen />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="/" element={<Layout><Index /></Layout>} />
             <Route path="/search" element={<Layout><SearchPage /></Layout>} />
             <Route path="/bookings" element={<Layout><BookingsPage /></Layout>} />
