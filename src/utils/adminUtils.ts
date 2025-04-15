@@ -46,17 +46,92 @@ export const fetchServiceStats = async () => {
   }
 };
 
-export const generateMonthlyData = () => {
-  // This would ideally fetch real transaction data from the database
-  // For now we'll generate sample data
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const currentMonth = new Date().getMonth();
-  
-  return months.slice(0, currentMonth + 1).map(month => ({
-    name: month,
-    bookings: Math.floor(Math.random() * 50) + 10,
-    revenue: Math.floor(Math.random() * 5000) + 1000,
-  }));
+export const fetchBookingStats = async () => {
+  try {
+    const { data: bookings, error: bookingsError } = await supabase
+      .from('bookings')
+      .select('*');
+    
+    if (bookingsError) throw bookingsError;
+    
+    const totalBookings = bookings?.length || 0;
+    const completedBookings = bookings?.filter(booking => booking.status === 'completed').length || 0;
+    const pendingBookings = bookings?.filter(booking => booking.status === 'pending').length || 0;
+    
+    // Calculate total revenue and commission
+    let totalRevenue = 0;
+    let totalCommission = 0;
+    
+    bookings?.forEach(booking => {
+      totalRevenue += Number(booking.price) || 0;
+      totalCommission += Number(booking.commission) || 0;
+    });
+    
+    return {
+      totalBookings,
+      completedBookings,
+      pendingBookings,
+      totalRevenue,
+      totalCommission
+    };
+  } catch (error) {
+    console.error('Error fetching booking stats:', error);
+    return {
+      totalBookings: 0,
+      completedBookings: 0,
+      pendingBookings: 0,
+      totalRevenue: 0,
+      totalCommission: 0
+    };
+  }
+};
+
+export const generateMonthlyData = async () => {
+  try {
+    const { data: bookings, error: bookingsError } = await supabase
+      .from('bookings')
+      .select('*')
+      .order('created_at');
+    
+    if (bookingsError) throw bookingsError;
+    
+    // Group by month
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentMonth = new Date().getMonth();
+    const monthlyData: Record<string, { name: string; bookings: number; revenue: number }> = {};
+    
+    // Initialize with empty data for all months up to current
+    months.slice(0, currentMonth + 1).forEach(month => {
+      monthlyData[month] = { name: month, bookings: 0, revenue: 0 };
+    });
+    
+    // Fill with actual data
+    bookings?.forEach(booking => {
+      if (!booking.created_at) return;
+      
+      const date = new Date(booking.created_at);
+      const month = months[date.getMonth()];
+      
+      if (monthlyData[month]) {
+        monthlyData[month].bookings += 1;
+        monthlyData[month].revenue += Number(booking.price) || 0;
+      }
+    });
+    
+    return Object.values(monthlyData);
+  } catch (error) {
+    console.error('Error generating monthly data:', error);
+    
+    // Fallback to sample data if there's an error
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentMonth = new Date().getMonth();
+    
+    return months.slice(0, currentMonth + 1).map(month => ({
+      name: month,
+      bookings: Math.floor(Math.random() * 50) + 10,
+      revenue: Math.floor(Math.random() * 5000) + 1000,
+    }));
+  }
 };
 
 export const formatRupiah = (amount: number) => {

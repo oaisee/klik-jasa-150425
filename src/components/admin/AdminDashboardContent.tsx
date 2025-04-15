@@ -26,7 +26,7 @@ const AdminDashboardContent = ({ connectionStatus }: AdminDashboardContentProps)
       try {
         const users = await fetchUserStats();
         const services = await fetchServiceStats();
-        const monthly = generateMonthlyData();
+        const monthly = await generateMonthlyData();
         
         setUserStats(users);
         setServiceStats(services);
@@ -42,7 +42,10 @@ const AdminDashboardContent = ({ connectionStatus }: AdminDashboardContentProps)
   }, []);
 
   // Transform category data for pie chart
-  const categoryData = Object.entries(serviceStats.categories).map(([name, value]) => ({ name, value }));
+  const categoryData = Object.entries(serviceStats.categories).map(([name, value]) => ({ 
+    name, 
+    value: value as number 
+  }));
 
   if (loading) {
     return (

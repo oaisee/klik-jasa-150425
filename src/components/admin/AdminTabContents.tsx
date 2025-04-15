@@ -1,5 +1,6 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import AnalyticsOverview from './analytics/AnalyticsOverview';
 
 interface AdminTabContentsProps {
   activeTab: string;
@@ -8,6 +9,10 @@ interface AdminTabContentsProps {
 const AdminTabContents = ({ activeTab }: AdminTabContentsProps) => {
   if (activeTab === 'dashboard') {
     return null; // Dashboard content is handled separately
+  }
+  
+  if (activeTab === 'analytics') {
+    return <AnalyticsOverview />;
   }
   
   const getTabContent = () => {

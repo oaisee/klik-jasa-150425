@@ -110,6 +110,10 @@ const AdminDashboardPage = () => {
             <AdminDashboardContent connectionStatus={connectionStatus} />
           </TabsContent>
           
+          <TabsContent value="analytics">
+            <AdminTabContents activeTab="analytics" />
+          </TabsContent>
+          
           <TabsContent value="users">
             <AdminTabContents activeTab="users" />
           </TabsContent>
