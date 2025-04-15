@@ -37,6 +37,7 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
         <IdVerificationAlert 
           onVerify={handleVerifyId}
           onCancel={handleCancelProviderMode}
+          userId={userId}
         />
       )}
       
