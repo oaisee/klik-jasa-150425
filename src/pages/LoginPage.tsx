@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowLeft, Eye, EyeOff, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,21 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setIsAuthenticated(true);
+        // Redirect to home page if already authenticated
+        navigate('/', { replace: true });
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,9 +55,10 @@ const LoginPage = () => {
       if (error) throw error;
       
       toast.success("Login berhasil");
-      // Ensure navigation to home page occurs after successful login
+      console.log("Login successful, redirecting to home page...");
+      
+      // Force navigation to home page with replace to prevent back button issues
       navigate('/', { replace: true });
-      console.log("Redirecting to home page after successful login");
     } catch (err: any) {
       const errorMessage = err.message || "Terjadi kesalahan, silakan coba lagi";
       
@@ -52,11 +68,16 @@ const LoginPage = () => {
       } else {
         toast.error(errorMessage);
       }
-      console.error(err);
+      console.error("Login error:", err);
     } finally {
       setLoading(false);
     }
   };
+
+  // If already authenticated, don't render the login form
+  if (isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

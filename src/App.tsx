@@ -32,6 +32,34 @@ import RegisterPage from "./pages/RegisterPage";
 import AdminAuthPage from "./pages/AdminAuthPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 
+// Create a protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setAuthenticated(true);
+      } else {
+        // Redirect to login if not authenticated
+        navigate('/login', { replace: true });
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, [navigate]);
+
+  if (loading) {
+    return <SplashScreen />;
+  }
+
+  return authenticated ? <>{children}</> : null;
+};
+
 const App = () => {
   // Create a new QueryClient instance inside the component
   const queryClient = new QueryClient();
@@ -92,6 +120,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <Routes>
+          {/* Public routes */}
           <Route path="/splash" element={<SplashScreen />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -101,26 +130,59 @@ const App = () => {
           <Route path="/admin" element={<AdminAuthPage />} />
           <Route path="/admin-dashboard/*" element={isAdmin ? <AdminDashboardPage /> : <Navigate to="/admin" />} />
           
-          {/* User Routes */}
-          <Route path="/" element={<Layout><Index /></Layout>} />
-          <Route path="/search" element={<Layout><SearchPage /></Layout>} />
-          <Route path="/bookings" element={<Layout><BookingsPage /></Layout>} />
-          <Route path="/chat" element={<Layout><ChatPage /></Layout>} />
-          <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
-          <Route path="/service/:id" element={<Layout><ServiceDetail /></Layout>} />
-          <Route path="/wallet" element={<Layout><WalletPage /></Layout>} />
-          <Route path="/booking-confirmation/:id" element={<Layout><BookingConfirmation /></Layout>} />
-          <Route path="/create-service" element={<Layout><CreateService /></Layout>} />
-          <Route path="/notifications" element={<Layout><NotificationsPage /></Layout>} />
-          <Route path="/security" element={<Layout><SecurityPage /></Layout>} />
-          <Route path="/payment-methods" element={<Layout><PaymentMethodsPage /></Layout>} />
-          <Route path="/settings" element={<Layout><SettingsPage /></Layout>} />
-          <Route path="/help" element={<Layout><HelpPage /></Layout>} />
-          <Route path="/edit-profile" element={<Layout><EditProfilePage /></Layout>} />
-          <Route path="/provider-mode" element={<Layout><ProviderModePage /></Layout>} />
+          {/* Protected user routes */}
+          <Route path="/" element={
+            authenticated ? <Layout><Index /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/search" element={
+            authenticated ? <Layout><SearchPage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/bookings" element={
+            authenticated ? <Layout><BookingsPage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/chat" element={
+            authenticated ? <Layout><ChatPage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/profile" element={
+            authenticated ? <Layout><ProfilePage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/service/:id" element={
+            authenticated ? <Layout><ServiceDetail /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/wallet" element={
+            authenticated ? <Layout><WalletPage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/booking-confirmation/:id" element={
+            authenticated ? <Layout><BookingConfirmation /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/create-service" element={
+            authenticated ? <Layout><CreateService /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/notifications" element={
+            authenticated ? <Layout><NotificationsPage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/security" element={
+            authenticated ? <Layout><SecurityPage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/payment-methods" element={
+            authenticated ? <Layout><PaymentMethodsPage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/settings" element={
+            authenticated ? <Layout><SettingsPage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/help" element={
+            authenticated ? <Layout><HelpPage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/edit-profile" element={
+            authenticated ? <Layout><EditProfilePage /></Layout> : <Navigate to="/login" replace />
+          } />
+          <Route path="/provider-mode" element={
+            authenticated ? <Layout><ProviderModePage /></Layout> : <Navigate to="/login" replace />
+          } />
           <Route path="*" element={<NotFound />} />
-          {/* Default route redirecting to home or splash screen based on authentication */}
-          <Route index element={<Navigate to={authenticated ? "/" : "/splash"} replace />} />
+          
+          {/* Default route - redirect based on authentication status */}
+          <Route index element={<Navigate to={authenticated ? "/" : "/login"} replace />} />
         </Routes>
       </TooltipProvider>
     </QueryClientProvider>
