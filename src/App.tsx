@@ -16,11 +16,17 @@ import ProviderModePage from '@/pages/ProviderModePage';
 import OnboardingPage from '@/pages/OnboardingPage';
 import ServiceDetail from '@/pages/ServiceDetail';
 import SearchPage from '@/pages/SearchPage';
+import ChatPage from '@/pages/ChatPage';
+import BookingsPage from '@/pages/BookingsPage';
+import Layout from '@/components/Layout';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster";
 import './App.css';
 
 const queryClient = new QueryClient();
+
+// Pages that should not have the bottom navigation
+const noBottomNavPages = ['/login', '/register', '/onboarding', '/admin'];
 
 function App() {
   return (
@@ -43,6 +49,8 @@ function App() {
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/service/:id" element={<ServiceDetail />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/bookings" element={<Layout><BookingsPage /></Layout>} />
         </Routes>
       </div>
       <Toaster />

@@ -22,7 +22,7 @@ const BookingsPage = () => {
   }, []);
   
   return (
-    <div className="px-4 py-4 pb-20 animate-fade-in">
+    <div className="px-4 py-4 animate-fade-in">
       <h1 className="text-xl font-bold mb-4">{pageTitle}</h1>
       
       {loading ? (

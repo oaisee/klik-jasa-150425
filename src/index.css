@@ -88,7 +88,7 @@
   -webkit-overflow-scrolling: touch;
 }
 
-/* Bottom navigation with safe area */
+/* Bottom navigation with safe area - ensure it stays fixed */
 .app-bottom-nav {
   @apply fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-md;
   padding-bottom: var(--safe-area-inset-bottom);
