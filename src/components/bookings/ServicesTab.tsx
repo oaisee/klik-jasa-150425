@@ -1,11 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, Wrench, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ServiceCard from './ServiceCard';
-import { useProviderServices } from '@/hooks/providerMode/useProviderServices';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const ServicesTab = () => {
   const navigate = useNavigate();
@@ -30,8 +31,13 @@ const ServicesTab = () => {
             .select('*')
             .eq('provider_id', session.user.id);
             
-          if (error) throw error;
+          if (error) {
+            console.error('Error fetching services:', error);
+            toast.error('Gagal memuat layanan');
+            throw error;
+          }
           
+          console.log('Fetched services:', data);
           setServices(data || []);
         }
       } catch (error) {
@@ -44,6 +50,29 @@ const ServicesTab = () => {
     fetchServices();
   }, []);
 
+  // Function to toggle service status (active/inactive)
+  const toggleServiceStatus = async (serviceId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      
+      const { error } = await supabase
+        .from('services')
+        .update({ status: newStatus })
+        .eq('id', serviceId);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setServices(services.map(service => 
+        service.id === serviceId ? {...service, status: newStatus} : service
+      ));
+      
+      toast.success(`Status layanan berhasil diubah menjadi ${newStatus === 'active' ? 'aktif' : 'nonaktif'}`);
+    } catch (error) {
+      console.error('Error toggling service status:', error);
+      toast.error('Gagal mengubah status layanan');
+    }
+  };
   
   return (
     <div className="space-y-4">
@@ -83,6 +112,7 @@ const ServicesTab = () => {
                     status={service.status}
                     views={Math.floor(Math.random() * 100)}
                     ordersCount={Math.floor(Math.random() * 10)}
+                    onStatusToggle={() => toggleServiceStatus(service.id, service.status)}
                   />
                 ))}
             </div>
@@ -120,6 +150,7 @@ const ServicesTab = () => {
                     status={service.status}
                     views={Math.floor(Math.random() * 50)}
                     ordersCount={Math.floor(Math.random() * 5)}
+                    onStatusToggle={() => toggleServiceStatus(service.id, service.status)}
                   />
                 ))}
             </div>
@@ -149,6 +180,7 @@ const ServicesTab = () => {
                     status={service.status}
                     views={0}
                     ordersCount={0}
+                    onStatusToggle={() => toggleServiceStatus(service.id, service.status)}
                   />
                 ))}
             </div>

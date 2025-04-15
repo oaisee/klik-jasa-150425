@@ -1,7 +1,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pencil, Eye, ShoppingBag } from 'lucide-react';
+import { Pencil, Eye, ShoppingBag, ToggleLeft, ToggleRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface ServiceCardProps {
@@ -11,6 +11,7 @@ interface ServiceCardProps {
   status: string;
   views: number;
   ordersCount: number;
+  onStatusToggle?: () => void;
 }
 
 const ServiceCard = ({ 
@@ -19,7 +20,8 @@ const ServiceCard = ({
   price, 
   status,
   views,
-  ordersCount
+  ordersCount,
+  onStatusToggle
 }: ServiceCardProps) => {
   const navigate = useNavigate();
   
@@ -71,11 +73,28 @@ const ServiceCard = ({
           </Button>
           <Button 
             variant="ghost" 
-            className="flex-1 rounded-none text-sm h-10"
+            className="flex-1 rounded-none text-sm h-10 border-r border-gray-100"
             onClick={() => navigate(`/edit-service/${id}`)}
           >
             <Pencil size={16} className="mr-1" /> Edit
           </Button>
+          {onStatusToggle && (
+            <Button 
+              variant="ghost" 
+              className="flex-1 rounded-none text-sm h-10"
+              onClick={onStatusToggle}
+            >
+              {status === 'active' ? (
+                <>
+                  <ToggleRight size={16} className="mr-1" /> Nonaktifkan
+                </>
+              ) : (
+                <>
+                  <ToggleLeft size={16} className="mr-1" /> Aktifkan
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

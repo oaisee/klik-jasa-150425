@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -76,7 +75,7 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
         return; // Don't proceed until ID verification
       }
       
-      // Fix: Use async/await pattern instead of Promise chain to avoid TypeScript errors
+      // Switching to consumer mode
       try {
         const { error } = await supabase
           .from('profiles')
@@ -99,13 +98,6 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
             ? "Anda sekarang adalah penyedia jasa" 
             : "Anda sekarang adalah pengguna jasa"
         );
-        
-        // If switching to provider, navigate to provider mode page
-        if (checked) {
-          setTimeout(() => {
-            navigate('/provider-mode');
-          }, 1000); // Short delay to show the toast before navigating
-        }
       } catch (err) {
         console.error('Error updating user role:', err);
         toast.error("Gagal mengubah peran pengguna");
@@ -133,7 +125,6 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
     setShowIdVerificationAlert(false);
     setLoading(true);
     
-    // Fix: Use async/await pattern instead of Promise chain to avoid TypeScript errors
     const updateUserRole = async () => {
       try {
         const { error } = await supabase
