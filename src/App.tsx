@@ -16,6 +16,13 @@ import BookingsPage from "./pages/BookingsPage";
 import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import Layout from "./components/Layout";
+import NotificationsPage from "./pages/NotificationsPage";
+import SecurityPage from "./pages/SecurityPage";
+import PaymentMethodsPage from "./pages/PaymentMethodsPage";
+import SettingsPage from "./pages/SettingsPage";
+import HelpPage from "./pages/HelpPage";
+import EditProfilePage from "./pages/EditProfilePage";
+import ProviderModePage from "./pages/ProviderModePage";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +42,13 @@ const App = () => (
           <Route path="/wallet" element={<Layout><WalletPage /></Layout>} />
           <Route path="/booking-confirmation/:id" element={<Layout><BookingConfirmation /></Layout>} />
           <Route path="/create-service" element={<Layout><CreateService /></Layout>} />
+          <Route path="/notifications" element={<Layout><NotificationsPage /></Layout>} />
+          <Route path="/security" element={<Layout><SecurityPage /></Layout>} />
+          <Route path="/payment-methods" element={<Layout><PaymentMethodsPage /></Layout>} />
+          <Route path="/settings" element={<Layout><SettingsPage /></Layout>} />
+          <Route path="/help" element={<Layout><HelpPage /></Layout>} />
+          <Route path="/edit-profile" element={<Layout><EditProfilePage /></Layout>} />
+          <Route path="/provider-mode" element={<Layout><ProviderModePage /></Layout>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar } from '@/components/ui/avatar';
 import { 
   User, 
@@ -15,12 +14,36 @@ import {
   Shield,
   Bell
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/components/ui/use-toast";
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   useEffect(() => {
     document.title = 'Profil | KlikJasa';
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Berhasil Keluar",
+        description: "Anda telah berhasil keluar dari akun.",
+      });
+      // Normally we would redirect to login page here, but for now we'll stay on profile
+      // navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Gagal Keluar",
+        description: "Terjadi kesalahan saat mencoba keluar.",
+        variant: "destructive",
+      });
+      console.error('Error logging out:', error);
+    }
+  };
   
   return (
     <div className="px-4 py-4 pb-20 animate-fade-in">
@@ -50,10 +73,10 @@ const ProfilePage = () => {
           </div>
           
           <div className="mt-4 flex justify-between">
-            <Button className="flex-1 mr-2" variant="outline">
+            <Button className="flex-1 mr-2" variant="outline" onClick={() => navigate('/edit-profile')}>
               Edit Profil
             </Button>
-            <Button className="flex-1 ml-2" variant="default">
+            <Button className="flex-1 ml-2" variant="default" onClick={() => navigate('/provider-mode')}>
               Mode Penyedia
             </Button>
           </div>
@@ -74,10 +97,10 @@ const ProfilePage = () => {
           <div className="mt-2">
             <p className="text-2xl font-semibold">Rp 250.000</p>
             <div className="mt-2 flex space-x-2">
-              <Button variant="outline" size="sm" className="flex-1">
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate('/wallet')}>
                 Isi Saldo
               </Button>
-              <Button variant="outline" size="sm" className="flex-1">
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate('/wallet')}>
                 Tarik Dana
               </Button>
             </div>
@@ -114,7 +137,11 @@ const ProfilePage = () => {
         />
       </div>
       
-      <Button variant="outline" className="w-full flex items-center justify-center">
+      <Button 
+        variant="outline" 
+        className="w-full flex items-center justify-center"
+        onClick={handleLogout}
+      >
         <LogOut size={18} className="mr-2" />
         Keluar
       </Button>
