@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,19 +6,7 @@ import { Check, X, ExternalLink, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-
-interface VerificationRequest {
-  id: string;
-  user_id: string;
-  document_url: string;
-  status: 'pending' | 'approved' | 'rejected';
-  document_type: string;
-  created_at: string;
-  profile?: {
-    full_name: string;
-    phone: string;
-  };
-}
+import { VerificationRequest } from '@/types/database';
 
 const VerificationRequestsList = () => {
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
@@ -40,7 +27,14 @@ const VerificationRequestsList = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRequests(data || []);
+      
+      // Map the data to match VerificationRequest type
+      const mappedRequests = (data || []).map(req => ({
+        ...req,
+        profile: req.profile ? req.profile[0] : undefined
+      }));
+
+      setRequests(mappedRequests as VerificationRequest[]);
     } catch (error) {
       console.error('Error fetching verification requests:', error);
       toast.error('Gagal memuat permintaan verifikasi');
@@ -52,22 +46,17 @@ const VerificationRequestsList = () => {
   const handleApprove = async (id: string) => {
     setProcessingId(id);
     try {
+      // Find the request to get user_id
+      const requestData = requests.find(req => req.id === id);
+      if (!requestData) throw new Error('Request not found');
+
       // Update verification status to approved
       const { error: verificationError } = await supabase
         .from('verification_requests')
-        .update({ status: 'approved' })
+        .update({ status: 'approved', updated_at: new Date().toISOString() })
         .eq('id', id);
 
       if (verificationError) throw verificationError;
-
-      // Get user ID from the verification request
-      const { data: requestData, error: requestError } = await supabase
-        .from('verification_requests')
-        .select('user_id')
-        .eq('id', id)
-        .single();
-
-      if (requestError) throw requestError;
 
       // Update user is_provider status to true
       const { error: profileError } = await supabase
@@ -92,7 +81,10 @@ const VerificationRequestsList = () => {
     try {
       const { error } = await supabase
         .from('verification_requests')
-        .update({ status: 'rejected' })
+        .update({ 
+          status: 'rejected', 
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', id);
 
       if (error) throw error;
@@ -106,6 +98,7 @@ const VerificationRequestsList = () => {
     }
   };
 
+  // Existing formatDate, getStatusBadge, and render methods remain the same...
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: 'numeric',

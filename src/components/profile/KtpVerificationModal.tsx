@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Upload, X, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { X } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Label } from '@/components/ui/label';
 
 interface KtpVerificationModalProps {
   isOpen: boolean;
@@ -104,7 +104,6 @@ const KtpVerificationModal = ({
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <Label htmlFor="ktp-upload" className="cursor-pointer">
                 <div className="flex flex-col items-center justify-center space-y-2">
-                  <Upload className="h-8 w-8 text-gray-400" />
                   <span className="text-sm font-medium text-gray-600">
                     Klik untuk mengunggah KTP
                   </span>
@@ -144,7 +143,6 @@ const KtpVerificationModal = ({
               disabled={!selectedFile || uploading}
               className="flex items-center gap-2"
             >
-              {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
               {uploading ? 'Mengunggah...' : 'Kirim Verifikasi'}
             </Button>
           </div>
