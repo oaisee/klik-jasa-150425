@@ -1,15 +1,6 @@
 
 import ServiceCard from './ServiceCard';
-
-interface Service {
-  id: string;
-  image: string;
-  title: string;
-  providerName: string;
-  rating: number;
-  price: number;
-  distance: number;
-}
+import { Service } from '@/types/service';
 
 interface ServicesListProps {
   services: Service[];

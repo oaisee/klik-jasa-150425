@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +10,7 @@ import Layout from '@/components/Layout';
 import SplashScreen from '@/components/SplashScreen';
 import { Wallet, Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { categories } from '@/components/CategoryList';
 
 // Define mock services data
 const mockServices = [{
@@ -18,7 +20,8 @@ const mockServices = [{
   providerName: 'Budi Santoso',
   rating: 4.8,
   price: 150000,
-  distance: 0.8
+  distance: 0.8,
+  category: 'Kebersihan'
 }, {
   id: '2',
   image: '/placeholder.svg',
@@ -26,7 +29,8 @@ const mockServices = [{
   providerName: 'Ahmad Wijaya',
   rating: 4.5,
   price: 200000,
-  distance: 1.2
+  distance: 1.2,
+  category: 'Perbaikan'
 }, {
   id: '3',
   image: '/placeholder.svg',
@@ -34,7 +38,8 @@ const mockServices = [{
   providerName: 'Siti Rahayu',
   rating: 4.7,
   price: 250000,
-  distance: 1.5
+  distance: 1.5,
+  category: 'Perbaikan'
 }, {
   id: '4',
   image: '/placeholder.svg',
@@ -42,15 +47,38 @@ const mockServices = [{
   providerName: 'Dewi Kusuma',
   rating: 4.6,
   price: 300000,
-  distance: 2.0
+  distance: 2.0,
+  category: 'Kreatif'
+}, {
+  id: '5',
+  image: '/placeholder.svg',
+  title: 'Kursus Matematika',
+  providerName: 'Arief Wibowo',
+  rating: 4.9,
+  price: 350000,
+  distance: 1.7,
+  category: 'Pendidikan'
+}, {
+  id: '6',
+  image: '/placeholder.svg',
+  title: 'Jasa Angkut Barang',
+  providerName: 'Joko Susilo',
+  rating: 4.3,
+  price: 175000,
+  distance: 3.0,
+  category: 'Transportasi'
 }];
+
 const Index = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [hasNotifications, setHasNotifications] = useState(false);
-  const [nearbyServices, setNearbyServices] = useState(mockServices);
+  const [services, setServices] = useState(mockServices);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
     document.title = 'KlikJasa - Temukan Penyedia Jasa Terbaik';
 
@@ -91,6 +119,27 @@ const Index = () => {
     checkAuthAndGetProfile();
   }, []);
 
+  useEffect(() => {
+    // Filter services based on selected category and search query
+    let filtered = mockServices;
+    
+    if (selectedCategory) {
+      filtered = filtered.filter(service => service.category === selectedCategory);
+    }
+    
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        service => 
+          service.title.toLowerCase().includes(query) || 
+          service.providerName.toLowerCase().includes(query) ||
+          service.category.toLowerCase().includes(query)
+      );
+    }
+    
+    setServices(filtered);
+  }, [selectedCategory, searchQuery]);
+
   // Handle notification click
   const handleNotificationClick = () => {
     navigate('/notifications');
@@ -100,9 +149,29 @@ const Index = () => {
   const handleWalletClick = () => {
     navigate('/wallet');
   };
+  
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(prevCategory => prevCategory === category ? null : category);
+  };
+  
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const getServicesTitle = () => {
+    if (selectedCategory) {
+      return `Layanan ${selectedCategory}`;
+    }
+    if (searchQuery) {
+      return `Hasil Pencarian: "${searchQuery}"`;
+    }
+    return "Penyedia Jasa Terdekat";
+  };
+  
   if (isLoading) {
     return <SplashScreen />;
   }
+  
   return <Layout>
       <div className="px-4 py-5 animate-fade-in">
         <div className="flex items-center mb-6">
@@ -129,14 +198,14 @@ const Index = () => {
         </div>
         
         <div className="mb-7">
-          <SearchBar />
+          <SearchBar onSearch={handleSearch} placeholder="Cari layanan atau penyedia..." />
         </div>
         
         <div className="mb-8">
-          <CategoryList />
+          <CategoryList onCategoryClick={handleCategoryClick} />
         </div>
         
-        <ServicesList services={nearbyServices} title="Penyedia Jasa Terdekat" />
+        <ServicesList services={services} title={getServicesTitle()} />
       </div>
     </Layout>;
 };
