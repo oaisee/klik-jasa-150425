@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, Wrench, AlertCircle } from 'lucide-react';
@@ -15,7 +14,7 @@ const ServicesTab = () => {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useState(() => {
+  useEffect(() => {
     const fetchServices = async () => {
       setLoading(true);
       try {
@@ -45,6 +44,7 @@ const ServicesTab = () => {
     fetchServices();
   }, []);
 
+  
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-2">
