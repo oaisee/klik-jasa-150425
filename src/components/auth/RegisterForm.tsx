@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone } from 'lucide-react';
+import { User, Mail, Phone, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import TermsAndConditions from './TermsAndConditions';
 import FormField from './FormField';
 import PasswordInputs from './PasswordInputs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface RegisterFormProps {
   isProvider: boolean;
@@ -25,6 +26,7 @@ const RegisterForm = ({ isProvider }: RegisterFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [ktpFile, setKtpFile] = useState<File | null>(null);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +44,12 @@ const RegisterForm = ({ isProvider }: RegisterFormProps) => {
     
     if (!agreeTerms) {
       toast.error("Anda harus menyetujui syarat dan ketentuan");
+      return;
+    }
+    
+    // If registering as provider, check for KTP
+    if (isProvider && !ktpFile) {
+      toast.error("Mohon unggah foto KTP Anda untuk mendaftar sebagai penyedia jasa");
       return;
     }
     
@@ -79,6 +87,12 @@ const RegisterForm = ({ isProvider }: RegisterFormProps) => {
       console.error("Registration error:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleKtpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setKtpFile(e.target.files[0]);
     }
   };
 
@@ -125,6 +139,34 @@ const RegisterForm = ({ isProvider }: RegisterFormProps) => {
         setConfirmPassword={setConfirmPassword}
         setShowPassword={setShowPassword}
       />
+      
+      {isProvider && (
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Foto KTP <span className="text-red-500">*</span>
+          </label>
+          <div className="flex items-center">
+            <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50 transition-colors">
+              <FileText size={18} className="text-gray-500" />
+              <span className="text-sm text-gray-500">
+                {ktpFile ? ktpFile.name : "Unggah foto KTP"}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleKtpChange}
+                required={isProvider}
+              />
+            </label>
+          </div>
+          <Alert className="bg-blue-50 border-blue-200 py-2 px-3">
+            <AlertDescription className="text-xs text-blue-800">
+              KTP digunakan untuk verifikasi identitas dan tidak akan disebarluaskan. Pastikan foto KTP terlihat jelas.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
       
       <div className="flex items-start space-x-3 mt-4">
         <Checkbox 

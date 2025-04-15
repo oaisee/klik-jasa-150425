@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { User, Briefcase, AlertCircle } from 'lucide-react';
+import { User, Briefcase, AlertCircle, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +19,7 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
   const [loading, setLoading] = useState(false);
   const [isProviderState, setIsProviderState] = useState(isProvider);
   const [showProfileAlert, setShowProfileAlert] = useState(false);
+  const [showIdVerificationAlert, setShowIdVerificationAlert] = useState(false);
   const [profileComplete, setProfileComplete] = useState(true);
   const navigate = useNavigate();
 
@@ -67,6 +69,11 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
           setLoading(false);
           return; // Don't proceed with mode change
         }
+        
+        // Show ID verification alert after profile check
+        setShowIdVerificationAlert(true);
+        setLoading(false);
+        return; // Don't proceed until ID verification
       }
       
       const { error } = await supabase
@@ -105,6 +112,44 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
     setShowProfileAlert(false);
     navigate('/edit-profile');
   };
+  
+  const handleCancelProviderMode = () => {
+    setShowProfileAlert(false);
+    setShowIdVerificationAlert(false);
+  };
+  
+  const handleVerifyId = () => {
+    // Proceed with making the user a provider after verification
+    setShowIdVerificationAlert(false);
+    setLoading(true);
+    
+    supabase
+      .from('profiles')
+      .update({ is_provider: true })
+      .eq('id', userId)
+      .then(({ error }) => {
+        if (error) {
+          toast.error("Gagal mengubah peran pengguna");
+          console.error('Error updating user role:', error);
+          return;
+        }
+        
+        setIsProviderState(true);
+        if (onRoleChange) {
+          onRoleChange(true);
+        }
+        
+        toast.success("Anda sekarang adalah penyedia jasa");
+        
+        // Navigate to provider mode page
+        setTimeout(() => {
+          navigate('/provider-mode');
+        }, 1000);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   return (
     <div className="flex flex-col space-y-4">
@@ -114,13 +159,47 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
           <AlertDescription className="text-amber-800">
             Anda perlu melengkapi profil untuk menjadi penyedia jasa. Silakan lengkapi data diri Anda terlebih dahulu.
           </AlertDescription>
-          <Button 
-            variant="outline" 
-            className="mt-2 border-amber-200 text-amber-800 hover:bg-amber-100"
-            onClick={handleCompleteProfile}
-          >
-            Lengkapi Profil
-          </Button>
+          <div className="flex space-x-2 mt-2">
+            <Button 
+              variant="outline" 
+              className="border-amber-200 text-amber-800 hover:bg-amber-100"
+              onClick={handleCompleteProfile}
+            >
+              Lengkapi Profil
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="text-gray-600 hover:bg-gray-100"
+              onClick={handleCancelProviderMode}
+            >
+              <X className="w-4 h-4 mr-1" /> Batal
+            </Button>
+          </div>
+        </Alert>
+      )}
+      
+      {showIdVerificationAlert && (
+        <Alert className="bg-blue-50 border-blue-200">
+          <AlertCircle className="h-5 w-5 text-blue-500" />
+          <AlertDescription className="text-blue-800">
+            <p className="font-medium mb-1">Verifikasi KTP Diperlukan</p>
+            <p className="text-sm mb-2">Untuk menjadi penyedia jasa, Anda perlu memverifikasi identitas dengan mengunggah KTP. Ini untuk memastikan keamanan semua pengguna KlikJasa.</p>
+            <div className="flex space-x-2 mt-2">
+              <Button 
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+                onClick={handleVerifyId}
+              >
+                Verifikasi KTP
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="text-gray-600 hover:bg-gray-100"
+                onClick={handleCancelProviderMode}
+              >
+                <X className="w-4 h-4 mr-1" /> Batal
+              </Button>
+            </div>
+          </AlertDescription>
         </Alert>
       )}
       
