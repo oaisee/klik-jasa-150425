@@ -50,7 +50,6 @@ const CategoryList = () => {
                   <category.icon size={24} />
                 </div>
                 <span className="text-xs text-center font-medium">{category.name}</span>
-                <span className="text-[10px] text-gray-500 text-center">{category.englishName}</span>
               </Link>
             ))}
           </div>
@@ -67,7 +66,6 @@ const CategoryList = () => {
                   <category.icon size={24} />
                 </div>
                 <span className="text-xs text-center font-medium">{category.name}</span>
-                <span className="text-[10px] text-gray-500 text-center">{category.englishName}</span>
               </Link>
             ))}
           </div>
