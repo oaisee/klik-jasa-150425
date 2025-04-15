@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,8 +32,8 @@ const ProfilePage = () => {
         title: "Berhasil Keluar",
         description: "Anda telah berhasil keluar dari akun.",
       });
-      // Normally we would redirect to login page here, but for now we'll stay on profile
-      // navigate('/login');
+      // Redirect to homepage after logout
+      navigate('/');
     } catch (error) {
       toast({
         title: "Gagal Keluar",
@@ -99,9 +98,6 @@ const ProfilePage = () => {
             <div className="mt-2 flex space-x-2">
               <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate('/wallet')}>
                 Isi Saldo
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate('/wallet')}>
-                Tarik Dana
               </Button>
             </div>
           </div>

@@ -28,14 +28,6 @@ const SecurityPage = () => {
           <Button variant="outline" className="w-full">Ubah Kata Sandi</Button>
         </CardContent>
       </Card>
-
-      <Card className="mb-4">
-        <CardContent className="p-4">
-          <h2 className="font-semibold mb-2">Verifikasi Dua Faktor</h2>
-          <p className="text-sm text-gray-500 mb-4">Tambahkan lapisan keamanan ekstra dengan verifikasi dua faktor.</p>
-          <Button variant="outline" className="w-full">Aktifkan 2FA</Button>
-        </CardContent>
-      </Card>
     </div>
   );
 };
