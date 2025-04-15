@@ -15,6 +15,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [errors, setErrors] = useState<{email?: string; password?: string}>({});
 
   // Check if user is already logged in
   useEffect(() => {
@@ -41,11 +42,34 @@ const LoginPage = () => {
     checkAuth();
   }, [navigate]);
 
+  const validateForm = () => {
+    const newErrors: {email?: string; password?: string} = {};
+    let isValid = true;
+
+    if (!email) {
+      newErrors.email = "Email wajib diisi";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      newErrors.email = "Format email tidak valid";
+      isValid = false;
+    }
+
+    if (!password) {
+      newErrors.password = "Kata sandi wajib diisi";
+      isValid = false;
+    } else if (password.length < 6) {
+      newErrors.password = "Kata sandi minimal 6 karakter";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error("Mohon isi semua kolom");
+    if (!validateForm()) {
       return;
     }
     
@@ -73,13 +97,15 @@ const LoginPage = () => {
       // Force navigation to home page with replace to prevent back button issues
       navigate('/', { replace: true });
     } catch (err: any) {
-      const errorMessage = err.message || "Terjadi kesalahan, silakan coba lagi";
+      // Clear specific field errors
+      setErrors({});
       
-      // Display friendly error message for email not confirmed
-      if (err.code === 'email_not_confirmed') {
+      if (err.message.includes('Invalid login credentials')) {
+        toast.error("Email atau kata sandi salah");
+      } else if (err.code === 'email_not_confirmed') {
         toast.error("Email belum dikonfirmasi. Silakan cek kotak masuk email Anda.");
       } else {
-        toast.error(errorMessage);
+        toast.error(err.message || "Terjadi kesalahan, silakan coba lagi");
       }
       console.error("Login error:", err);
     } finally {
@@ -127,12 +153,12 @@ const LoginPage = () => {
                   id="email"
                   type="email" 
                   placeholder="nama@email.com" 
-                  className="pl-10 border-gray-200 focus:border-marketplace-primary focus:ring focus:ring-marketplace-primary/10" 
+                  className={`pl-10 border-gray-200 focus:border-marketplace-primary focus:ring focus:ring-marketplace-primary/10 ${errors.email ? 'border-red-500' : ''}`}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                 />
               </div>
+              {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
             </div>
             
             <div className="space-y-2">
@@ -150,10 +176,9 @@ const LoginPage = () => {
                   id="password"
                   type={showPassword ? "text" : "password"} 
                   placeholder="••••••••" 
-                  className="pl-10 border-gray-200 focus:border-marketplace-primary focus:ring focus:ring-marketplace-primary/10" 
+                  className={`pl-10 border-gray-200 focus:border-marketplace-primary focus:ring focus:ring-marketplace-primary/10 ${errors.password ? 'border-red-500' : ''}`}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                 />
                 <button 
                   type="button"
@@ -164,6 +189,7 @@ const LoginPage = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
             </div>
             
             <Button 
