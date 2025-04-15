@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -118,7 +118,14 @@ const Index = () => {
     <Layout>
       <div className="px-4 py-5 animate-fade-in">
         <div className="flex items-center mb-6">
-          <h1 className="text-xl font-bold flex-1">KlikJasa</h1>
+          <div className="flex items-center flex-1">
+            <img 
+              src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" 
+              alt="KlikJasa Logo" 
+              className="h-8 w-8 mr-3"
+            />
+            <h1 className="text-xl font-bold text-marketplace-primary">KlikJasa</h1>
+          </div>
           
           {isAuthenticated && (
             <div className="flex items-center">
