@@ -55,12 +55,12 @@ const OnboardingPage = () => {
     setCurrentSlide(onboardingSlides.length - 1);
   };
 
-  // Handle user type selection with proper navigation
+  // Handle user type selection
   const handleUserTypeSelection = (type: 'user' | 'provider') => {
     if (type === 'provider') {
-      navigate('/provider-mode', { replace: true });
+      navigate('/register?provider=true', { replace: true });
     } else {
-      navigate('/', { replace: true });
+      navigate('/register', { replace: true });
     }
   };
 
@@ -98,7 +98,17 @@ const OnboardingPage = () => {
             api.on('select', () => {
               setCurrentSlide(api.selectedScrollSnap());
             });
+            // Programmatically set slide when currentSlide changes via skip
+            if (api.selectedScrollSnap() !== currentSlide) {
+              api.scrollTo(currentSlide);
+            }
           }
+        }}
+        // This is important to allow programmatic control
+        index={currentSlide}
+        opts={{
+          align: 'start',
+          containScroll: 'trimSnaps',
         }}
       >
         <CarouselContent>
@@ -125,7 +135,7 @@ const OnboardingPage = () => {
                   <div className="mt-8 w-full max-w-xs space-y-4">
                     <Button 
                       onClick={() => handleUserTypeSelection('user')}
-                      className="w-full bg-marketplace-primary hover:bg-marketplace-primary/90 transition-transform duration-200 hover:scale-105"
+                      className="w-full bg-marketplace-primary hover:bg-marketplace-primary/90 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
                       size="lg"
                     >
                       <UserPlus className="mr-2" />
@@ -135,7 +145,7 @@ const OnboardingPage = () => {
                       onClick={() => handleUserTypeSelection('provider')}
                       variant="outline"
                       size="lg"
-                      className="w-full border-2 border-marketplace-primary text-marketplace-primary hover:bg-marketplace-primary/10 transition-transform duration-200 hover:scale-105"
+                      className="w-full border-2 border-marketplace-primary text-marketplace-primary hover:bg-marketplace-primary/10 transition-all duration-200 hover:scale-105"
                     >
                       <Briefcase className="mr-2" />
                       Daftar sebagai Penyedia Jasa
@@ -165,7 +175,7 @@ const OnboardingPage = () => {
           
           <Button 
             onClick={handleNext}
-            className="w-full bg-marketplace-primary hover:bg-marketplace-primary/90"
+            className="w-full bg-marketplace-primary hover:bg-marketplace-primary/90 shadow-sm hover:shadow-md transition-all"
             size="lg"
           >
             Lanjut <ChevronRight size={16} className="ml-1" />

@@ -13,7 +13,7 @@ const SplashScreen = () => {
       
       // Navigate after animation completes
       setTimeout(() => {
-        navigate('/onboarding');
+        navigate('/onboarding', { replace: true });
       }, 500);
     }, 2500);
     
@@ -30,10 +30,10 @@ const SplashScreen = () => {
         <img 
           src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" 
           alt="KlikJasa Logo" 
-          className="w-48 h-48" 
+          className="w-64 h-64" 
         />
       </div>
-      <h1 className="text-3xl font-bold text-marketplace-primary relative overflow-hidden">
+      <h1 className="text-4xl font-bold text-marketplace-primary relative">
         <span className="animate-scribble inline-block">KlikJasa</span>
       </h1>
     </div>

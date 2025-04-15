@@ -5,6 +5,7 @@ import { Mail, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from "sonner";
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -12,24 +13,24 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    
+    if (!email || !password) {
+      toast.error("Mohon isi semua kolom");
+      return;
+    }
+    
     setLoading(true);
     
-    // Dummy login logic - in a real app, this would connect to an auth service
+    // Simulate API call
     try {
-      if (email && password) {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        navigate('/', { replace: true });
-      } else {
-        setError('Mohon isi semua kolom');
-      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success("Login berhasil");
+      navigate('/', { replace: true });
     } catch (err) {
-      setError('Terjadi kesalahan, silakan coba lagi');
+      toast.error("Terjadi kesalahan, silakan coba lagi");
       console.error(err);
     } finally {
       setLoading(false);
@@ -37,99 +38,107 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white p-4">
-      <div className="flex items-center mb-8">
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="flex items-center p-4">
         <button 
           onClick={() => navigate('/onboarding')}
-          className="p-2 text-gray-500 hover:text-marketplace-primary"
+          className="p-2 text-gray-500 hover:text-marketplace-primary transition-colors"
+          aria-label="Kembali"
         >
           <ArrowLeft size={24} />
         </button>
       </div>
       
-      <div className="max-w-md mx-auto">
-        <div className="text-center mb-8">
-          <img 
-            src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" 
-            alt="KlikJasa Logo" 
-            className="w-24 h-24 mx-auto mb-2"
-          />
-          <h1 className="text-2xl font-bold text-marketplace-dark">Masuk ke KlikJasa</h1>
-          <p className="text-gray-500 mt-2">Masukkan detail akun Anda</p>
-        </div>
-        
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-sm">
-            {error}
-          </div>
-        )}
-        
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                <Mail size={18} />
-              </div>
-              <Input 
-                id="email"
-                type="email" 
-                placeholder="nama@email.com" 
-                className="pl-10" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 pb-10">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center mb-8 animate-fade-in">
+            <img 
+              src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" 
+              alt="KlikJasa Logo" 
+              className="w-24 h-24 mx-auto mb-4"
+            />
+            <h1 className="text-2xl font-bold text-marketplace-dark">Masuk ke KlikJasa</h1>
+            <p className="text-gray-500 mt-2">Lanjutkan untuk mengakses layanan</p>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="password">Kata Sandi</Label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                <Lock size={18} />
+          <form onSubmit={handleLogin} className="space-y-6 animate-fade-in" style={{animationDelay: "100ms"}}>
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-gray-700">Email</Label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                  <Mail size={18} />
+                </div>
+                <Input 
+                  id="email"
+                  type="email" 
+                  placeholder="nama@email.com" 
+                  className="pl-10 border-gray-200 focus:border-marketplace-primary focus:ring focus:ring-marketplace-primary/10" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
-              <Input 
-                id="password"
-                type={showPassword ? "text" : "password"} 
-                placeholder="••••••••" 
-                className="pl-10" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button 
-                type="button"
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400"
-                onClick={() => setShowPassword(!showPassword)}
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-gray-700">Kata Sandi</Label>
+                <Link to="/forgot-password" className="text-sm text-marketplace-primary hover:underline">
+                  Lupa kata sandi?
+                </Link>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                  <Lock size={18} />
+                </div>
+                <Input 
+                  id="password"
+                  type={showPassword ? "text" : "password"} 
+                  placeholder="••••••••" 
+                  className="pl-10 border-gray-200 focus:border-marketplace-primary focus:ring focus:ring-marketplace-primary/10" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button 
+                  type="button"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full h-12 bg-marketplace-primary hover:bg-marketplace-primary/90 text-white font-medium transition-all shadow-sm hover:shadow-md"
+              disabled={loading}
+              size="lg"
+            >
+              {loading ? 'Memproses...' : 'Masuk'}
+            </Button>
+            
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Belum punya akun?</span>
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <Link 
+                to="/register" 
+                className="inline-block w-full py-3 px-4 border border-marketplace-primary text-marketplace-primary hover:bg-marketplace-primary/5 text-center rounded-md font-medium transition-colors"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex justify-end">
-            <Link to="/forgot-password" className="text-sm text-marketplace-primary">
-              Lupa kata sandi?
-            </Link>
-          </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full bg-marketplace-primary hover:bg-marketplace-primary/90"
-            disabled={loading}
-            size="lg"
-          >
-            {loading ? 'Memproses...' : 'Masuk'}
-          </Button>
-          
-          <div className="text-center">
-            <p className="text-gray-500">
-              Belum punya akun?{' '}
-              <Link to="/register" className="text-marketplace-primary font-medium">
-                Daftar
+                Daftar Sekarang
               </Link>
-            </p>
-          </div>
-        </form>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
