@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Index from '@/pages/Index';
 import LoginPage from '@/pages/LoginPage';
@@ -10,9 +11,8 @@ import NotificationsPage from '@/pages/NotificationsPage';
 import WalletPage from '@/pages/WalletPage';
 import PaymentMethodsPage from '@/pages/PaymentMethodsPage';
 import HelpPage from '@/pages/HelpPage';
-import AdminPage from '@/pages/AdminPage';
-import ProviderDashboard from '@/pages/providerMode/ProviderDashboard';
-import ProviderProfilePage from '@/pages/providerMode/ProviderProfilePage';
+import AdminDashboardPage from '@/pages/AdminDashboardPage';
+import ProviderModePage from '@/pages/ProviderModePage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from './providers/ThemeProvider';
@@ -38,9 +38,8 @@ function App() {
               <Route path="/wallet" element={<WalletPage />} />
               <Route path="/payment-methods" element={<PaymentMethodsPage />} />
               <Route path="/help" element={<HelpPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/provider" element={<ProviderDashboard />} />
-              <Route path="/provider/profile" element={<ProviderProfilePage />} />
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/provider" element={<ProviderModePage />} />
             </Routes>
           </div>
           <Toaster />
