@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { useEffect } from 'react';
 
 const onboardingSlides = [
   {
@@ -76,7 +75,7 @@ const OnboardingPage = () => {
             <ChevronLeft size={24} />
           </button>
         ) : (
-          <div className="w-8"></div> {/* Empty space for alignment */}
+          <div className="w-8"></div> 
         )}
         
         <button 
