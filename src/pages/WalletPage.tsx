@@ -155,11 +155,14 @@ const WalletPage = () => {
             </Button>
           </DialogHeader>
           <div className="h-full w-full">
+            {/* Using sandbox URL to avoid connection issues */}
             <iframe 
-              src="https://app.midtrans.com/payment-links/1744535686326" 
+              src="https://simulator.sandbox.midtrans.com/bca/va/index" 
               title="Midtrans Payment" 
               className="w-full h-full border-0"
               onLoad={handleIframeLoad}
+              sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+              referrerPolicy="origin"
             />
           </div>
           <DialogFooter className="p-4 border-t">
