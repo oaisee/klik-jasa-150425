@@ -15,7 +15,6 @@ import ProviderDashboard from '@/pages/providerMode/ProviderDashboard';
 import ProviderProfilePage from '@/pages/providerMode/ProviderProfilePage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from './providers/ThemeProvider';
 import './App.css';
 
 const queryClient = new QueryClient();
@@ -23,29 +22,27 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <BrowserRouter>
-          <div className="app-container">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/profile/edit" element={<EditProfilePage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/security" element={<SecurityPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/wallet" element={<WalletPage />} />
-              <Route path="/payment-methods" element={<PaymentMethodsPage />} />
-              <Route path="/help" element={<HelpPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/provider" element={<ProviderDashboard />} />
-              <Route path="/provider/profile" element={<ProviderProfilePage />} />
-            </Routes>
-          </div>
-          <Toaster />
-        </BrowserRouter>
-      </ThemeProvider>
+      <BrowserRouter>
+        <div className="app-container">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile/edit" element={<EditProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/payment-methods" element={<PaymentMethodsPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/provider" element={<ProviderDashboard />} />
+            <Route path="/provider/profile" element={<ProviderProfilePage />} />
+          </Routes>
+        </div>
+        <Toaster />
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }

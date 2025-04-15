@@ -1,11 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Globe, Bell, Moon, Lock } from 'lucide-react';
+import { ArrowLeft, Globe, Bell, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
-import { useTheme } from '@/providers/ThemeProvider';
 import { 
   Dialog,
   DialogContent,
@@ -19,20 +18,13 @@ import { Button } from '@/components/ui/button';
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { theme, toggleTheme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(theme === 'dark');
   const [languageOpen, setLanguageOpen] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState("Indonesia");
 
   useEffect(() => {
     document.title = 'Pengaturan | KlikJasa';
   }, []);
-
-  // Update darkModeEnabled when theme changes
-  useEffect(() => {
-    setDarkModeEnabled(theme === 'dark');
-  }, [theme]);
 
   const handleNotificationsChange = () => {
     const newValue = !notificationsEnabled;
@@ -42,16 +34,6 @@ const SettingsPage = () => {
       description: newValue 
         ? "Anda akan menerima notifikasi dari KlikJasa" 
         : "Anda tidak akan menerima notifikasi dari KlikJasa",
-    });
-  };
-
-  const handleDarkModeChange = () => {
-    toggleTheme();
-    toast({
-      title: theme === 'light' ? "Mode Gelap Diaktifkan" : "Mode Gelap Dinonaktifkan",
-      description: theme === 'light' 
-        ? "Tampilan aplikasi sekarang dalam mode gelap" 
-        : "Tampilan aplikasi sekarang dalam mode terang",
     });
   };
 
@@ -84,21 +66,6 @@ const SettingsPage = () => {
               <Switch 
                 checked={notificationsEnabled} 
                 onCheckedChange={handleNotificationsChange} 
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Moon size={20} className="mr-3 text-gray-500" />
-                <span>Mode Gelap</span>
-              </div>
-              <Switch 
-                checked={darkModeEnabled} 
-                onCheckedChange={handleDarkModeChange} 
               />
             </div>
           </CardContent>
