@@ -1,11 +1,12 @@
 
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowLeft, Eye, EyeOff, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -24,13 +25,18 @@ const LoginPage = () => {
     
     setLoading(true);
     
-    // Simulate API call
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error) throw error;
+      
       toast.success("Login berhasil");
       navigate('/', { replace: true });
-    } catch (err) {
-      toast.error("Terjadi kesalahan, silakan coba lagi");
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan, silakan coba lagi");
       console.error(err);
     } finally {
       setLoading(false);
@@ -135,6 +141,16 @@ const LoginPage = () => {
                 className="inline-block w-full py-3 px-4 border border-marketplace-primary text-marketplace-primary hover:bg-marketplace-primary/5 text-center rounded-md font-medium transition-colors"
               >
                 Daftar Sekarang
+              </Link>
+            </div>
+            
+            <div className="mt-6 text-center">
+              <Link 
+                to="/admin" 
+                className="inline-flex items-center justify-center text-sm text-gray-500 hover:text-marketplace-primary"
+              >
+                <Shield size={16} className="mr-1" />
+                Login Admin
               </Link>
             </div>
           </form>

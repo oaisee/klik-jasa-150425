@@ -10,7 +10,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import type { EmblaCarouselType } from 'embla-carousel-react';
+import type { UseEmblaCarouselType } from 'embla-carousel-react';
 
 const onboardingSlides = [
   {
@@ -34,7 +34,7 @@ const onboardingSlides = [
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [emblaApi, setEmblaApi] = useState<EmblaCarouselType | null>(null);
+  const [emblaApi, setEmblaApi] = useState<UseEmblaCarouselType[1] | null>(null);
   
   useEffect(() => {
     document.title = 'Selamat Datang di KlikJasa';
