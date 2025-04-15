@@ -35,7 +35,7 @@ export const useBookings = () => {
       // In a real app, we would fetch bookings from the database
       // For now, simulate with mock data
       setTimeout(() => {
-        const mockActiveBookings = [
+        const mockActiveBookings: Booking[] = [
           {
             id: '1',
             service: 'Jasa Pembersihan Rumah',
@@ -60,7 +60,7 @@ export const useBookings = () => {
           }
         ];
         
-        const mockCompletedBookings = [
+        const mockCompletedBookings: Booking[] = [
           {
             id: '3',
             service: 'Jasa Kurir Dokumen',
@@ -75,7 +75,7 @@ export const useBookings = () => {
           }
         ];
         
-        const mockCancelledBookings = [
+        const mockCancelledBookings: Booking[] = [
           {
             id: '4',
             service: 'Jasa Tukang Ledeng',

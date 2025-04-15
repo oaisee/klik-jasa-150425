@@ -4,12 +4,15 @@ import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 interface TransactionItemProps {
   type: 'topup' | 'commission' | 'payout';
   amount: number;
-  date: string;
+  date?: string;
+  timestamp?: string;
   description: string;
 }
 
-const TransactionItem = ({ type, amount, date, description }: TransactionItemProps) => {
+const TransactionItem = ({ type, amount, date, timestamp, description }: TransactionItemProps) => {
   const isIncoming = type === 'topup';
+  // Use timestamp if date is not provided
+  const displayDate = date || timestamp || '';
   
   return (
     <div className="flex items-center py-3 border-b border-gray-100">
@@ -22,7 +25,7 @@ const TransactionItem = ({ type, amount, date, description }: TransactionItemPro
       </div>
       <div className="flex-1">
         <h4 className="font-medium">{description}</h4>
-        <p className="text-xs text-gray-500">{date}</p>
+        <p className="text-xs text-gray-500">{displayDate}</p>
       </div>
       <div className={`font-medium ${isIncoming ? 'text-green-600' : 'text-red-600'}`}>
         {isIncoming ? '+' : '-'} Rp {amount.toLocaleString()}
