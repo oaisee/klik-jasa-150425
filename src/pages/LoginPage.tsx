@@ -19,11 +19,22 @@ const LoginPage = () => {
   // Check if user is already logged in
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        setIsAuthenticated(true);
-        // Redirect to home page if already authenticated
-        navigate('/', { replace: true });
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error checking auth:", error);
+          return;
+        }
+        
+        if (data.session) {
+          console.log("User already authenticated, redirecting...");
+          setIsAuthenticated(true);
+          // Redirect to home page if already authenticated
+          navigate('/', { replace: true });
+        }
+      } catch (err) {
+        console.error("Error in auth check:", err);
       }
     };
     
@@ -52,7 +63,9 @@ const LoginPage = () => {
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       
       toast.success("Login berhasil");
       console.log("Login successful, redirecting to home page...");

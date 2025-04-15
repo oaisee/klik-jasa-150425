@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import BottomNavigation from './BottomNavigation';
 
 interface LayoutProps {
@@ -7,6 +7,11 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  // Log when layout renders to help debug
+  useEffect(() => {
+    console.log("Layout component mounted");
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="flex-1 pb-16">

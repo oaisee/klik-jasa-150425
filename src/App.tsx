@@ -33,39 +33,66 @@ import AdminAuthPage from "./pages/AdminAuthPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 
 const App = () => {
-  // Create a new QueryClient instance inside the component
+  // Create a new QueryClient instance
   const queryClient = new QueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   
+  // Debug log to help track authentication state
   useEffect(() => {
+    console.log("Current auth state:", { authenticated, loading, isAdmin });
+  }, [authenticated, loading, isAdmin]);
+  
+  useEffect(() => {
+    let mounted = true;
+    
     // Function to check user session
     const checkUserSession = async () => {
       try {
-        const { data } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Session error:", error);
+          if (mounted) {
+            setAuthenticated(false);
+            setIsAdmin(false);
+            setLoading(false);
+          }
+          return;
+        }
         
         // Check if user is logged in
-        if (data.session) {
-          setAuthenticated(true);
-          
-          // Check if user is admin
-          if (data.session.user?.email === 'admin@klikjasa.com') {
-            setIsAdmin(true);
-          } else {
-            setIsAdmin(false);
+        if (data?.session) {
+          console.log("User is logged in:", data.session.user?.email);
+          if (mounted) {
+            setAuthenticated(true);
+            
+            // Check if user is admin
+            if (data.session.user?.email === 'admin@klikjasa.com') {
+              setIsAdmin(true);
+            } else {
+              setIsAdmin(false);
+            }
           }
         } else {
-          setAuthenticated(false);
-          setIsAdmin(false);
+          console.log("No active session found");
+          if (mounted) {
+            setAuthenticated(false);
+            setIsAdmin(false);
+          }
         }
       } catch (error) {
         console.error("Error checking session:", error);
-        setAuthenticated(false);
-        setIsAdmin(false);
+        if (mounted) {
+          setAuthenticated(false);
+          setIsAdmin(false);
+        }
       } finally {
         // Always set loading to false when done
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
     
@@ -76,19 +103,22 @@ const App = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session?.user?.email);
       
-      if (session) {
-        setAuthenticated(true);
-        setIsAdmin(session.user?.email === 'admin@klikjasa.com');
-      } else {
-        setAuthenticated(false);
-        setIsAdmin(false);
+      if (mounted) {
+        if (session) {
+          setAuthenticated(true);
+          setIsAdmin(session.user?.email === 'admin@klikjasa.com');
+        } else {
+          setAuthenticated(false);
+          setIsAdmin(false);
+        }
+        
+        // Ensure loading is set to false when auth state changes
+        setLoading(false);
       }
-      
-      // Ensure loading is set to false when auth state changes
-      setLoading(false);
     });
     
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -101,6 +131,10 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        {/* Render Toasters outside of Routes to ensure they work across route changes */}
+        <Toaster />
+        <Sonner />
+        
         <Routes>
           {/* Public routes - accessible without authentication */}
           <Route path="/splash" element={<SplashScreen />} />
@@ -161,13 +195,10 @@ const App = () => {
           <Route path="/provider-mode" element={
             authenticated ? <Layout><ProviderModePage /></Layout> : <Navigate to="/login" replace />
           } />
-          <Route path="*" element={<NotFound />} />
           
-          {/* Default route - redirect based on authentication status */}
-          <Route index element={<Navigate to={authenticated ? "/" : "/login"} replace />} />
+          {/* Default route if nothing matches */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
-        <Toaster />
-        <Sonner />
       </TooltipProvider>
     </QueryClientProvider>
   );

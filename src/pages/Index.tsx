@@ -4,11 +4,23 @@ import CategoryList from '@/components/CategoryList';
 import ServicesList from '@/components/ServicesList';
 import { nearbyServices, popularServices } from '@/data/mockData';
 import { useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   // Set document title
   useEffect(() => {
     document.title = 'KlikJasa - Temukan Jasa Lokal';
+    
+    // Log to verify the component is rendering
+    console.log("Index page mounted");
+    
+    // Check auth status for debugging
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      console.log("Index page auth check:", data.session ? "Authenticated" : "Not authenticated");
+    };
+    
+    checkAuth();
   }, []);
 
   return (
