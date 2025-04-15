@@ -15,11 +15,11 @@ const categories = [
 
 const CategoryList = () => {
   return (
-    <div className="grid grid-cols-4 gap-3 px-2">
+    <div className="grid grid-cols-4 gap-4">
       {categories.map((category) => (
         <Link to={`/category/${category.name.toLowerCase().replace(/\s+/g, '-')}`} key={category.name} className="flex flex-col items-center">
-          <div className={`${category.color} p-3 rounded-full mb-1 flex items-center justify-center`}>
-            <category.icon size={20} />
+          <div className={`${category.color} p-3.5 rounded-full mb-2 flex items-center justify-center shadow-sm`}>
+            <category.icon size={22} />
           </div>
           <span className="text-xs text-center font-medium">{category.name}</span>
         </Link>

@@ -19,8 +19,8 @@ interface ServicesListProps {
 const ServicesList = ({ services = [], title }: ServicesListProps) => {
   return (
     <div>
-      <h2 className="text-lg font-semibold mb-3">{title}</h2>
-      <div className="grid grid-cols-2 gap-3">
+      <h2 className="text-lg font-semibold mb-4">{title}</h2>
+      <div className="grid grid-cols-2 gap-4">
         {services && services.length > 0 ? (
           services.map((service) => (
             <ServiceCard 
@@ -35,7 +35,7 @@ const ServicesList = ({ services = [], title }: ServicesListProps) => {
             />
           ))
         ) : (
-          <div className="col-span-2 py-8 text-center text-gray-500">
+          <div className="col-span-2 py-10 text-center text-gray-500">
             Tidak ada layanan tersedia saat ini
           </div>
         )}

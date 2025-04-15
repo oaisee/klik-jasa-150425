@@ -116,17 +116,17 @@ const Index = () => {
 
   return (
     <Layout>
-      <div className="px-4 py-4 animate-fade-in">
-        <div className="flex items-center mb-5">
+      <div className="px-4 py-5 animate-fade-in">
+        <div className="flex items-center mb-6">
           <h1 className="text-xl font-bold flex-1">KlikJasa</h1>
           
           {isAuthenticated && (
             <div className="flex items-center">
               <div 
-                className="flex items-center mr-4 text-marketplace-primary cursor-pointer"
+                className="flex items-center mr-5 text-marketplace-primary cursor-pointer"
                 onClick={handleWalletClick}
               >
-                <Wallet className="h-5 w-5 mr-1" />
+                <Wallet className="h-5 w-5 mr-2" />
                 <span className="text-sm font-medium">
                   Rp {walletBalance?.toLocaleString('id-ID') ?? '0'}
                 </span>
@@ -147,8 +147,14 @@ const Index = () => {
           )}
         </div>
         
-        <SearchBar />
-        <CategoryList />
+        <div className="mb-7">
+          <SearchBar />
+        </div>
+        
+        <div className="mb-8">
+          <CategoryList />
+        </div>
+        
         <ServicesList services={nearbyServices} title="Penyedia Jasa Terdekat" />
       </div>
     </Layout>
