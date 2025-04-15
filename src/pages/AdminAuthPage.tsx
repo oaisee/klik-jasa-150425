@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,23 @@ const AdminAuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+  
+  useEffect(() => {
+    // Check if admin is already logged in
+    const checkAdminSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      
+      if (data.session && data.session.user?.email === 'admin@klikjasa.com') {
+        // Already logged in as admin, redirect to dashboard
+        navigate('/admin-dashboard');
+      }
+      
+      setCheckingSession(false);
+    };
+    
+    checkAdminSession();
+  }, [navigate]);
   
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +78,14 @@ const AdminAuthPage = () => {
       setLoading(false);
     }
   };
+  
+  if (checkingSession) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-marketplace-primary"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">

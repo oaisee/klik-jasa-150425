@@ -20,16 +20,25 @@ const AdminDashboardPage = () => {
   useEffect(() => {
     document.title = 'KlikJasa Admin Dashboard';
     
-    // Check Supabase connection
-    const checkConnection = async () => {
+    // Check user authentication
+    const checkAdmin = async () => {
       setLoading(true);
+      const { data } = await supabase.auth.getSession();
+      
+      if (!data.session || data.session.user?.email !== 'admin@klikjasa.com') {
+        toast.error("Akses tidak diizinkan");
+        navigate('/admin');
+        return;
+      }
+      
+      // Check Supabase connection
       const status = await checkSupabaseConnection();
       setConnectionStatus(status);
       setLoading(false);
     };
     
-    checkConnection();
-  }, []);
+    checkAdmin();
+  }, [navigate]);
   
   const handleSignOut = async () => {
     try {
@@ -41,6 +50,14 @@ const AdminDashboardPage = () => {
       console.error('Error signing out:', error);
     }
   };
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-marketplace-primary"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex min-h-screen bg-slate-50">
