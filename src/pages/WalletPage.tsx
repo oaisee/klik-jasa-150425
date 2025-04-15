@@ -6,15 +6,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Wallet, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { useProfile } from '@/hooks/useProfile';
 import TopUpDialog from '@/components/wallet/TopUpDialog';
-import TransactionsList from '@/components/wallet/TransactionsList';
+import TransactionsList, { Transaction } from '@/components/wallet/TransactionsList';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
-import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const WalletPage = () => {
   const { userData, loading, fetchUserProfile } = useProfile();
   const [isTopUpOpen, setIsTopUpOpen] = useState(false);
-  const [transactions, setTransactions] = useState([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
@@ -36,7 +35,7 @@ const WalletPage = () => {
       
       // In a real app, we would fetch actual transactions
       setTimeout(() => {
-        const mockTransactions = [
+        const mockTransactions: Transaction[] = [
           {
             id: '1',
             type: 'topup',
