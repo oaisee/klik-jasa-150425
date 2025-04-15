@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -43,21 +44,29 @@ const RegisterPage = () => {
     
     setLoading(true);
     
-    // Dummy registration logic - in a real app, this would connect to an auth service
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Register user with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            phone: phone,
+            is_provider: isProvider
+          }
+        }
+      });
       
-      toast.success("Pendaftaran berhasil");
+      if (error) throw error;
       
-      // Redirect based on user type
-      if (isProvider) {
-        navigate('/provider-mode', { replace: true });
-      } else {
-        navigate('/', { replace: true });
-      }
-    } catch (err) {
-      toast.error("Terjadi kesalahan, silakan coba lagi");
+      toast.success("Pendaftaran berhasil! Silakan masuk dengan akun Anda");
+      
+      // Redirect to the login page after successful registration
+      navigate('/login', { replace: true });
+      
+    } catch (err: any) {
+      toast.error(err.message || "Terjadi kesalahan, silakan coba lagi");
       console.error(err);
     } finally {
       setLoading(false);
