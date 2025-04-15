@@ -123,6 +123,7 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
     setShowIdVerificationAlert(false);
     setLoading(true);
     
+    // Fix the Promise chain to ensure it has a finally method
     supabase
       .from('profiles')
       .update({ is_provider: true })
@@ -145,6 +146,10 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
         setTimeout(() => {
           navigate('/provider-mode');
         }, 1000);
+      })
+      .catch(err => {
+        console.error('Error updating user role:', err);
+        toast.error("Gagal mengubah peran pengguna");
       })
       .finally(() => {
         setLoading(false);
