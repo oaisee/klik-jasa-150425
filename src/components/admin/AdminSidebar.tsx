@@ -7,7 +7,8 @@ import {
   FileText, 
   Briefcase, 
   Settings, 
-  LogOut
+  LogOut,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -34,7 +35,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   };
   
   return (
-    <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
+    <div className="hidden md:flex flex-col w-64 bg-white border-r border-gray-200 h-screen">
       <div className="p-4 flex items-center space-x-2">
         <img
           src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png"
@@ -46,8 +47,11 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
       
       <Separator />
       
-      <nav className="flex-1 p-4">
-        <ul className="space-y-1">
+      <nav className="flex-1 p-4 overflow-y-auto">
+        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider pl-2 mb-2">
+          Utama
+        </div>
+        <ul className="space-y-1 mb-6">
           <li>
             <Button
               variant={activeTab === 'dashboard' ? 'default' : 'ghost'}
@@ -58,6 +62,22 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
               Dashboard
             </Button>
           </li>
+          <li>
+            <Button
+              variant={activeTab === 'analytics' ? 'default' : 'ghost'}
+              className="w-full justify-start"
+              onClick={() => setActiveTab('analytics')}
+            >
+              <BarChart3 className="mr-2 h-5 w-5" />
+              Analitik
+            </Button>
+          </li>
+        </ul>
+
+        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider pl-2 mb-2">
+          Manajemen
+        </div>
+        <ul className="space-y-1 mb-6">
           <li>
             <Button
               variant={activeTab === 'users' ? 'default' : 'ghost'}
@@ -88,6 +108,12 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
               Transaksi
             </Button>
           </li>
+        </ul>
+
+        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider pl-2 mb-2">
+          Sistem
+        </div>
+        <ul className="space-y-1">
           <li>
             <Button
               variant={activeTab === 'settings' ? 'default' : 'ghost'}
@@ -101,7 +127,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
         </ul>
       </nav>
       
-      <div className="p-4">
+      <div className="p-4 border-t border-gray-200">
         <Button
           variant="outline"
           className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
