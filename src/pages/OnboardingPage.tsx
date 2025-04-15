@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, UserPlus, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import type { EmblaCarouselType } from 'embla-carousel-react';
 
 const onboardingSlides = [
   {
@@ -33,10 +34,18 @@ const onboardingSlides = [
 const OnboardingPage = () => {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [emblaApi, setEmblaApi] = useState<EmblaCarouselType | null>(null);
   
   useEffect(() => {
     document.title = 'Selamat Datang di KlikJasa';
   }, []);
+
+  // Update emblaApi when currentSlide changes
+  useEffect(() => {
+    if (emblaApi) {
+      emblaApi.scrollTo(currentSlide);
+    }
+  }, [currentSlide, emblaApi]);
 
   const handleNext = () => {
     if (currentSlide < onboardingSlides.length - 1) {
@@ -94,18 +103,13 @@ const OnboardingPage = () => {
       <Carousel 
         className="flex-1 w-full"
         setApi={(api) => {
+          setEmblaApi(api);
           if (api) {
             api.on('select', () => {
               setCurrentSlide(api.selectedScrollSnap());
             });
-            // Programmatically set slide when currentSlide changes via skip
-            if (api.selectedScrollSnap() !== currentSlide) {
-              api.scrollTo(currentSlide);
-            }
           }
         }}
-        // This is important to allow programmatic control
-        index={currentSlide}
         opts={{
           align: 'start',
           containScroll: 'trimSnaps',
