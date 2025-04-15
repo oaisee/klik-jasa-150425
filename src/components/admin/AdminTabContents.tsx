@@ -1,40 +1,39 @@
 
-import AnalyticsOverview from './analytics/AnalyticsOverview';
-import UserManagement from './sections/UserManagement';
 import ServiceManagement from './sections/ServiceManagement';
+import UserManagement from './sections/UserManagement';
 import TransactionManagement from './sections/TransactionManagement';
 import Settings from './sections/Settings';
-import VerificationRequestsList from './VerificationRequestsList';
+import VerificationRequestsList from './verification/VerificationRequestsList';
 
 interface AdminTabContentsProps {
   activeTab: string;
 }
 
 const AdminTabContents = ({ activeTab }: AdminTabContentsProps) => {
+  if (activeTab === 'users') {
+    return <UserManagement />;
+  }
+  
+  if (activeTab === 'services') {
+    return <ServiceManagement />;
+  }
+  
+  if (activeTab === 'transactions') {
+    return <TransactionManagement />;
+  }
+  
+  if (activeTab === 'settings') {
+    return <Settings />;
+  }
+  
+  if (activeTab === 'verifications') {
+    return <VerificationRequestsList />;
+  }
+  
+  // Default content or placeholder
   return (
-    <div className="space-y-6">
-      {activeTab === 'analytics' && (
-        <AnalyticsOverview />
-      )}
-      
-      {activeTab === 'users' && (
-        <>
-          <VerificationRequestsList />
-          <UserManagement />
-        </>
-      )}
-      
-      {activeTab === 'services' && (
-        <ServiceManagement />
-      )}
-      
-      {activeTab === 'transactions' && (
-        <TransactionManagement />
-      )}
-      
-      {activeTab === 'settings' && (
-        <Settings />
-      )}
+    <div className="text-center py-20 text-gray-500">
+      Select a tab to view content
     </div>
   );
 };

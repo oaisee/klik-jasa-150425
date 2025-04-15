@@ -5,16 +5,7 @@ import TransactionItem from './TransactionItem';
 import { Skeleton } from '@/components/ui/skeleton';
 import EmptyState from '../shared/EmptyState';
 import { FileX } from 'lucide-react';
-
-interface Transaction {
-  id: string;
-  user_id: string;
-  amount: number;
-  type: string;
-  status: string;
-  description: string;
-  created_at: string;
-}
+import { Transaction } from '@/types/database';
 
 interface TransactionsListProps {
   userId: string;
@@ -82,7 +73,7 @@ const TransactionsList = ({ userId }: TransactionsListProps) => {
       {transactions.map((transaction) => (
         <TransactionItem
           key={transaction.id}
-          type={transaction.type}
+          type={transaction.type as 'topup' | 'commission' | 'payout'}
           amount={transaction.amount}
           date={new Date(transaction.created_at).toISOString()}
           description={transaction.description}
