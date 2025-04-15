@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -76,34 +75,46 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
         return; // Don't proceed until ID verification
       }
       
-      const { error } = await supabase
+      // Fix the Promise chain to ensure it has a finally method
+      supabase
         .from('profiles')
         .update({ is_provider: checked })
-        .eq('id', userId);
-
-      if (error) throw error;
-
-      setIsProviderState(checked);
-      if (onRoleChange) {
-        onRoleChange(checked);
-      }
-
-      toast.success(
-        checked 
-          ? "Anda sekarang adalah penyedia jasa" 
-          : "Anda sekarang adalah pengguna jasa"
-      );
-
-      // If switching to provider, navigate to provider mode page
-      if (checked) {
-        setTimeout(() => {
-          navigate('/provider-mode');
-        }, 1000); // Short delay to show the toast before navigating
-      }
+        .eq('id', userId)
+        .then(({ error }) => {
+          if (error) {
+            toast.error("Gagal mengubah peran pengguna");
+            console.error('Error updating user role:', error);
+            return;
+          }
+          
+          setIsProviderState(checked);
+          if (onRoleChange) {
+            onRoleChange(checked);
+          }
+          
+          toast.success(
+            checked 
+              ? "Anda sekarang adalah penyedia jasa" 
+              : "Anda sekarang adalah pengguna jasa"
+          );
+          
+          // If switching to provider, navigate to provider mode page
+          if (checked) {
+            setTimeout(() => {
+              navigate('/provider-mode');
+            }, 1000); // Short delay to show the toast before navigating
+          }
+        })
+        .catch(err => {
+          console.error('Error updating user role:', err);
+          toast.error("Gagal mengubah peran pengguna");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error("Gagal mengubah peran pengguna");
-    } finally {
       setLoading(false);
     }
   };
