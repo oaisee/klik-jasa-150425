@@ -1,15 +1,12 @@
+
 import { useState, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Avatar } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Search, Send, Smile, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import LoadingIndicator from '@/components/shared/LoadingIndicator';
-import EmptyState from '@/components/shared/EmptyState';
 import { chatListData } from '@/data/chatData';
+import ChatPageHeader from '@/components/chat/ChatPageHeader';
+import ChatSearch from '@/components/chat/ChatSearch';
+import ChatList from '@/components/chat/ChatList';
 
 const ChatPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,82 +71,21 @@ const ChatPage = () => {
   
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 animate-fade-in">
-      <div className="bg-white px-4 py-3 flex items-center shadow-sm z-10">
-        <h1 className="text-lg font-semibold">Pesan</h1>
-      </div>
+      <ChatPageHeader />
       
       <div className="flex-1 p-4 pb-20">
-        <div className="relative mb-6">
-          <Input
-            type="text"
-            placeholder="Cari pesan"
-            value={searchQuery}
-            onChange={handleSearch}
-            className="pl-10"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-        </div>
+        <ChatSearch 
+          searchQuery={searchQuery} 
+          onChange={handleSearch} 
+        />
         
-        {loading ? (
-          <div className="py-10 flex justify-center">
-            <LoadingIndicator size="lg" />
-          </div>
-        ) : chats.length > 0 ? (
-          chats.map((chat) => (
-            <ChatListItem 
-              key={chat.id}
-              name={chat.name}
-              message={chat.lastMessage}
-              time={chat.time}
-              unread={chat.unread}
-              avatar={chat.avatar}
-              onClick={() => handleChatClick(chat.id)}
-            />
-          ))
-        ) : (
-          <EmptyState 
-            icon={Smile}
-            title="Belum ada percakapan"
-            description="Mulai percakapan dengan penyedia jasa atau pelanggan"
-          />
-        )}
+        <ChatList 
+          loading={loading}
+          chats={chats}
+          onChatClick={handleChatClick}
+        />
       </div>
     </div>
-  );
-};
-
-interface ChatListItemProps {
-  name: string;
-  message: string;
-  time: string;
-  unread: number;
-  avatar: string;
-  onClick: () => void;
-}
-
-const ChatListItem = ({ name, message, time, unread, avatar, onClick }: ChatListItemProps) => {
-  return (
-    <Card className="mb-3 cursor-pointer hover:bg-gray-50 transition-colors" onClick={onClick}>
-      <CardContent className="p-3 flex">
-        <Avatar>
-          <img src={avatar} alt={name} className="w-12 h-12 rounded-full object-cover" />
-        </Avatar>
-        <div className="ml-3 flex-1">
-          <div className="flex justify-between items-center">
-            <h3 className="font-semibold">{name}</h3>
-            <span className="text-xs text-gray-500">{time}</span>
-          </div>
-          <p className="text-sm text-gray-600 truncate">{message}</p>
-        </div>
-        {unread > 0 && (
-          <div className="flex items-start ml-2">
-            <span className="bg-marketplace-primary text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              {unread}
-            </span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
   );
 };
 
