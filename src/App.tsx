@@ -32,34 +32,6 @@ import RegisterPage from "./pages/RegisterPage";
 import AdminAuthPage from "./pages/AdminAuthPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 
-// Create a protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        setAuthenticated(true);
-      } else {
-        // Redirect to login if not authenticated
-        navigate('/login', { replace: true });
-      }
-      setLoading(false);
-    };
-
-    checkAuth();
-  }, [navigate]);
-
-  if (loading) {
-    return <SplashScreen />;
-  }
-
-  return authenticated ? <>{children}</> : null;
-};
-
 const App = () => {
   // Create a new QueryClient instance inside the component
   const queryClient = new QueryClient();
@@ -69,24 +41,30 @@ const App = () => {
   
   useEffect(() => {
     const checkUserSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      
-      // Check if user is logged in
-      if (data.session) {
-        setAuthenticated(true);
+      try {
+        const { data } = await supabase.auth.getSession();
         
-        // Check if user is admin
-        if (data.session.user?.email === 'admin@klikjasa.com') {
-          setIsAdmin(true);
+        // Check if user is logged in
+        if (data.session) {
+          setAuthenticated(true);
+          
+          // Check if user is admin
+          if (data.session.user?.email === 'admin@klikjasa.com') {
+            setIsAdmin(true);
+          } else {
+            setIsAdmin(false);
+          }
         } else {
+          setAuthenticated(false);
           setIsAdmin(false);
         }
-      } else {
+      } catch (error) {
+        console.error("Error checking session:", error);
         setAuthenticated(false);
         setIsAdmin(false);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
     
     checkUserSession();
@@ -117,8 +95,6 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
         <Routes>
           {/* Public routes */}
           <Route path="/splash" element={<SplashScreen />} />
@@ -184,6 +160,8 @@ const App = () => {
           {/* Default route - redirect based on authentication status */}
           <Route index element={<Navigate to={authenticated ? "/" : "/login"} replace />} />
         </Routes>
+        <Toaster />
+        <Sonner />
       </TooltipProvider>
     </QueryClientProvider>
   );
