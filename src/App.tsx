@@ -1,207 +1,53 @@
-
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Index from '@/pages/Index';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import ProfilePage from '@/pages/ProfilePage';
+import EditProfilePage from '@/pages/EditProfilePage';
+import SettingsPage from '@/pages/SettingsPage';
+import SecurityPage from '@/pages/SecurityPage';
+import NotificationsPage from '@/pages/NotificationsPage';
+import WalletPage from '@/pages/WalletPage';
+import PaymentMethodsPage from '@/pages/PaymentMethodsPage';
+import HelpPage from '@/pages/HelpPage';
+import AdminPage from '@/pages/AdminPage';
+import ProviderDashboard from '@/pages/providerMode/ProviderDashboard';
+import ProviderProfilePage from '@/pages/providerMode/ProviderProfilePage';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { ThemeProvider } from './providers/ThemeProvider';
+import './App.css';
 
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import ServiceDetail from "./pages/ServiceDetail";
-import WalletPage from "./pages/WalletPage";
-import BookingConfirmation from "./pages/BookingConfirmation";
-import CreateService from "./pages/CreateService";
-import SearchPage from "./pages/SearchPage";
-import BookingsPage from "./pages/BookingsPage";
-import ChatPage from "./pages/ChatPage";
-import ProfilePage from "./pages/ProfilePage";
-import Layout from "./components/Layout";
-import NotificationsPage from "./pages/NotificationsPage";
-import SecurityPage from "./pages/SecurityPage";
-import PaymentMethodsPage from "./pages/PaymentMethodsPage";
-import SettingsPage from "./pages/SettingsPage";
-import HelpPage from "./pages/HelpPage";
-import EditProfilePage from "./pages/EditProfilePage";
-import ProviderModePage from "./pages/ProviderModePage";
-import SplashScreen from "./components/SplashScreen";
-import OnboardingPage from "./pages/OnboardingPage";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import AdminAuthPage from "./pages/AdminAuthPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
+const queryClient = new QueryClient();
 
-const App = () => {
-  // Create a new QueryClient instance
-  const queryClient = new QueryClient();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
-  
-  // Debug log to help track authentication state
-  useEffect(() => {
-    console.log("Current auth state:", { authenticated, loading, isAdmin });
-  }, [authenticated, loading, isAdmin]);
-  
-  useEffect(() => {
-    let mounted = true;
-    
-    // Function to check user session
-    const checkUserSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Session error:", error);
-          if (mounted) {
-            setAuthenticated(false);
-            setIsAdmin(false);
-            setLoading(false);
-          }
-          return;
-        }
-        
-        // Check if user is logged in
-        if (data?.session) {
-          console.log("User is logged in:", data.session.user?.email);
-          if (mounted) {
-            setAuthenticated(true);
-            
-            // Check if user is admin
-            if (data.session.user?.email === 'admin@klikjasa.com') {
-              setIsAdmin(true);
-            } else {
-              setIsAdmin(false);
-            }
-          }
-        } else {
-          console.log("No active session found");
-          if (mounted) {
-            setAuthenticated(false);
-            setIsAdmin(false);
-          }
-        }
-      } catch (error) {
-        console.error("Error checking session:", error);
-        if (mounted) {
-          setAuthenticated(false);
-          setIsAdmin(false);
-        }
-      } finally {
-        // Always set loading to false when done
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-    
-    // Check session immediately
-    checkUserSession();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session?.user?.email);
-      
-      if (mounted) {
-        if (session) {
-          setAuthenticated(true);
-          setIsAdmin(session.user?.email === 'admin@klikjasa.com');
-        } else {
-          setAuthenticated(false);
-          setIsAdmin(false);
-        }
-        
-        // Ensure loading is set to false when auth state changes
-        setLoading(false);
-      }
-    });
-    
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-  
-  // Show loading indicator while checking session
-  if (loading) {
-    return <SplashScreen />;
-  }
-
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        {/* Render Toasters outside of Routes to ensure they work across route changes */}
-        <Toaster />
-        <Sonner />
-        
-        <Routes>
-          {/* Public routes - accessible without authentication */}
-          <Route path="/splash" element={<SplashScreen />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminAuthPage />} />
-          <Route path="/admin-dashboard/*" element={isAdmin ? <AdminDashboardPage /> : <Navigate to="/admin" />} />
-          
-          {/* Protected user routes - redirect to login if not authenticated */}
-          <Route path="/" element={
-            authenticated ? <Layout><Index /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/search" element={
-            authenticated ? <Layout><SearchPage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/bookings" element={
-            authenticated ? <Layout><BookingsPage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/chat" element={
-            authenticated ? <Layout><ChatPage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/profile" element={
-            authenticated ? <Layout><ProfilePage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/service/:id" element={
-            authenticated ? <Layout><ServiceDetail /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/wallet" element={
-            authenticated ? <Layout><WalletPage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/booking-confirmation/:id" element={
-            authenticated ? <Layout><BookingConfirmation /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/create-service" element={
-            authenticated ? <Layout><CreateService /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/notifications" element={
-            authenticated ? <Layout><NotificationsPage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/security" element={
-            authenticated ? <Layout><SecurityPage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/payment-methods" element={
-            authenticated ? <Layout><PaymentMethodsPage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/settings" element={
-            authenticated ? <Layout><SettingsPage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/help" element={
-            authenticated ? <Layout><HelpPage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/edit-profile" element={
-            authenticated ? <Layout><EditProfilePage /></Layout> : <Navigate to="/login" replace />
-          } />
-          <Route path="/provider-mode" element={
-            authenticated ? <Layout><ProviderModePage /></Layout> : <Navigate to="/login" replace />
-          } />
-          
-          {/* Default route if nothing matches */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </TooltipProvider>
+      <ThemeProvider>
+        <BrowserRouter>
+          <div className="app-container">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/profile/edit" element={<EditProfilePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/security" element={<SecurityPage />} />
+              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route path="/wallet" element={<WalletPage />} />
+              <Route path="/payment-methods" element={<PaymentMethodsPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/provider" element={<ProviderDashboard />} />
+              <Route path="/provider/profile" element={<ProviderProfilePage />} />
+            </Routes>
+          </div>
+          <Toaster />
+        </BrowserRouter>
+      </ThemeProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

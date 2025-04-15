@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from '@/providers/ThemeProvider';
 import { 
   Dialog,
   DialogContent,
@@ -18,14 +19,20 @@ import { Button } from '@/components/ui/button';
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  const [darkModeEnabled, setDarkModeEnabled] = useState(theme === 'dark');
   const [languageOpen, setLanguageOpen] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState("Indonesia");
 
   useEffect(() => {
     document.title = 'Pengaturan | KlikJasa';
   }, []);
+
+  // Update darkModeEnabled when theme changes
+  useEffect(() => {
+    setDarkModeEnabled(theme === 'dark');
+  }, [theme]);
 
   const handleNotificationsChange = () => {
     const newValue = !notificationsEnabled;
@@ -39,15 +46,13 @@ const SettingsPage = () => {
   };
 
   const handleDarkModeChange = () => {
-    const newValue = !darkModeEnabled;
-    setDarkModeEnabled(newValue);
+    toggleTheme();
     toast({
-      title: newValue ? "Mode Gelap Diaktifkan" : "Mode Gelap Dinonaktifkan",
-      description: newValue 
+      title: theme === 'light' ? "Mode Gelap Diaktifkan" : "Mode Gelap Dinonaktifkan",
+      description: theme === 'light' 
         ? "Tampilan aplikasi sekarang dalam mode gelap" 
         : "Tampilan aplikasi sekarang dalam mode terang",
     });
-    // In a real implementation, this would update the theme
   };
 
   const handleLanguageChange = (language: string) => {
