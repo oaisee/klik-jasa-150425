@@ -1,10 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TabsContainer, { TabItem } from '../shared/TabsContainer';
+import ServicesList from './ServicesList';
 import { Button } from '@/components/ui/button';
-import { Plus, Wrench, AlertCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import ServiceCard from './ServiceCard';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -38,7 +38,15 @@ const ServicesTab = () => {
           }
           
           console.log('Fetched services:', data);
-          setServices(data || []);
+          
+          // Add placeholder values for views and ordersCount
+          const servicesWithStats = data?.map(service => ({
+            ...service,
+            views: Math.floor(Math.random() * 100),
+            ordersCount: Math.floor(Math.random() * 10)
+          })) || [];
+          
+          setServices(servicesWithStats);
         }
       } catch (error) {
         console.error('Error fetching services:', error);
@@ -74,6 +82,24 @@ const ServicesTab = () => {
     }
   };
   
+  const tabs: TabItem[] = [
+    { 
+      id: 'active',
+      label: 'Aktif',
+      content: <ServicesList services={services} loading={loading} status="active" onStatusToggle={toggleServiceStatus} />
+    },
+    { 
+      id: 'inactive',
+      label: 'Nonaktif',
+      content: <ServicesList services={services} loading={loading} status="inactive" onStatusToggle={toggleServiceStatus} />
+    },
+    { 
+      id: 'drafts',
+      label: 'Draft',
+      content: <ServicesList services={services} loading={loading} status="draft" onStatusToggle={toggleServiceStatus} />
+    }
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-2">
@@ -87,111 +113,11 @@ const ServicesTab = () => {
         </Button>
       </div>
       
-      <Tabs defaultValue="active" className="w-full" value={activeServiceTab} onValueChange={setActiveServiceTab}>
-        <TabsList className="grid w-full grid-cols-3 mb-4">
-          <TabsTrigger value="active">Aktif</TabsTrigger>
-          <TabsTrigger value="inactive">Nonaktif</TabsTrigger>
-          <TabsTrigger value="drafts">Draft</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="active">
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin h-6 w-6 border-t-2 border-b-2 border-marketplace-primary rounded-full"></div>
-            </div>
-          ) : services.filter(s => s.status === 'active').length > 0 ? (
-            <div className="space-y-4">
-              {services
-                .filter(service => service.status === 'active')
-                .map(service => (
-                  <ServiceCard
-                    key={service.id}
-                    id={service.id}
-                    title={service.title}
-                    price={service.price}
-                    status={service.status}
-                    views={Math.floor(Math.random() * 100)}
-                    ordersCount={Math.floor(Math.random() * 10)}
-                    onStatusToggle={() => toggleServiceStatus(service.id, service.status)}
-                  />
-                ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-              <Wrench size={40} className="mx-auto text-gray-400 mb-2" />
-              <h3 className="font-medium text-gray-700">Belum Ada Layanan Aktif</h3>
-              <p className="text-gray-500 text-sm mt-1 mb-4">Anda belum memiliki layanan yang aktif</p>
-              <Button 
-                onClick={() => navigate('/create-service')}
-                size="sm"
-                className="mx-auto"
-              >
-                <Plus className="w-4 h-4 mr-1" /> Tambah Layanan
-              </Button>
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="inactive">
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin h-6 w-6 border-t-2 border-b-2 border-marketplace-primary rounded-full"></div>
-            </div>
-          ) : services.filter(s => s.status === 'inactive').length > 0 ? (
-            <div className="space-y-4">
-              {services
-                .filter(service => service.status === 'inactive')
-                .map(service => (
-                  <ServiceCard
-                    key={service.id}
-                    id={service.id}
-                    title={service.title}
-                    price={service.price}
-                    status={service.status}
-                    views={Math.floor(Math.random() * 50)}
-                    ordersCount={Math.floor(Math.random() * 5)}
-                    onStatusToggle={() => toggleServiceStatus(service.id, service.status)}
-                  />
-                ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
-              <AlertCircle size={40} className="mb-2 opacity-50" />
-              <p>Tidak ada layanan nonaktif</p>
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="drafts">
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin h-6 w-6 border-t-2 border-b-2 border-marketplace-primary rounded-full"></div>
-            </div>
-          ) : services.filter(s => s.status === 'draft').length > 0 ? (
-            <div className="space-y-4">
-              {services
-                .filter(service => service.status === 'draft')
-                .map(service => (
-                  <ServiceCard
-                    key={service.id}
-                    id={service.id}
-                    title={service.title}
-                    price={service.price}
-                    status={service.status}
-                    views={0}
-                    ordersCount={0}
-                    onStatusToggle={() => toggleServiceStatus(service.id, service.status)}
-                  />
-                ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
-              <AlertCircle size={40} className="mb-2 opacity-50" />
-              <p>Tidak ada draft layanan</p>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+      <TabsContainer 
+        tabs={tabs} 
+        value={activeServiceTab} 
+        onValueChange={setActiveServiceTab} 
+      />
     </div>
   );
 };

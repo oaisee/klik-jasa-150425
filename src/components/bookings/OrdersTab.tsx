@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar } from 'lucide-react';
-import BookingCard from './BookingCard';
+import TabsContainer, { TabItem } from '../shared/TabsContainer';
+import BookingsList from './BookingsList';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -67,116 +65,30 @@ const OrdersTab = () => {
     fetchBookings();
   }, []);
 
+  const tabs: TabItem[] = [
+    { 
+      id: 'active',
+      label: 'Aktif',
+      content: <BookingsList bookings={bookings} loading={loading} status="active" />
+    },
+    { 
+      id: 'pending',
+      label: 'Tertunda',
+      content: <BookingsList bookings={bookings} loading={loading} status="pending" />
+    },
+    { 
+      id: 'completed',
+      label: 'Selesai',
+      content: <BookingsList bookings={bookings} loading={loading} status="completed" />
+    }
+  ];
+
   return (
-    <Tabs defaultValue="active" className="w-full" value={activeOrderTab} onValueChange={setActiveOrderTab}>
-      <TabsList className="grid w-full grid-cols-3 mb-4">
-        <TabsTrigger value="active">Aktif</TabsTrigger>
-        <TabsTrigger value="pending">Tertunda</TabsTrigger>
-        <TabsTrigger value="completed">Selesai</TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="active">
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin h-6 w-6 border-t-2 border-b-2 border-marketplace-primary rounded-full"></div>
-          </div>
-        ) : bookings.filter(b => b.status === 'active').length > 0 ? (
-          <div className="space-y-4">
-            {bookings
-              .filter(booking => booking.status === 'active')
-              .map(booking => (
-                <BookingCard 
-                  key={booking.id}
-                  service={booking.service}
-                  provider={booking.provider}
-                  date={booking.date}
-                  time={booking.time}
-                  location={booking.location}
-                  status="active"
-                  price={booking.price}
-                />
-              ))}
-              
-            <div className="text-center mt-3 text-gray-500 text-sm">
-              Menampilkan {bookings.filter(b => b.status === 'active').length} dari {bookings.filter(b => b.status === 'active').length} pesanan aktif
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
-            <Calendar size={48} className="mb-2 opacity-50" />
-            <p>Tidak ada pesanan aktif</p>
-          </div>
-        )}
-      </TabsContent>
-      
-      <TabsContent value="pending">
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin h-6 w-6 border-t-2 border-b-2 border-marketplace-primary rounded-full"></div>
-          </div>
-        ) : bookings.filter(b => b.status === 'pending').length > 0 ? (
-          <div className="space-y-4">
-            {bookings
-              .filter(booking => booking.status === 'pending')
-              .map(booking => (
-                <BookingCard 
-                  key={booking.id}
-                  service={booking.service}
-                  provider={booking.provider}
-                  date={booking.date}
-                  time={booking.time}
-                  location={booking.location}
-                  status="pending"
-                  price={booking.price}
-                />
-              ))}
-              
-            <div className="text-center mt-3 text-gray-500 text-sm">
-              Menampilkan {bookings.filter(b => b.status === 'pending').length} dari {bookings.filter(b => b.status === 'pending').length} pesanan tertunda
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
-            <Calendar size={48} className="mb-2 opacity-50" />
-            <p>Tidak ada pesanan tertunda</p>
-          </div>
-        )}
-      </TabsContent>
-      
-      <TabsContent value="completed">
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin h-6 w-6 border-t-2 border-b-2 border-marketplace-primary rounded-full"></div>
-          </div>
-        ) : bookings.filter(b => b.status === 'completed').length > 0 ? (
-          <div className="space-y-4">
-            {bookings
-              .filter(booking => booking.status === 'completed')
-              .map(booking => (
-                <BookingCard 
-                  key={booking.id}
-                  service={booking.service}
-                  provider={booking.provider}
-                  date={booking.date}
-                  time={booking.time}
-                  location={booking.location}
-                  status="completed"
-                  price={booking.price}
-                />
-              ))}
-              
-            <div className="text-center mt-3 text-gray-500 text-sm">
-              Menampilkan {bookings.filter(b => b.status === 'completed').length} dari {bookings.filter(b => b.status === 'completed').length} pesanan selesai
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
-            <Calendar size={48} className="mb-2 opacity-50" />
-            <p>Tidak ada pesanan selesai</p>
-          </div>
-        )}
-      </TabsContent>
-    </Tabs>
+    <TabsContainer 
+      tabs={tabs} 
+      value={activeOrderTab} 
+      onValueChange={setActiveOrderTab} 
+    />
   );
 };
 
