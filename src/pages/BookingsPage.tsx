@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Clock, MapPin, User, Briefcase, Tool, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, MapPin, User, Briefcase, AlertCircle } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import OrdersTab from '@/components/bookings/OrdersTab';
 import ServicesTab from '@/components/bookings/ServicesTab';

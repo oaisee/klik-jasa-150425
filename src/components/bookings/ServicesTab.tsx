@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Tool, AlertCircle } from 'lucide-react';
+import { Plus, Wrench, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ServiceCard from './ServiceCard';
 import { useProviderServices } from '@/hooks/providerMode/useProviderServices';
@@ -88,7 +88,7 @@ const ServicesTab = () => {
             </div>
           ) : (
             <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-              <Tool size={40} className="mx-auto text-gray-400 mb-2" />
+              <Wrench size={40} className="mx-auto text-gray-400 mb-2" />
               <h3 className="font-medium text-gray-700">Belum Ada Layanan Aktif</h3>
               <p className="text-gray-500 text-sm mt-1 mb-4">Anda belum memiliki layanan yang aktif</p>
               <Button 
