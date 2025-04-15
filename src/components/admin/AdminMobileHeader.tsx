@@ -1,7 +1,6 @@
 
 import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   LayoutDashboard, 
   Users, 
@@ -38,23 +37,48 @@ const AdminMobileHeader = ({ activeTab, setActiveTab, handleSignOut }: AdminMobi
         </Button>
       </div>
       
-      <TabsList className="grid grid-cols-5 w-full">
-        <TabsTrigger value="dashboard" onClick={() => setActiveTab('dashboard')}>
+      <div className="grid grid-cols-5 w-full bg-muted p-1 h-10 items-center justify-center rounded-md">
+        <Button 
+          variant={activeTab === 'dashboard' ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 w-full flex justify-center items-center"
+          onClick={() => setActiveTab('dashboard')}
+        >
           <LayoutDashboard className="h-5 w-5" />
-        </TabsTrigger>
-        <TabsTrigger value="users" onClick={() => setActiveTab('users')}>
+        </Button>
+        <Button 
+          variant={activeTab === 'users' ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 w-full flex justify-center items-center"
+          onClick={() => setActiveTab('users')}
+        >
           <Users className="h-5 w-5" />
-        </TabsTrigger>
-        <TabsTrigger value="services" onClick={() => setActiveTab('services')}>
+        </Button>
+        <Button 
+          variant={activeTab === 'services' ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 w-full flex justify-center items-center"
+          onClick={() => setActiveTab('services')}
+        >
           <Briefcase className="h-5 w-5" />
-        </TabsTrigger>
-        <TabsTrigger value="transactions" onClick={() => setActiveTab('transactions')}>
+        </Button>
+        <Button 
+          variant={activeTab === 'transactions' ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 w-full flex justify-center items-center"
+          onClick={() => setActiveTab('transactions')}
+        >
           <FileText className="h-5 w-5" />
-        </TabsTrigger>
-        <TabsTrigger value="settings" onClick={() => setActiveTab('settings')}>
+        </Button>
+        <Button 
+          variant={activeTab === 'settings' ? 'default' : 'ghost'}
+          size="sm"
+          className="h-8 w-full flex justify-center items-center"
+          onClick={() => setActiveTab('settings')}
+        >
           <Settings className="h-5 w-5" />
-        </TabsTrigger>
-      </TabsList>
+        </Button>
+      </div>
     </div>
   );
 };
