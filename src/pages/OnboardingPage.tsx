@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, UserPlus, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   Carousel,
@@ -120,15 +120,19 @@ const OnboardingPage = () => {
                   <div className="mt-8 w-full max-w-xs space-y-4">
                     <Button 
                       onClick={() => handleUserTypeSelection('user')}
-                      className="w-full bg-marketplace-primary hover:bg-marketplace-primary/90"
+                      className="w-full bg-marketplace-primary hover:bg-marketplace-primary/90 transition-transform duration-200 hover:scale-105"
+                      size="lg"
                     >
+                      <UserPlus className="mr-2" />
                       Daftar sebagai Pengguna
                     </Button>
                     <Button 
                       onClick={() => handleUserTypeSelection('provider')}
                       variant="outline"
-                      className="w-full border-marketplace-primary text-marketplace-primary hover:bg-marketplace-primary/10"
+                      size="lg"
+                      className="w-full border-2 border-marketplace-primary text-marketplace-primary hover:bg-marketplace-primary/10 transition-transform duration-200 hover:scale-105"
                     >
+                      <Briefcase className="mr-2" />
                       Daftar sebagai Penyedia Jasa
                     </Button>
                   </div>
@@ -157,6 +161,7 @@ const OnboardingPage = () => {
           <Button 
             onClick={handleNext}
             className="w-full bg-marketplace-primary hover:bg-marketplace-primary/90"
+            size="lg"
           >
             Lanjut <ChevronRight size={16} className="ml-1" />
           </Button>

@@ -26,15 +26,14 @@ const SplashScreen = () => {
         visible ? 'opacity-100' : 'opacity-0'
       }`}
     >
-      <div className="animate-bounce mb-6">
+      <div className="animate-bounce mb-8">
         <img 
           src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" 
           alt="KlikJasa Logo" 
-          className="w-24 h-24"
+          className="w-40 h-40" // Increased from w-24 h-24 to w-40 h-40
         />
       </div>
-      <h1 className="text-2xl font-bold text-marketplace-primary mt-4">KlikJasa</h1>
-      <p className="text-gray-500 mt-2">Layanan lokal terpercaya</p>
+      <h1 className="text-3xl font-bold text-marketplace-primary animate-pulse">KlikJasa</h1>
     </div>
   );
 };
