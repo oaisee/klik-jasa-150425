@@ -32,7 +32,13 @@ const TransactionsList = ({ userId }: TransactionsListProps) => {
         
       if (error) throw error;
       
-      setTransactions(data || []);
+      // Cast the data to ensure it complies with Transaction type
+      const typedTransactions = data?.map(item => ({
+        ...item,
+        type: item.type as 'topup' | 'commission' | 'payout'
+      })) || [];
+      
+      setTransactions(typedTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
     } finally {

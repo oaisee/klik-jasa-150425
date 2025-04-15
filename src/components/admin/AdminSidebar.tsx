@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -8,10 +8,12 @@ import {
   Briefcase, 
   Settings, 
   LogOut,
-  BarChart3
+  BarChart3,
+  ClipboardCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -22,6 +24,34 @@ interface AdminSidebarProps {
 
 const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   const navigate = useNavigate();
+  const [pendingVerifications, setPendingVerifications] = useState<number>(0);
+  
+  useEffect(() => {
+    // Fetch pending verification requests on mount
+    fetchPendingVerifications();
+    
+    // Set up a timer to check for new verifications periodically
+    const interval = setInterval(fetchPendingVerifications, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  const fetchPendingVerifications = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('verification_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      
+      if (error) throw error;
+      
+      if (count !== null) {
+        setPendingVerifications(count);
+      }
+    } catch (error) {
+      console.error('Error fetching verification requests:', error);
+    }
+  };
   
   const handleSignOut = async () => {
     try {
@@ -106,6 +136,24 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
             >
               <FileText className="mr-2 h-5 w-5" />
               Transaksi
+            </Button>
+          </li>
+          <li>
+            <Button
+              variant={activeTab === 'verifications' ? 'default' : 'ghost'}
+              className="w-full justify-start relative"
+              onClick={() => setActiveTab('verifications')}
+            >
+              <ClipboardCheck className="mr-2 h-5 w-5" />
+              Verifikasi
+              {pendingVerifications > 0 && (
+                <Badge 
+                  variant="outline" 
+                  className="ml-2 bg-red-100 text-red-800 border-red-200 rounded-full px-2 py-0.5 text-xs"
+                >
+                  {pendingVerifications}
+                </Badge>
+              )}
             </Button>
           </li>
         </ul>
