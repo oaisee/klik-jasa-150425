@@ -81,14 +81,16 @@
 
 /* Adjust content to respect header area */
 .app-content {
-  @apply pt-14 pb-16;
+  @apply flex-1 overflow-y-auto;
   padding-top: calc(56px + var(--safe-area-inset-top));
   padding-bottom: calc(64px + var(--safe-area-inset-bottom));
+  height: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Bottom navigation with safe area */
 .app-bottom-nav {
-  @apply fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200;
+  @apply fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-md;
   padding-bottom: var(--safe-area-inset-bottom);
   min-height: calc(64px + var(--safe-area-inset-bottom));
 }
