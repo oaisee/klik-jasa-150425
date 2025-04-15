@@ -50,17 +50,17 @@ const OnboardingPage = () => {
     }
   };
 
+  // Fixed skip function to properly navigate to the home page
   const handleSkip = () => {
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
+  // Fixed user type selection to properly navigate
   const handleUserTypeSelection = (type: 'user' | 'provider') => {
-    // In a real app, you'd set the user type in context/state
-    // and redirect to the appropriate registration flow
     if (type === 'provider') {
-      navigate('/provider-mode');
+      navigate('/provider-mode', { replace: true });
     } else {
-      navigate('/');
+      navigate('/', { replace: true });
     }
   };
 
