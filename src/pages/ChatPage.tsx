@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
@@ -10,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import EmptyState from '@/components/shared/EmptyState';
+import { chatListData } from '@/data/chatData';
 
 const ChatPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -152,32 +152,5 @@ const ChatListItem = ({ name, message, time, unread, avatar, onClick }: ChatList
     </Card>
   );
 };
-
-const chatListData = [
-  {
-    id: '1',
-    name: 'Budi Santoso',
-    lastMessage: 'Saya akan datang tepat waktu besok pagi',
-    time: '10:23',
-    unread: 2,
-    avatar: 'https://randomuser.me/api/portraits/men/32.jpg'
-  },
-  {
-    id: '2',
-    name: 'Siti Nuraini',
-    lastMessage: 'Terima kasih atas pelayanannya',
-    time: '09:15',
-    unread: 0,
-    avatar: 'https://randomuser.me/api/portraits/women/44.jpg'
-  },
-  {
-    id: '3',
-    name: 'Ahmad Rizki',
-    lastMessage: 'Apakah Anda masih tersedia untuk hari Jumat?',
-    time: 'Kemarin',
-    unread: 0,
-    avatar: 'https://randomuser.me/api/portraits/men/55.jpg'
-  }
-];
 
 export default ChatPage;
