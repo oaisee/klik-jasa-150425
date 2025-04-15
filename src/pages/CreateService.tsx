@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Profile } from '@/types/database';
+import { Profile, Service } from '@/types/database';
 
 const CATEGORIES = [
   { value: 'cleaning', label: 'Kebersihan Rumah' },
