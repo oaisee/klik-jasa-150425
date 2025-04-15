@@ -5,9 +5,14 @@ import { useState } from 'react';
 interface SearchBarProps {
   onSearch?: (query: string) => void;
   placeholder?: string;
+  className?: string; // Add className prop for additional styling
 }
 
-const SearchBar = ({ onSearch, placeholder = "Search for services..." }: SearchBarProps) => {
+const SearchBar = ({ 
+  onSearch, 
+  placeholder = "Search for services...", 
+  className = ""
+}: SearchBarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -27,7 +32,7 @@ const SearchBar = ({ onSearch, placeholder = "Search for services..." }: SearchB
   };
 
   return (
-    <form onSubmit={handleSearch} className="relative">
+    <form onSubmit={handleSearch} className={`relative w-full ${className}`}>
       <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
         <Search className="h-5 w-5 text-gray-400" />
       </div>

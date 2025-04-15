@@ -135,3 +135,14 @@ button, a, input, select, textarea {
 ::-webkit-scrollbar-thumb:hover {
   background: #aaa;
 }
+
+/* Fixed header elements */
+.page-header {
+  @apply sticky top-0 z-40 bg-white shadow-sm;
+}
+
+/* Search form z-index fix */
+.search-form {
+  @apply relative z-0;
+}
+

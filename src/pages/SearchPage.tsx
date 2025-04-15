@@ -71,11 +71,12 @@ const SearchPage = () => {
         <h1 className="text-lg font-semibold">Cari Jasa</h1>
       </div>
       
-      <div className="flex-1 p-4 pb-20">
+      <div className="flex-1 p-4 pb-20 pt-5">
         <div className="mb-6">
           <SearchBar 
             onSearch={handleSearch} 
             placeholder="Cari jasa atau penyedia"
+            className="z-0"
           />
         </div>
         

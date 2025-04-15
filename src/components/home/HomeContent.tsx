@@ -33,8 +33,12 @@ const HomeContent = ({
 
   return (
     <>
-      <div className="mb-7">
-        <SearchBar onSearch={onSearch} placeholder="Cari layanan atau penyedia..." />
+      <div className="mb-7 mt-2">
+        <SearchBar 
+          onSearch={onSearch} 
+          placeholder="Cari layanan atau penyedia..." 
+          className="z-0" // Ensure lower z-index than header
+        />
       </div>
       
       <div className="mb-8">
