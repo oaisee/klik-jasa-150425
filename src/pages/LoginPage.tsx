@@ -40,9 +40,18 @@ const LoginPage = () => {
       if (error) throw error;
       
       toast.success("Login berhasil");
+      // Ensure navigation to home page occurs after successful login
       navigate('/', { replace: true });
+      console.log("Redirecting to home page after successful login");
     } catch (err: any) {
-      toast.error(err.message || "Terjadi kesalahan, silakan coba lagi");
+      const errorMessage = err.message || "Terjadi kesalahan, silakan coba lagi";
+      
+      // Display friendly error message for email not confirmed
+      if (err.code === 'email_not_confirmed') {
+        toast.error("Email belum dikonfirmasi. Silakan cek kotak masuk email Anda.");
+      } else {
+        toast.error(errorMessage);
+      }
       console.error(err);
     } finally {
       setLoading(false);

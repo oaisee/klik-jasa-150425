@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -37,15 +37,24 @@ const App = () => {
   const queryClient = new QueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
   
   useEffect(() => {
     const checkUserSession = async () => {
       const { data } = await supabase.auth.getSession();
       
-      // Check if user is admin
-      if (data.session?.user?.email === 'admin@klikjasa.com') {
-        setIsAdmin(true);
+      // Check if user is logged in
+      if (data.session) {
+        setAuthenticated(true);
+        
+        // Check if user is admin
+        if (data.session.user?.email === 'admin@klikjasa.com') {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+        }
       } else {
+        setAuthenticated(false);
         setIsAdmin(false);
       }
       
@@ -56,7 +65,15 @@ const App = () => {
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAdmin(session?.user?.email === 'admin@klikjasa.com');
+      console.log("Auth state changed:", event, session?.user?.email);
+      
+      if (session) {
+        setAuthenticated(true);
+        setIsAdmin(session.user?.email === 'admin@klikjasa.com');
+      } else {
+        setAuthenticated(false);
+        setIsAdmin(false);
+      }
     });
     
     return () => {
@@ -82,7 +99,7 @@ const App = () => {
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminAuthPage />} />
-          <Route path="/admin-dashboard/*" element={<AdminDashboardPage />} />
+          <Route path="/admin-dashboard/*" element={isAdmin ? <AdminDashboardPage /> : <Navigate to="/admin" />} />
           
           {/* User Routes */}
           <Route path="/" element={<Layout><Index /></Layout>} />
@@ -102,8 +119,8 @@ const App = () => {
           <Route path="/edit-profile" element={<Layout><EditProfilePage /></Layout>} />
           <Route path="/provider-mode" element={<Layout><ProviderModePage /></Layout>} />
           <Route path="*" element={<NotFound />} />
-          {/* Default route redirecting to splash screen */}
-          <Route index element={<Navigate to="/splash" replace />} />
+          {/* Default route redirecting to home or splash screen based on authentication */}
+          <Route index element={<Navigate to={authenticated ? "/" : "/splash"} replace />} />
         </Routes>
       </TooltipProvider>
     </QueryClientProvider>
