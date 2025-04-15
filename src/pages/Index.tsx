@@ -1,54 +1,116 @@
 
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import SearchBar from '@/components/SearchBar';
 import CategoryList from '@/components/CategoryList';
 import ServicesList from '@/components/ServicesList';
-import { nearbyServices, popularServices } from '@/data/mockData';
-import { useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import Layout from '@/components/Layout';
+import SplashScreen from '@/components/SplashScreen';
+import { Wallet, Bell } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const Index = () => {
-  // Set document title
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [hasNotifications, setHasNotifications] = useState(false);
+
   useEffect(() => {
-    document.title = 'KlikJasa - Temukan Jasa Lokal';
+    document.title = 'KlikJasa - Temukan Penyedia Jasa Terbaik';
     
-    // Log to verify the component is rendering
-    console.log("Index page mounted");
-    
-    // Check auth status for debugging
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      console.log("Index page auth check:", data.session ? "Authenticated" : "Not authenticated");
+    // Check authentication status and get profile data
+    const checkAuthAndGetProfile = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          setIsAuthenticated(true);
+          console.info("Index page auth check: Authenticated");
+          
+          // Get user profile including wallet balance
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('wallet_balance')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (error) throw error;
+          
+          if (profile) {
+            setWalletBalance(profile.wallet_balance);
+          }
+          
+          // Check for notifications (placeholder for real notification system)
+          // This could be replaced with a real notification check from the database
+          setHasNotifications(true);
+        } else {
+          console.info("Index page auth check: Not authenticated");
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
-    checkAuth();
+    checkAuthAndGetProfile();
   }, []);
 
+  // Handle notification click
+  const handleNotificationClick = () => {
+    navigate('/notifications');
+  };
+
+  // Handle wallet click
+  const handleWalletClick = () => {
+    navigate('/wallet');
+  };
+
+  if (isLoading) {
+    return <SplashScreen />;
+  }
+
   return (
-    <div className="px-4 py-4 animate-fade-in">
-      <div className="flex items-center mb-5">
-        <div className="w-10 h-10 mr-2">
-          <img src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" alt="KlikJasa Logo" className="w-full h-full" />
+    <Layout>
+      <div className="px-4 py-4 animate-fade-in">
+        <div className="flex items-center mb-5">
+          <h1 className="text-xl font-bold flex-1">KlikJasa</h1>
+          
+          {isAuthenticated && (
+            <div className="flex items-center">
+              <div 
+                className="flex items-center mr-4 text-marketplace-primary cursor-pointer"
+                onClick={handleWalletClick}
+              >
+                <Wallet className="h-5 w-5 mr-1" />
+                <span className="text-sm font-medium">
+                  Rp {walletBalance?.toLocaleString('id-ID') ?? '0'}
+                </span>
+              </div>
+              
+              <div 
+                className="relative cursor-pointer"
+                onClick={handleNotificationClick}
+              >
+                <Bell className="h-6 w-6 text-gray-600" />
+                {hasNotifications && (
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-red-500 text-white">
+                    <span className="sr-only">Notifications</span>
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-        <h1 className="text-xl font-bold text-marketplace-dark">KlikJasa</h1>
-      </div>
-
-      <div className="mb-6">
+        
         <SearchBar />
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-3">Kategori</h2>
         <CategoryList />
+        <ServicesList />
       </div>
-
-      <div className="mb-8">
-        <ServicesList services={nearbyServices} title="Jasa Terdekat" />
-      </div>
-
-      <div className="mb-8">
-        <ServicesList services={popularServices} title="Jasa Populer" />
-      </div>
-    </div>
+    </Layout>
   );
 };
 
