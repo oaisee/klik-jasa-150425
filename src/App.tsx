@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -23,6 +23,8 @@ import SettingsPage from "./pages/SettingsPage";
 import HelpPage from "./pages/HelpPage";
 import EditProfilePage from "./pages/EditProfilePage";
 import ProviderModePage from "./pages/ProviderModePage";
+import SplashScreen from "./components/SplashScreen";
+import OnboardingPage from "./pages/OnboardingPage";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/splash" element={<SplashScreen />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/" element={<Layout><Index /></Layout>} />
           <Route path="/search" element={<Layout><SearchPage /></Layout>} />
           <Route path="/bookings" element={<Layout><BookingsPage /></Layout>} />
@@ -50,6 +54,8 @@ const App = () => (
           <Route path="/edit-profile" element={<Layout><EditProfilePage /></Layout>} />
           <Route path="/provider-mode" element={<Layout><ProviderModePage /></Layout>} />
           <Route path="*" element={<NotFound />} />
+          {/* Default route redirecting to splash screen */}
+          <Route index element={<Navigate to="/splash" replace />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
