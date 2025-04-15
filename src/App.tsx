@@ -1,5 +1,5 @@
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Index from '@/pages/Index';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
@@ -24,26 +24,24 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <BrowserRouter>
-          <div className="app-container">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/profile/edit" element={<EditProfilePage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/security" element={<SecurityPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="/wallet" element={<WalletPage />} />
-              <Route path="/payment-methods" element={<PaymentMethodsPage />} />
-              <Route path="/help" element={<HelpPage />} />
-              <Route path="/admin" element={<AdminDashboardPage />} />
-              <Route path="/provider" element={<ProviderModePage />} />
-            </Routes>
-          </div>
-          <Toaster />
-        </BrowserRouter>
+        <div className="app-container">
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/profile/edit" element={<EditProfilePage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/wallet" element={<WalletPage />} />
+            <Route path="/payment-methods" element={<PaymentMethodsPage />} />
+            <Route path="/help" element={<HelpPage />} />
+            <Route path="/admin" element={<AdminDashboardPage />} />
+            <Route path="/provider" element={<ProviderModePage />} />
+          </Routes>
+        </div>
+        <Toaster />
       </ThemeProvider>
     </QueryClientProvider>
   );
