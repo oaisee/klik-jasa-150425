@@ -20,15 +20,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Helper function to check Supabase connection
 export const checkSupabaseConnection = async () => {
   try {
-    const { data, error } = await supabase.from('non_existent_table').select('*').limit(1);
+    // Just check if we can connect to Supabase by getting the current session
+    const { data, error } = await supabase.auth.getSession();
     
-    if (error && error.code === 'PGRST116') {
-      // This is expected for a non-existent table but means connection works
+    if (error) {
+      console.error('Supabase connection error:', error);
+      return { success: false, message: error.message || 'Unknown error' };
+    } else {
       console.log('Supabase connection successful');
       return { success: true, message: 'Connection successful' };
-    } else {
-      console.error('Unexpected error or table exists:', error);
-      return { success: false, message: error?.message || 'Unknown error' };
     }
   } catch (err) {
     console.error('Failed to connect to Supabase:', err);

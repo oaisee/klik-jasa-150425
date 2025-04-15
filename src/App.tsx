@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -33,6 +35,39 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 const App = () => {
   // Create a new QueryClient instance inside the component
   const queryClient = new QueryClient();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const checkUserSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      
+      // Check if user is admin
+      if (data.session?.user?.email === 'admin@klikjasa.com') {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+      
+      setLoading(false);
+    };
+    
+    checkUserSession();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAdmin(session?.user?.email === 'admin@klikjasa.com');
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+  
+  // Show loading indicator while checking session
+  if (loading) {
+    return <SplashScreen />;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -47,8 +82,8 @@ const App = () => {
             <Route path="/register" element={<RegisterPage />} />
             
             {/* Admin Routes */}
-            <Route path="/admin" element={<AdminAuthPage />} />
-            <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
+            <Route path="/admin" element={isAdmin ? <Navigate to="/admin-dashboard" replace /> : <AdminAuthPage />} />
+            <Route path="/admin-dashboard" element={isAdmin ? <AdminDashboardPage /> : <Navigate to="/admin" replace />} />
             
             {/* User Routes */}
             <Route path="/" element={<Layout><Index /></Layout>} />

@@ -26,6 +26,12 @@ const AdminAuthPage = () => {
       return;
     }
     
+    // Check if this is the specific admin account
+    if (email !== 'admin@klikjasa.com') {
+      setError("Email ini tidak memiliki akses admin");
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     
@@ -39,9 +45,8 @@ const AdminAuthPage = () => {
         throw loginError;
       }
       
-      // In a real app, you would check if the user has admin role
-      // For now, we'll simulate this by checking email domain or format
-      if (data.user && (data.user.email?.endsWith('@admin.klikjasa.com') || data.user.email?.includes('admin'))) {
+      // Verify it's the admin account
+      if (data.user && data.user.email === 'admin@klikjasa.com') {
         toast.success("Login admin berhasil");
         navigate('/admin-dashboard');
       } else {

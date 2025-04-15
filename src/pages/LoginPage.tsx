@@ -23,6 +23,12 @@ const LoginPage = () => {
       return;
     }
     
+    // If admin login is attempted from regular login page, redirect
+    if (email === 'admin@klikjasa.com') {
+      navigate('/admin');
+      return;
+    }
+    
     setLoading(true);
     
     try {
