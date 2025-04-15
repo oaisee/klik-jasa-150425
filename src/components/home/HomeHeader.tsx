@@ -1,51 +1,60 @@
 
-import { Wallet, Bell } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Bell, Wallet } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 
 interface HomeHeaderProps {
   isAuthenticated: boolean;
-  walletBalance: number | null;
+  walletBalance: number;
   hasNotifications: boolean;
 }
 
-const HomeHeader = ({ isAuthenticated, walletBalance, hasNotifications }: HomeHeaderProps) => {
-  const navigate = useNavigate();
-  
-  const handleNotificationClick = () => {
-    navigate('/notifications');
-  };
-
-  const handleWalletClick = () => {
-    navigate('/wallet');
-  };
+const HomeHeader: React.FC<HomeHeaderProps> = ({ 
+  isAuthenticated, 
+  walletBalance, 
+  hasNotifications 
+}) => {
+  // Update status bar color on mount
+  useEffect(() => {
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) metaThemeColor.setAttribute('content', '#1EAEDB');
+    
+    const statusBarStyle = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+    if (statusBarStyle) statusBarStyle.setAttribute('content', 'light-content');
+    
+    document.documentElement.classList.add('status-bar-dark');
+    document.documentElement.classList.remove('status-bar-light');
+  }, []);
   
   return (
-    <div className="flex items-center mb-6">
-      <div className="flex items-center flex-1">
-        <img src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" alt="KlikJasa Logo" className="h-8 w-8 mr-3" />
-        <h1 className="text-marketplace-primary text-left text-xl font-extrabold">KlikJasa</h1>
-      </div>
-      
-      {isAuthenticated && (
-        <div className="flex items-center">
-          <div className="flex items-center mr-5 text-marketplace-primary cursor-pointer" onClick={handleWalletClick}>
-            <Wallet className="h-5 w-5 mr-2" />
-            <span className="text-sm font-medium">
-              Rp {walletBalance?.toLocaleString('id-ID') ?? '0'}
-            </span>
-          </div>
-          
-          <div className="relative cursor-pointer" onClick={handleNotificationClick}>
-            <Bell className="h-6 w-6 text-gray-600" />
-            {hasNotifications && (
-              <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-red-500 text-white">
-                <span className="sr-only">Notifications</span>
-              </Badge>
-            )}
-          </div>
+    <div className="app-header bg-marketplace-primary text-white">
+      <div className="flex items-center justify-between py-3 px-4">
+        <div className="flex items-center space-x-2">
+          <img 
+            src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" 
+            alt="KlikJasa Logo" 
+            className="w-8 h-8" 
+          />
+          <h1 className="text-xl font-bold">KlikJasa</h1>
         </div>
-      )}
+        
+        <div className="flex items-center space-x-4">
+          {isAuthenticated && (
+            <Link to="/wallet" className="flex items-center">
+              <Wallet size={20} className="mr-1" />
+              <span className="text-sm">{formatCurrency(walletBalance)}</span>
+            </Link>
+          )}
+          
+          <Link to="/notifications" className="relative">
+            <Bell size={22} />
+            {hasNotifications && (
+              <span className="absolute -top-1 -right-1 bg-red-500 rounded-full w-3 h-3"></span>
+            )}
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };
