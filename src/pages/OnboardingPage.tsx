@@ -75,7 +75,7 @@ const OnboardingPage = () => {
             <ChevronLeft size={24} />
           </button>
         ) : (
-          <div className="w-8"></div> 
+          <div className="w-8"></div>
         )}
         
         <button 
