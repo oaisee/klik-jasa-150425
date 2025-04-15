@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { toast } from 'sonner';
+import { RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Import refactored components
 import AdminSidebar from '@/components/admin/AdminSidebar';
@@ -16,6 +18,7 @@ const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [connectionStatus, setConnectionStatus] = useState<{success: boolean, message: string} | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   
   useEffect(() => {
     document.title = 'KlikJasa Admin Dashboard';
@@ -51,6 +54,21 @@ const AdminDashboardPage = () => {
     }
   };
   
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      // Check Supabase connection
+      const status = await checkSupabaseConnection();
+      setConnectionStatus(status);
+      toast.success("Data berhasil disegarkan");
+    } catch (error) {
+      toast.error("Gagal menyegarkan data");
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen bg-slate-50">
@@ -73,6 +91,20 @@ const AdminDashboardPage = () => {
       
       {/* Main Content */}
       <div className="flex-1 md:p-8 p-4 md:pt-8 pt-28">
+        {/* Action buttons */}
+        <div className="flex justify-end mb-4">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh} 
+            disabled={refreshing}
+            className="flex items-center gap-1"
+          >
+            <RefreshCw size={16} className={`${refreshing ? 'animate-spin' : ''}`} />
+            <span>{refreshing ? 'Menyegarkan...' : 'Segarkan Data'}</span>
+          </Button>
+        </div>
+        
         <Tabs value={activeTab} className="w-full">
           <TabsContent value="dashboard">
             <AdminDashboardContent connectionStatus={connectionStatus} />
