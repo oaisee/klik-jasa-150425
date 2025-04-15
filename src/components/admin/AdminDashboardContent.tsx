@@ -9,6 +9,7 @@ import UserTypesChart from './charts/UserTypesChart';
 import MonthlyTrendsChart from './charts/MonthlyTrendsChart';
 import RecentActivitiesList from './RecentActivitiesList';
 import PopularServicesList from './PopularServicesList';
+import VerificationStatsWidget from './verification/VerificationStatsWidget';
 
 interface AdminDashboardContentProps {
   connectionStatus: { success: boolean; message: string } | null;
@@ -76,8 +77,14 @@ const AdminDashboardContent = ({ connectionStatus }: AdminDashboardContentProps)
         <MonthlyTrendsChart monthlyData={monthlyData} />
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2">
-        <RecentActivitiesList />
+      <div className="grid gap-4 md:grid-cols-3 mb-4">
+        <div className="md:col-span-2">
+          <RecentActivitiesList />
+        </div>
+        <VerificationStatsWidget />
+      </div>
+      
+      <div className="grid gap-4">
         <PopularServicesList />
       </div>
     </div>

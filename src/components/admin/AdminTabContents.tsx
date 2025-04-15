@@ -1,41 +1,33 @@
 
-import ServiceManagement from './sections/ServiceManagement';
 import UserManagement from './sections/UserManagement';
+import ServiceManagement from './sections/ServiceManagement';
 import TransactionManagement from './sections/TransactionManagement';
+import VerificationDashboard from './verification/VerificationDashboard';
 import Settings from './sections/Settings';
-import VerificationRequestsList from './verification/VerificationRequestsList';
+import AnalyticsOverview from './analytics/AnalyticsOverview';
 
 interface AdminTabContentsProps {
   activeTab: string;
 }
 
 const AdminTabContents = ({ activeTab }: AdminTabContentsProps) => {
-  if (activeTab === 'users') {
-    return <UserManagement />;
+  // Render the appropriate component based on the active tab
+  switch (activeTab) {
+    case 'users':
+      return <UserManagement />;
+    case 'services':
+      return <ServiceManagement />;
+    case 'transactions':
+      return <TransactionManagement />;
+    case 'verifications':
+      return <VerificationDashboard />;
+    case 'settings':
+      return <Settings />;
+    case 'analytics':
+      return <AnalyticsOverview />;
+    default:
+      return <div>Content for {activeTab} tab</div>;
   }
-  
-  if (activeTab === 'services') {
-    return <ServiceManagement />;
-  }
-  
-  if (activeTab === 'transactions') {
-    return <TransactionManagement />;
-  }
-  
-  if (activeTab === 'settings') {
-    return <Settings />;
-  }
-  
-  if (activeTab === 'verifications') {
-    return <VerificationRequestsList />;
-  }
-  
-  // Default content or placeholder
-  return (
-    <div className="text-center py-20 text-gray-500">
-      Select a tab to view content
-    </div>
-  );
 };
 
 export default AdminTabContents;
