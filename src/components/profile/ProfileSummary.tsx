@@ -6,6 +6,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, Loader2, Edit, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+interface ProfileSummaryProps {
+  fullName: string;
+  joinDate: string;
+  rating: number;
+  totalReviews: number;
+  avatarUrl: string | null;
+  isLoading: boolean;
+  isProvider?: boolean;
+}
+
 const ProfileSummary = ({
   fullName,
   joinDate,

@@ -186,12 +186,12 @@ const ChatDetailPage = () => {
             className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
           >
             <div className={`
-              max-w-[80%] p-3 rounded-lg break-words
+              max-w-[80%] p-3 rounded-lg break-words overflow-hidden
               ${message.sender === 'me' 
                 ? 'bg-marketplace-primary text-white rounded-tr-none' 
                 : 'bg-white text-gray-800 rounded-tl-none shadow-sm'}
             `}>
-              <p>{message.text}</p>
+              <p className="whitespace-pre-wrap overflow-hidden text-wrap">{message.text}</p>
               <div className={`text-xs mt-1 flex justify-end
                 ${message.sender === 'me' ? 'text-blue-100' : 'text-gray-500'}
               `}>

@@ -1,6 +1,14 @@
 
 import { ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 
+interface TransactionItemProps {
+  type: 'topup' | 'commission' | 'payout';
+  amount: number;
+  date?: string;
+  timestamp?: string;
+  description: string;
+}
+
 const TransactionItem = ({ type, amount, date, timestamp, description }: TransactionItemProps) => {
   const isIncoming = type === 'topup';
   const displayDate = date || timestamp || '';
@@ -14,7 +22,7 @@ const TransactionItem = ({ type, amount, date, timestamp, description }: Transac
           <ArrowUpRight className="h-5 w-5 text-red-600" />
         )}
       </div>
-      <div className="flex-1 text-left">  {/* Changed to text-left */}
+      <div className="flex-1 text-left">
         <h4 className="font-medium text-gray-800">{description}</h4>
         <p className="text-xs text-gray-500">{displayDate}</p>
       </div>
