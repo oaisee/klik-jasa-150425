@@ -11,12 +11,53 @@ import SplashScreen from '@/components/SplashScreen';
 import { Wallet, Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+// Define mock services data
+const mockServices = [
+  {
+    id: '1',
+    image: '/placeholder.svg',
+    title: 'Cleaning Service',
+    providerName: 'Budi Santoso',
+    rating: 4.8,
+    price: 150000,
+    distance: 0.8,
+  },
+  {
+    id: '2',
+    image: '/placeholder.svg',
+    title: 'Plumbing Repair',
+    providerName: 'Ahmad Wijaya',
+    rating: 4.5,
+    price: 200000,
+    distance: 1.2,
+  },
+  {
+    id: '3',
+    image: '/placeholder.svg',
+    title: 'Electrical Service',
+    providerName: 'Siti Rahayu',
+    rating: 4.7,
+    price: 250000,
+    distance: 1.5,
+  },
+  {
+    id: '4',
+    image: '/placeholder.svg',
+    title: 'Home Painting',
+    providerName: 'Dewi Kusuma',
+    rating: 4.6,
+    price: 300000,
+    distance: 2.0,
+  },
+];
+
 const Index = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [hasNotifications, setHasNotifications] = useState(false);
+  const [nearbyServices, setNearbyServices] = useState(mockServices);
 
   useEffect(() => {
     document.title = 'KlikJasa - Temukan Penyedia Jasa Terbaik';
@@ -108,7 +149,7 @@ const Index = () => {
         
         <SearchBar />
         <CategoryList />
-        <ServicesList />
+        <ServicesList services={nearbyServices} title="Penyedia Jasa Terdekat" />
       </div>
     </Layout>
   );
