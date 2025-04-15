@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const AdminAuthPage = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState('admin@klikjasa.com');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,6 +20,8 @@ const AdminAuthPage = () => {
   const [checkingSession, setCheckingSession] = useState(true);
   
   useEffect(() => {
+    document.title = 'Admin Login | KlikJasa';
+    
     // Check if admin is already logged in
     const checkAdminSession = async () => {
       const { data } = await supabase.auth.getSession();

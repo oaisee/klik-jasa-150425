@@ -1,19 +1,79 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Search, Send, Smile } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import LoadingIndicator from '@/components/shared/LoadingIndicator';
+import EmptyState from '@/components/shared/EmptyState';
 
 const ChatPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [chats, setChats] = useState(chatListData);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = 'Pesan | KlikJasa';
-  }, []);
+    
+    // Check if user is logged in
+    const checkAuth = async () => {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error("Silakan login terlebih dahulu");
+        navigate('/login');
+        return;
+      }
+      
+      setUserId(session.user.id);
+      
+      // In a real app, we would fetch chats from database here
+      // const { data, error } = await supabase
+      //   .from('chats')
+      //   .select('*')
+      //   .eq('user_id', session.user.id);
+      
+      // if (error) {
+      //   console.error('Error fetching chats:', error);
+      //   toast.error('Gagal memuat pesan');
+      // } else {
+      //   setChats(data);
+      // }
+      
+      setLoading(false);
+    };
+    
+    checkAuth();
+  }, [navigate]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value.toLowerCase();
+    setSearchQuery(query);
+    
+    if (query) {
+      const filtered = chatListData.filter(chat => 
+        chat.name.toLowerCase().includes(query) || 
+        chat.lastMessage.toLowerCase().includes(query)
+      );
+      setChats(filtered);
+    } else {
+      setChats(chatListData);
+    }
+  };
+  
+  const handleChatClick = (chatId: string) => {
+    navigate(`/chat/${chatId}`);
+  };
   
   return (
-    <div className="px-4 py-4 animate-fade-in">
+    <div className="px-4 py-4 pb-20 animate-fade-in">
       <h1 className="text-xl font-bold mb-4">Pesan</h1>
       
       <div className="relative mb-6">
@@ -21,28 +81,34 @@ const ChatPage = () => {
           type="text"
           placeholder="Cari pesan"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={handleSearch}
           className="pl-10"
         />
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
       </div>
       
-      {chatListData.map((chat) => (
-        <ChatListItem 
-          key={chat.id}
-          name={chat.name}
-          message={chat.lastMessage}
-          time={chat.time}
-          unread={chat.unread}
-          avatar={chat.avatar}
-        />
-      ))}
-      
-      {chatListData.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
-          <p>Belum ada percakapan</p>
-          <Button variant="outline" className="mt-4">Mulai Percakapan</Button>
+      {loading ? (
+        <div className="py-10 flex justify-center">
+          <LoadingIndicator size="lg" />
         </div>
+      ) : chats.length > 0 ? (
+        chats.map((chat) => (
+          <ChatListItem 
+            key={chat.id}
+            name={chat.name}
+            message={chat.lastMessage}
+            time={chat.time}
+            unread={chat.unread}
+            avatar={chat.avatar}
+            onClick={() => handleChatClick(chat.id)}
+          />
+        ))
+      ) : (
+        <EmptyState 
+          icon={Smile}
+          title="Belum ada percakapan"
+          description="Mulai percakapan dengan penyedia jasa atau pelanggan"
+        />
       )}
     </div>
   );
@@ -54,11 +120,12 @@ interface ChatListItemProps {
   time: string;
   unread: number;
   avatar: string;
+  onClick: () => void;
 }
 
-const ChatListItem = ({ name, message, time, unread, avatar }: ChatListItemProps) => {
+const ChatListItem = ({ name, message, time, unread, avatar, onClick }: ChatListItemProps) => {
   return (
-    <Card className="mb-3 cursor-pointer hover:bg-gray-50 transition-colors">
+    <Card className="mb-3 cursor-pointer hover:bg-gray-50 transition-colors" onClick={onClick}>
       <CardContent className="p-3 flex">
         <Avatar>
           <img src={avatar} alt={name} className="w-12 h-12 rounded-full object-cover" />

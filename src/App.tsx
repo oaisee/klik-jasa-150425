@@ -18,7 +18,9 @@ import OnboardingPage from '@/pages/OnboardingPage';
 import ServiceDetail from '@/pages/ServiceDetail';
 import SearchPage from '@/pages/SearchPage';
 import ChatPage from '@/pages/ChatPage';
+import ChatDetailPage from '@/pages/ChatDetailPage';
 import BookingsPage from '@/pages/BookingsPage';
+import CreateServicePage from '@/pages/CreateServicePage';
 import Layout from '@/components/Layout';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from "@/components/ui/toaster";
@@ -27,7 +29,7 @@ import './App.css';
 const queryClient = new QueryClient();
 
 // Pages that should not have the bottom navigation
-const noBottomNavPages = ['/login', '/register', '/onboarding', '/admin'];
+const noBottomNavPages = ['/login', '/register', '/onboarding', '/admin', '/admin-dashboard'];
 
 function App() {
   return (
@@ -52,9 +54,11 @@ function App() {
           <Route path="/payment-methods" element={<Layout><PaymentMethodsPage /></Layout>} />
           <Route path="/help" element={<Layout><HelpPage /></Layout>} />
           <Route path="/provider" element={<Layout><ProviderModePage /></Layout>} />
+          <Route path="/create-service" element={<Layout><CreateServicePage /></Layout>} />
           <Route path="/service/:id" element={<Layout><ServiceDetail /></Layout>} />
           <Route path="/search" element={<Layout><SearchPage /></Layout>} />
           <Route path="/chat" element={<Layout><ChatPage /></Layout>} />
+          <Route path="/chat/:chatId" element={<Layout><ChatDetailPage /></Layout>} />
           <Route path="/bookings" element={<Layout><BookingsPage /></Layout>} />
         </Routes>
       </div>
