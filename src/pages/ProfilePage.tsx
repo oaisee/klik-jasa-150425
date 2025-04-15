@@ -51,10 +51,10 @@ const ProfilePage = () => {
       
       <div className="flex-1 px-4 pb-24 pt-4">
         <ProfileSummary 
-          name={userData.name}
+          fullName={userData.name}
           joinDate={userData.joinDate}
-          rating={userData.rating}
-          reviews={userData.reviews}
+          rating={userData.rating} 
+          totalReviews={userData.reviews}
           avatarUrl={userData.avatarUrl}
           isLoading={loading}
         />
@@ -71,11 +71,7 @@ const ProfilePage = () => {
         
         <div className="mt-4">
           <h2 className="text-lg font-semibold mb-2">Pengaturan Akun</h2>
-          <ProfileMenu 
-            email={userData.email}
-            phone={userData.phone}
-            walletBalance={userData.walletBalance}
-          />
+          <ProfileMenu />
         </div>
       </div>
     </div>
