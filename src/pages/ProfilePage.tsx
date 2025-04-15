@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import ProfileSummary from '@/components/profile/ProfileSummary';
 import ProfileMenu from '@/components/profile/ProfileMenu';
 import UserRoleToggle from '@/components/profile/UserRoleToggle';
+import WalletSummary from '@/components/profile/WalletSummary';
 import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -61,13 +62,17 @@ const ProfilePage = () => {
         />
         
         {userId && (
-          <div className="mt-4 mb-6">
-            <UserRoleToggle 
-              isProvider={userData.isProvider} 
-              userId={userId}
-              onRoleChange={handleRoleChange}
-            />
-          </div>
+          <>
+            <WalletSummary walletBalance={userData.walletBalance} />
+          
+            <div className="mt-4 mb-6">
+              <UserRoleToggle 
+                isProvider={userData.isProvider} 
+                userId={userId}
+                onRoleChange={handleRoleChange}
+              />
+            </div>
+          </>
         )}
         
         <div className="mt-4">

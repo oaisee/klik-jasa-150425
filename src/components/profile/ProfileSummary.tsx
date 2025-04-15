@@ -39,15 +39,15 @@ const ProfileSummary = ({
           <div className="flex items-center">
             <Avatar className="h-16 w-16 mr-4">
               {avatarUrl ? (
-                <img 
+                <AvatarImage 
                   src={avatarUrl} 
                   alt="Profile" 
-                  className="rounded-full object-cover w-full h-full"
+                  className="object-cover"
                 />
               ) : (
-                <div className="bg-gray-200 rounded-full w-full h-full flex items-center justify-center">
-                  <span className="text-lg">{fullName.charAt(0)}</span>
-                </div>
+                <AvatarFallback className="bg-gray-200">
+                  {fullName.charAt(0)}
+                </AvatarFallback>
               )}
             </Avatar>
             <div>
@@ -68,9 +68,9 @@ const ProfileSummary = ({
           <Button 
             className="flex-1 ml-2" 
             variant={isProvider ? "default" : "outline"}
-            onClick={() => navigate('/provider-mode')}
+            onClick={() => navigate('/wallet')}
           >
-            {isProvider ? "Mode Penyedia" : "Jadi Penyedia"}
+            Lihat Wallet
           </Button>
         </div>
       </CardContent>

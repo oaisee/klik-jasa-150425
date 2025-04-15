@@ -41,7 +41,9 @@ const UserRoleToggle = ({ isProvider, userId, onRoleChange }: UserRoleToggleProp
 
       // If switching to provider, navigate to provider mode page
       if (checked) {
-        navigate('/provider-mode');
+        setTimeout(() => {
+          navigate('/provider-mode');
+        }, 1000); // Short delay to show the toast before navigating
       }
     } catch (error) {
       console.error('Error updating user role:', error);
