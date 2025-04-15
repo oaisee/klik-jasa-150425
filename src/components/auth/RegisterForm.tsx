@@ -1,14 +1,14 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, ArrowLeft, Eye, EyeOff, Phone, UserCheck } from 'lucide-react';
+import { User, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 import TermsAndConditions from './TermsAndConditions';
+import FormField from './FormField';
+import PasswordInputs from './PasswordInputs';
 
 interface RegisterFormProps {
   isProvider: boolean;
@@ -78,59 +78,38 @@ const RegisterForm = ({ isProvider }: RegisterFormProps) => {
 
   return (
     <form onSubmit={handleRegister} className="space-y-4 animate-fade-in" style={{animationDelay: "100ms"}}>
-      <div className="space-y-2">
-        <Label htmlFor="name" className="text-gray-700">Nama Lengkap</Label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-            <User size={18} />
-          </div>
-          <Input 
-            id="name"
-            type="text" 
-            placeholder="Nama lengkap" 
-            className="pl-10 border-gray-200" 
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-      </div>
+      <FormField
+        id="name"
+        label="Nama Lengkap"
+        type="text"
+        placeholder="Nama lengkap"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        icon={<User size={18} />}
+        required
+      />
       
-      <div className="space-y-2">
-        <Label htmlFor="email" className="text-gray-700">Email</Label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-            <Mail size={18} />
-          </div>
-          <Input 
-            id="email"
-            type="email" 
-            placeholder="nama@email.com" 
-            className="pl-10 border-gray-200" 
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-      </div>
+      <FormField
+        id="email"
+        label="Email"
+        type="email"
+        placeholder="nama@email.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        icon={<Mail size={18} />}
+        required
+      />
       
-      <div className="space-y-2">
-        <Label htmlFor="phone" className="text-gray-700">Nomor Telepon</Label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-            <Phone size={18} />
-          </div>
-          <Input 
-            id="phone"
-            type="tel" 
-            placeholder="08xxxxxxxxxx" 
-            className="pl-10 border-gray-200" 
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            required
-          />
-        </div>
-      </div>
+      <FormField
+        id="phone"
+        label="Nomor Telepon"
+        type="tel"
+        placeholder="08xxxxxxxxxx"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+        icon={<Phone size={18} />}
+        required
+      />
       
       <PasswordInputs 
         password={password}
