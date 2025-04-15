@@ -66,26 +66,30 @@ const SearchPage = () => {
   };
   
   return (
-    <div className="px-4 py-4 pb-20 animate-fade-in">
-      <h1 className="text-xl font-bold mb-4">Cari Jasa</h1>
-      
-      <div className="mb-6">
-        <SearchBar 
-          onSearch={handleSearch} 
-          placeholder="Cari jasa atau penyedia"
-        />
+    <div className="flex flex-col min-h-screen bg-gray-50 animate-fade-in">
+      <div className="bg-white px-4 py-3 flex items-center shadow-sm z-10">
+        <h1 className="text-lg font-semibold">Cari Jasa</h1>
       </div>
       
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-3">Kategori</h2>
-        <CategoryList layout="row" onCategoryClick={handleCategoryClick} />
-      </div>
-      
-      <div className="mt-6">
-        <ServicesList 
-          services={filteredServices} 
-          title={selectedCategory ? `Kategori: ${selectedCategory}` : (searchQuery ? `Hasil Pencarian: "${searchQuery}"` : "Hasil Pencarian")} 
-        />
+      <div className="flex-1 p-4 pb-20">
+        <div className="mb-6">
+          <SearchBar 
+            onSearch={handleSearch} 
+            placeholder="Cari jasa atau penyedia"
+          />
+        </div>
+        
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-3">Kategori</h2>
+          <CategoryList layout="row" onCategoryClick={handleCategoryClick} />
+        </div>
+        
+        <div className="mt-6">
+          <ServicesList 
+            services={filteredServices} 
+            title={selectedCategory ? `Kategori: ${selectedCategory}` : (searchQuery ? `Hasil Pencarian: "${searchQuery}"` : "Hasil Pencarian")} 
+          />
+        </div>
       </div>
     </div>
   );

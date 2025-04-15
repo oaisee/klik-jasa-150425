@@ -24,32 +24,34 @@ const EditProfilePage = () => {
   }, []);
 
   return (
-    <div className="px-4 py-4 pb-20 animate-fade-in">
-      <div className="flex items-center mb-6">
-        <button onClick={() => navigate(-1)} className="mr-2">
+    <div className="flex flex-col min-h-screen bg-gray-50 animate-fade-in">
+      <div className="bg-white px-4 py-3 flex items-center shadow-sm z-10">
+        <button onClick={() => navigate(-1)} className="mr-3 p-2 rounded-full hover:bg-gray-100 transition-colors">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-xl font-bold">Edit Profil</h1>
+        <h1 className="text-lg font-semibold">Edit Profil</h1>
       </div>
+      
+      <div className="flex-1 p-4 pb-20">
+        <div className="flex flex-col items-center mb-6">
+          <AvatarUpload
+            avatarUrl={userData.avatarUrl}
+            avatarPreview={avatarPreview}
+            uploadingAvatar={uploadingAvatar}
+            onChange={handleAvatarChange}
+            name={userData.name}
+          />
+        </div>
 
-      <div className="flex flex-col items-center mb-6">
-        <AvatarUpload
-          avatarUrl={userData.avatarUrl}
-          avatarPreview={avatarPreview}
+        <ProfileForm
+          userData={userData}
+          loading={loading}
+          saving={saving}
           uploadingAvatar={uploadingAvatar}
-          onChange={handleAvatarChange}
-          name={userData.name}
+          onChange={handleInputChange}
+          onSave={handleSaveProfile}
         />
       </div>
-
-      <ProfileForm
-        userData={userData}
-        loading={loading}
-        saving={saving}
-        uploadingAvatar={uploadingAvatar}
-        onChange={handleInputChange}
-        onSave={handleSaveProfile}
-      />
     </div>
   );
 };

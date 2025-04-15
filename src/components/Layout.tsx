@@ -24,13 +24,11 @@ const Layout: React.FC<LayoutProps> = ({ children, headerColor = 'light' }) => {
       document.documentElement.classList.add('status-bar-light');
       document.documentElement.classList.remove('status-bar-dark');
     }
-    
-    console.log("Layout component mounted with header color:", headerColor);
   }, [headerColor]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-gray-50">
-      <main className="app-content">
+    <div className="flex flex-col min-h-screen max-w-full w-full bg-gray-50">
+      <main className="flex-1 pb-16">
         {children}
       </main>
       <BottomNavigation />

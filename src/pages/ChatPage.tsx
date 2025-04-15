@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Send, Smile } from 'lucide-react';
+import { Search, Send, Smile, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -73,43 +73,47 @@ const ChatPage = () => {
   };
   
   return (
-    <div className="px-4 py-4 pb-20 animate-fade-in">
-      <h1 className="text-xl font-bold mb-4">Pesan</h1>
-      
-      <div className="relative mb-6">
-        <Input
-          type="text"
-          placeholder="Cari pesan"
-          value={searchQuery}
-          onChange={handleSearch}
-          className="pl-10"
-        />
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+    <div className="flex flex-col min-h-screen bg-gray-50 animate-fade-in">
+      <div className="bg-white px-4 py-3 flex items-center shadow-sm z-10">
+        <h1 className="text-lg font-semibold">Pesan</h1>
       </div>
       
-      {loading ? (
-        <div className="py-10 flex justify-center">
-          <LoadingIndicator size="lg" />
-        </div>
-      ) : chats.length > 0 ? (
-        chats.map((chat) => (
-          <ChatListItem 
-            key={chat.id}
-            name={chat.name}
-            message={chat.lastMessage}
-            time={chat.time}
-            unread={chat.unread}
-            avatar={chat.avatar}
-            onClick={() => handleChatClick(chat.id)}
+      <div className="flex-1 p-4 pb-20">
+        <div className="relative mb-6">
+          <Input
+            type="text"
+            placeholder="Cari pesan"
+            value={searchQuery}
+            onChange={handleSearch}
+            className="pl-10"
           />
-        ))
-      ) : (
-        <EmptyState 
-          icon={Smile}
-          title="Belum ada percakapan"
-          description="Mulai percakapan dengan penyedia jasa atau pelanggan"
-        />
-      )}
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+        </div>
+        
+        {loading ? (
+          <div className="py-10 flex justify-center">
+            <LoadingIndicator size="lg" />
+          </div>
+        ) : chats.length > 0 ? (
+          chats.map((chat) => (
+            <ChatListItem 
+              key={chat.id}
+              name={chat.name}
+              message={chat.lastMessage}
+              time={chat.time}
+              unread={chat.unread}
+              avatar={chat.avatar}
+              onClick={() => handleChatClick(chat.id)}
+            />
+          ))
+        ) : (
+          <EmptyState 
+            icon={Smile}
+            title="Belum ada percakapan"
+            description="Mulai percakapan dengan penyedia jasa atau pelanggan"
+          />
+        )}
+      </div>
     </div>
   );
 };
