@@ -1,21 +1,32 @@
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import TransactionItem from '@/components/wallet/TransactionItem';
 import { walletData } from '@/data/mockData';
 import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogTitle, DialogHeader } from '@/components/ui/dialog';
+import { useToast } from "@/hooks/use-toast";
 
 const WalletPage = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   
   useEffect(() => {
     document.title = 'Wallet | KlikJasa';
   }, []);
   
   const handleTopUp = () => {
-    // In a real app, this would open a payment gateway
-    window.open('https://app.midtrans.com/payment-links/1744535686326', '_blank');
+    setPaymentDialogOpen(true);
+  };
+
+  const handlePaymentComplete = () => {
+    setPaymentDialogOpen(false);
+    toast({
+      title: "Pembayaran Berhasil",
+      description: "Saldo Anda telah berhasil ditambahkan ke akun.",
+    });
   };
   
   return (
@@ -57,6 +68,37 @@ const WalletPage = () => {
           ))}
         </div>
       </div>
+
+      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] p-0 h-[80vh] overflow-hidden">
+          <DialogHeader className="p-4 flex flex-row items-center justify-between">
+            <DialogTitle>Pembayaran Midtrans</DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setPaymentDialogOpen(false)}
+              className="h-8 w-8 rounded-full"
+            >
+              <X size={18} />
+            </Button>
+          </DialogHeader>
+          <div className="h-full w-full">
+            <iframe 
+              src="https://app.midtrans.com/payment-links/1744535686326" 
+              title="Midtrans Payment" 
+              className="w-full h-full border-0"
+              onLoad={() => {
+                // This is a simple way to detect successful payment in an iframe
+                // In a real app, you would use Midtrans callbacks or check status via API
+                const iframe = document.querySelector('iframe');
+                if (iframe?.contentWindow?.location.href.includes('success')) {
+                  handlePaymentComplete();
+                }
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -27,13 +28,20 @@ const ProfilePage = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
       toast({
         title: "Berhasil Keluar",
         description: "Anda telah berhasil keluar dari akun.",
       });
-      // Redirect to homepage after logout
-      navigate('/');
+      
+      // Redirect to homepage after logout with a slight delay to ensure the toast is seen
+      setTimeout(() => {
+        navigate('/', { replace: true });
+        window.location.reload(); // Force reload to clear any cached auth state
+      }, 500);
+      
     } catch (error) {
       toast({
         title: "Gagal Keluar",

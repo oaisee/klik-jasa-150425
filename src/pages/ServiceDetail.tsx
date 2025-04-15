@@ -5,22 +5,57 @@ import { Star, MapPin, MessageCircle, ChevronLeft } from 'lucide-react';
 import { serviceDetail } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import ReviewItem from '@/components/reviews/ReviewItem';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/hooks/use-toast";
 
 const ServiceDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentImage, setCurrentImage] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   
   // In a real app, you would fetch this data based on the ID
   const service = serviceDetail;
   
   useEffect(() => {
-    document.title = `${service.title} | ServiceFinder`;
+    document.title = `${service.title} | KlikJasa`;
     window.scrollTo(0, 0);
+    
+    // Check authentication status
+    checkAuth();
   }, [service.title]);
   
+  const checkAuth = async () => {
+    const { data } = await supabase.auth.getSession();
+    setIsAuthenticated(!!data.session);
+  };
+  
   const handleRequestBooking = () => {
-    navigate(`/booking-confirmation/${id}`);
+    if (isAuthenticated) {
+      navigate(`/booking-confirmation/${id}`);
+    } else {
+      toast({
+        title: "Login Diperlukan",
+        description: "Anda perlu login terlebih dahulu untuk memesan layanan ini.",
+      });
+      // Store service ID in localStorage to redirect back after login
+      localStorage.setItem('redirectAfterLogin', `/service/${id}`);
+      navigate('/login');
+    }
+  };
+  
+  const handleChat = () => {
+    if (isAuthenticated) {
+      navigate('/chat');
+    } else {
+      toast({
+        title: "Login Diperlukan",
+        description: "Anda perlu login terlebih dahulu untuk menggunakan fitur chat.",
+      });
+      localStorage.setItem('redirectAfterLogin', `/service/${id}`);
+      navigate('/login');
+    }
   };
   
   return (
@@ -64,7 +99,7 @@ const ServiceDetail = () => {
             <div className="flex items-center text-sm">
               <Star size={16} className="text-yellow-400 fill-yellow-400" />
               <span className="ml-1">{service.rating}</span>
-              <span className="ml-1 text-gray-500">({service.reviewCount} reviews)</span>
+              <span className="ml-1 text-gray-500">({service.reviewCount} ulasan)</span>
             </div>
           </div>
         </div>
@@ -86,7 +121,7 @@ const ServiceDetail = () => {
         
         {/* Description */}
         <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-2">Description</h2>
+          <h2 className="text-lg font-semibold mb-2">Deskripsi</h2>
           <div className="text-sm whitespace-pre-line">
             {service.description}
           </div>
@@ -94,7 +129,7 @@ const ServiceDetail = () => {
         
         {/* Reviews */}
         <div className="mt-8">
-          <h2 className="text-lg font-semibold mb-2">Customer Reviews</h2>
+          <h2 className="text-lg font-semibold mb-2">Ulasan Pelanggan</h2>
           <div>
             {service.reviews.map((review, idx) => (
               <ReviewItem
@@ -113,6 +148,7 @@ const ServiceDetail = () => {
           <Button 
             variant="outline" 
             className="flex-1 flex items-center justify-center"
+            onClick={handleChat}
           >
             <MessageCircle size={18} className="mr-2" />
             Chat
@@ -121,7 +157,7 @@ const ServiceDetail = () => {
             className="flex-1 bg-marketplace-primary hover:bg-marketplace-secondary"
             onClick={handleRequestBooking}
           >
-            Request Booking
+            Pesan Layanan
           </Button>
         </div>
       </div>
