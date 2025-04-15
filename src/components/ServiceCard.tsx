@@ -1,5 +1,7 @@
+
 import { Star, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
 interface ServiceCardProps {
   id: string;
   image: string;
@@ -9,7 +11,9 @@ interface ServiceCardProps {
   price: number;
   currency?: string;
   distance: number;
+  category?: string;
 }
+
 const ServiceCard = ({
   id,
   image,
@@ -18,9 +22,14 @@ const ServiceCard = ({
   rating,
   price,
   currency = 'Rp',
-  distance
+  distance,
+  category
 }: ServiceCardProps) => {
-  return <Link to={`/service/${id}`} className="block bg-white rounded-lg overflow-hidden shadow border border-gray-100 hover:shadow-md transition-shadow">
+  return (
+    <Link 
+      to={`/service/${id}`} 
+      className="block bg-white rounded-lg overflow-hidden shadow border border-gray-100 hover:shadow-md transition-shadow"
+    >
       <div className="relative h-36">
         <img src={image} alt={title} className="w-full h-full object-cover" />
       </div>
@@ -41,6 +50,8 @@ const ServiceCard = ({
           <span className="ml-1">{distance.toFixed(1)} km dari Anda</span>
         </div>
       </div>
-    </Link>;
+    </Link>
+  );
 };
+
 export default ServiceCard;

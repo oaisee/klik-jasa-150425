@@ -1,4 +1,3 @@
-
 export const nearbyServices = [
   {
     id: '1',
@@ -8,6 +7,7 @@ export const nearbyServices = [
     rating: 4.8,
     price: 250000,
     distance: 2.3,
+    category: 'Kebersihan'
   },
   {
     id: '2',
@@ -17,6 +17,7 @@ export const nearbyServices = [
     rating: 4.7,
     price: 150000,
     distance: 3.5,
+    category: 'Pendidikan'
   },
   {
     id: '3',
@@ -26,6 +27,7 @@ export const nearbyServices = [
     rating: 4.9,
     price: 200000,
     distance: 1.8,
+    category: 'Perbaikan'
   },
   {
     id: '4',
@@ -35,6 +37,7 @@ export const nearbyServices = [
     rating: 4.6,
     price: 500000,
     distance: 4.2,
+    category: 'Acara'
   },
 ];
 
@@ -47,6 +50,7 @@ export const popularServices = [
     rating: 4.5,
     price: 175000,
     distance: 5.1,
+    category: 'Kecantikan'
   },
   {
     id: '6',
@@ -56,6 +60,7 @@ export const popularServices = [
     rating: 4.7,
     price: 220000,
     distance: 3.2,
+    category: 'Perbaikan'
   },
   {
     id: '7',
@@ -65,6 +70,7 @@ export const popularServices = [
     rating: 4.9,
     price: 300000,
     distance: 2.7,
+    category: 'Kesehatan'
   },
   {
     id: '8',
@@ -74,6 +80,7 @@ export const popularServices = [
     rating: 4.8,
     price: 450000,
     distance: 3.9,
+    category: 'Kreatif'
   },
 ];
 

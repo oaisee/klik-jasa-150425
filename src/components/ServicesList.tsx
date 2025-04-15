@@ -23,6 +23,7 @@ const ServicesList = ({ services = [], title }: ServicesListProps) => {
               rating={service.rating}
               price={service.price}
               distance={service.distance}
+              category={service.category}
             />
           ))
         ) : (

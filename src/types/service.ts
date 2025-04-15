@@ -7,5 +7,5 @@ export interface Service {
   rating: number;
   price: number;
   distance: number;
-  category?: string;
+  category: string;
 }
