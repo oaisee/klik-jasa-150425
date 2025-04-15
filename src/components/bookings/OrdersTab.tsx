@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Tab } from '@headlessui/react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import BookingsList from './BookingsList';
 import EmptyState from '@/components/shared/EmptyState';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
@@ -12,6 +12,7 @@ const OrdersTab = () => {
   const [completedBookings, setCompletedBookings] = useState([]);
   const [cancelledBookings, setCancelledBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("active");
   
   useEffect(() => {
     fetchUserBookings();
@@ -42,7 +43,8 @@ const OrdersTab = () => {
             time: '09:00 - 12:00',
             status: 'active',
             price: 150000,
-            providerImage: 'https://randomuser.me/api/portraits/men/32.jpg'
+            providerImage: 'https://randomuser.me/api/portraits/men/32.jpg',
+            location: 'Jakarta Selatan'
           },
           {
             id: '2',
@@ -52,7 +54,8 @@ const OrdersTab = () => {
             time: '13:00 - 15:00',
             status: 'active',
             price: 250000,
-            providerImage: 'https://randomuser.me/api/portraits/men/55.jpg'
+            providerImage: 'https://randomuser.me/api/portraits/men/55.jpg',
+            location: 'Jakarta Pusat'
           }
         ];
         
@@ -66,7 +69,8 @@ const OrdersTab = () => {
             status: 'completed',
             price: 75000,
             rating: 5,
-            providerImage: 'https://randomuser.me/api/portraits/women/22.jpg'
+            providerImage: 'https://randomuser.me/api/portraits/women/22.jpg',
+            location: 'Jakarta Barat'
           }
         ];
         
@@ -79,7 +83,8 @@ const OrdersTab = () => {
             time: '14:00 - 16:00',
             status: 'cancelled',
             price: 200000,
-            providerImage: 'https://randomuser.me/api/portraits/men/42.jpg'
+            providerImage: 'https://randomuser.me/api/portraits/men/42.jpg',
+            location: 'Jakarta Timur'
           }
         ];
         
@@ -134,66 +139,60 @@ const OrdersTab = () => {
     );
   }
   
-  const categories = [
-    { name: 'Aktif', count: activeBookings.length },
-    { name: 'Selesai', count: completedBookings.length },
-    { name: 'Dibatalkan', count: cancelledBookings.length }
-  ];
-  
   return (
     <div className="my-4">
-      <Tab.Group>
-        <Tab.List className="flex border-b border-gray-200 mb-4">
-          {categories.map((category) => (
-            <Tab
-              key={category.name}
-              className={({ selected }) =>
-                `py-2 px-4 text-sm font-medium outline-none whitespace-nowrap relative
-                ${selected ? 'text-marketplace-primary' : 'text-gray-500'}`
-              }
-            >
-              {({ selected }) => (
-                <>
-                  <span className="flex items-center">
-                    {category.name}
-                    {category.count > 0 && (
-                      <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs">
-                        {category.count}
-                      </span>
-                    )}
-                  </span>
-                  {selected && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-marketplace-primary" />
-                  )}
-                </>
-              )}
-            </Tab>
-          ))}
-        </Tab.List>
-        <Tab.Panels>
-          <Tab.Panel>
-            {activeBookings.length > 0 ? (
-              <BookingsList bookings={activeBookings} onRefresh={fetchUserBookings} />
-            ) : (
-              renderEmptyState('active')
+      <Tabs defaultValue="active" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="active">
+            Aktif
+            {activeBookings.length > 0 && (
+              <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs">
+                {activeBookings.length}
+              </span>
             )}
-          </Tab.Panel>
-          <Tab.Panel>
-            {completedBookings.length > 0 ? (
-              <BookingsList bookings={completedBookings} onRefresh={fetchUserBookings} />
-            ) : (
-              renderEmptyState('completed')
+          </TabsTrigger>
+          <TabsTrigger value="completed">
+            Selesai
+            {completedBookings.length > 0 && (
+              <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs">
+                {completedBookings.length}
+              </span>
             )}
-          </Tab.Panel>
-          <Tab.Panel>
-            {cancelledBookings.length > 0 ? (
-              <BookingsList bookings={cancelledBookings} onRefresh={fetchUserBookings} />
-            ) : (
-              renderEmptyState('cancelled')
+          </TabsTrigger>
+          <TabsTrigger value="cancelled">
+            Dibatalkan
+            {cancelledBookings.length > 0 && (
+              <span className="ml-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs">
+                {cancelledBookings.length}
+              </span>
             )}
-          </Tab.Panel>
-        </Tab.Panels>
-      </Tab.Group>
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="active">
+          {activeBookings.length > 0 ? (
+            <BookingsList bookings={activeBookings} onRefresh={fetchUserBookings} />
+          ) : (
+            renderEmptyState('active')
+          )}
+        </TabsContent>
+        
+        <TabsContent value="completed">
+          {completedBookings.length > 0 ? (
+            <BookingsList bookings={completedBookings} onRefresh={fetchUserBookings} />
+          ) : (
+            renderEmptyState('completed')
+          )}
+        </TabsContent>
+        
+        <TabsContent value="cancelled">
+          {cancelledBookings.length > 0 ? (
+            <BookingsList bookings={cancelledBookings} onRefresh={fetchUserBookings} />
+          ) : (
+            renderEmptyState('cancelled')
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

@@ -1,199 +1,146 @@
 
-import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { Separator } from '@/components/ui/separator';
+import { toast } from '@/hooks/use-toast';
+import { CreditCard, AlertCircle } from 'lucide-react';
+
+const PRESET_AMOUNTS = [50000, 100000, 200000, 500000];
 
 interface TopUpDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userId: string;
-  onSuccess: () => void;
+  onTopUp: (amount: number) => void;
 }
 
-const TopUpDialog = ({ open, onOpenChange, userId, onSuccess }: TopUpDialogProps) => {
-  const [amount, setAmount] = useState('');
-  const [selectedAmount, setSelectedAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('bank_transfer');
-  const [loading, setLoading] = useState(false);
-  
-  const predefinedAmounts = [
-    { value: '50000', label: 'Rp 50.000' },
-    { value: '100000', label: 'Rp 100.000' },
-    { value: '200000', label: 'Rp 200.000' },
-    { value: '500000', label: 'Rp 500.000' },
-  ];
-  
-  const paymentMethods = [
-    { value: 'bank_transfer', label: 'Transfer Bank' },
-    { value: 'e_wallet', label: 'E-Wallet (OVO, GoPay, DANA)' },
-    { value: 'credit_card', label: 'Kartu Kredit' },
-  ];
-  
-  const handleSelectAmount = (value: string) => {
-    setSelectedAmount(value);
-    setAmount(value);
+const TopUpDialog = ({ open, onOpenChange, onTopUp }: TopUpDialogProps) => {
+  const [amount, setAmount] = useState<number | ''>('');
+  const [customAmount, setCustomAmount] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handlePresetAmountClick = (presetAmount: number) => {
+    setAmount(presetAmount);
+    setCustomAmount(presetAmount.toString());
   };
-  
-  const handleManualAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setAmount(value);
-    setSelectedAmount('');
+
+  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setCustomAmount(value);
+    setAmount(value ? parseInt(value, 10) : '');
   };
-  
-  const handleSubmit = async () => {
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      toast.error("Masukkan jumlah yang valid");
+
+  const handleTopUp = async () => {
+    if (!amount) {
+      toast({
+        variant: "destructive",
+        title: "Jumlah tidak valid",
+        description: "Silakan masukkan jumlah yang valid untuk top up",
+      });
       return;
     }
-    
-    if (Number(amount) < 10000) {
-      toast.error("Minimal top up Rp 10.000");
+
+    if (typeof amount === 'number' && amount < 10000) {
+      toast({
+        variant: "destructive",
+        title: "Jumlah terlalu kecil",
+        description: "Minimal top up adalah Rp 10.000",
+      });
       return;
     }
-    
-    if (Number(amount) > 10000000) {
-      toast.error("Maksimal top up Rp 10.000.000");
-      return;
-    }
-    
-    setLoading(true);
-    
+
     try {
-      // In a real app, this would initiate a Midtrans payment flow
-      // For now, simulate a successful top-up
+      setIsProcessing(true);
       
-      // Mock delay to simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Simulate API call to payment provider (Midtrans)
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Record transaction in the database
-      const { error } = await supabase
-        .from('wallet_transactions')
-        .insert({
-          user_id: userId,
-          amount: Number(amount),
-          type: 'topup',
-          status: 'completed',
-          description: `Top up via ${getPaymentMethodName(paymentMethod)}`,
-          metadata: {
-            payment_method: paymentMethod,
-          }
-        });
+      // In a real app, this would integrate with Midtrans API
+      // After successful payment, we would call onTopUp
       
-      if (error) throw error;
+      onTopUp(typeof amount === 'number' ? amount : 0);
       
-      // Update wallet balance
-      const { error: updateError } = await supabase
-        .rpc('increment_wallet_balance', {
-          user_id: userId,
-          increment_amount: Number(amount)
-        });
+      toast({
+        title: "Top up berhasil!",
+        description: `Rp ${typeof amount === 'number' ? amount.toLocaleString() : 0} telah ditambahkan ke saldo Anda`,
+      });
       
-      if (updateError) throw updateError;
-      
-      toast.success(`Top up Rp ${Number(amount).toLocaleString()} berhasil`);
-      onSuccess();
+      // Reset and close dialog
+      setAmount('');
+      setCustomAmount('');
       onOpenChange(false);
-      
     } catch (error) {
       console.error('Error processing top up:', error);
-      toast.error("Gagal melakukan top up. Silakan coba lagi.");
+      toast({
+        variant: "destructive",
+        title: "Gagal melakukan top up",
+        description: "Terjadi kesalahan saat memproses pembayaran Anda"
+      });
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
   };
-  
-  const getPaymentMethodName = (value: string): string => {
-    const method = paymentMethods.find(m => m.value === value);
-    return method ? method.label : value;
-  };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Top Up Saldo</DialogTitle>
-          <DialogDescription>
-            Pilih nominal dan metode pembayaran untuk top up saldo Anda
-          </DialogDescription>
+          <DialogTitle className="flex items-center">
+            <CreditCard className="mr-2 h-5 w-5" />
+            Top Up Saldo KlikJasa
+          </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="amount">Pilih Nominal</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {predefinedAmounts.map((option) => (
-                <Button
-                  key={option.value}
-                  type="button"
-                  variant={selectedAmount === option.value ? "default" : "outline"}
-                  className="h-10"
-                  onClick={() => handleSelectAmount(option.value)}
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </div>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-2 gap-2">
+            {PRESET_AMOUNTS.map((presetAmount) => (
+              <Button
+                key={presetAmount}
+                variant={amount === presetAmount ? "default" : "outline"}
+                onClick={() => handlePresetAmountClick(presetAmount)}
+                className="w-full"
+              >
+                Rp {presetAmount.toLocaleString()}
+              </Button>
+            ))}
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="custom-amount">Nominal Lainnya</Label>
+          <Separator className="my-2" />
+          
+          <div className="grid gap-2">
+            <Label htmlFor="amount">Jumlah Kustom</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                Rp
-              </span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>
               <Input
-                id="custom-amount"
-                type="number"
-                placeholder="Masukkan nominal"
+                id="amount"
+                value={customAmount}
+                onChange={handleCustomAmountChange}
                 className="pl-10"
-                value={amount}
-                onChange={handleManualAmountChange}
+                placeholder="Minimal Rp 10.000"
               />
             </div>
-            <p className="text-xs text-gray-500">Minimal Rp 10.000, maksimal Rp 10.000.000</p>
           </div>
           
-          <div className="space-y-2">
-            <Label>Metode Pembayaran</Label>
-            <RadioGroup 
-              value={paymentMethod} 
-              onValueChange={setPaymentMethod}
-              className="space-y-2"
-            >
-              {paymentMethods.map((method) => (
-                <div 
-                  key={method.value}
-                  className="flex items-center space-x-2 border rounded-md p-3 cursor-pointer hover:bg-gray-50"
-                >
-                  <RadioGroupItem value={method.value} id={method.value} />
-                  <Label htmlFor={method.value} className="flex-1 cursor-pointer">
-                    {method.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
+          <div className="bg-yellow-50 p-3 rounded-md text-sm text-yellow-800">
+            <div className="flex items-start">
+              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 text-yellow-600" />
+              <div>
+                <p className="font-medium">Informasi Pembayaran</p>
+                <p className="mt-1">Top up saldo melalui Midtrans dengan berbagai metode pembayaran (bank transfer, e-wallet, dll)</p>
+              </div>
+            </div>
           </div>
         </div>
         
         <DialogFooter>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={!amount || isNaN(Number(amount)) || Number(amount) <= 0 || loading}
+          <Button
+            onClick={handleTopUp}
+            disabled={!amount || isProcessing}
             className="w-full"
           >
-            {loading ? 'Memproses...' : 'Lanjutkan Pembayaran'}
+            {isProcessing ? "Memproses..." : `Top Up ${amount ? `Rp ${Number(amount).toLocaleString()}` : ""}`}
           </Button>
         </DialogFooter>
       </DialogContent>

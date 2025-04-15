@@ -11,24 +11,30 @@ interface Booking {
   provider: string;
   date: string;
   time: string;
-  location: string;
-  status: 'active' | 'pending' | 'completed';
+  status: 'active' | 'pending' | 'completed' | 'cancelled';
   price: number;
+  providerImage?: string;
+  location?: string;
+  rating?: number;
 }
 
 interface BookingsListProps {
   bookings: Booking[];
-  loading: boolean;
-  status: 'active' | 'pending' | 'completed';
+  loading?: boolean;
+  status?: 'active' | 'pending' | 'completed' | 'cancelled';
+  onRefresh?: () => void;
 }
 
-const BookingsList = ({ bookings, loading, status }: BookingsListProps) => {
-  const filteredBookings = bookings.filter(booking => booking.status === status);
+const BookingsList = ({ bookings, loading = false, status, onRefresh }: BookingsListProps) => {
+  const filteredBookings = status 
+    ? bookings.filter(booking => booking.status === status)
+    : bookings;
   
-  const statusText = {
+  const statusText: Record<string, string> = {
     'active': 'aktif',
     'pending': 'tertunda',
-    'completed': 'selesai'
+    'completed': 'selesai',
+    'cancelled': 'dibatalkan'
   };
 
   if (loading) {
@@ -39,7 +45,7 @@ const BookingsList = ({ bookings, loading, status }: BookingsListProps) => {
     return (
       <EmptyState 
         icon={Calendar}
-        title={`Tidak ada pesanan ${statusText[status]}`}
+        title={`Tidak ada pesanan ${status ? statusText[status] : ''}`}
       />
     );
   }
@@ -53,14 +59,14 @@ const BookingsList = ({ bookings, loading, status }: BookingsListProps) => {
           provider={booking.provider}
           date={booking.date}
           time={booking.time}
-          location={booking.location}
-          status={booking.status}
+          location={booking.location || 'Jakarta'}
+          status={booking.status === 'cancelled' ? 'pending' : booking.status}
           price={booking.price}
         />
       ))}
       
       <div className="text-center mt-3 text-gray-500 text-sm">
-        Menampilkan {filteredBookings.length} dari {filteredBookings.length} pesanan {statusText[status]}
+        Menampilkan {filteredBookings.length} dari {filteredBookings.length} pesanan {status ? statusText[status] : ''}
       </div>
     </div>
   );
