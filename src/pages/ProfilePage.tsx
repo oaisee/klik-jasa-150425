@@ -12,7 +12,9 @@ import {
   ChevronRight, 
   Star, 
   Shield,
-  Bell
+  Bell,
+  Wallet,
+  Loader2
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +27,12 @@ const ProfilePage = () => {
     name: '',
     email: '',
     phone: '',
-    joinDate: ''
+    joinDate: '',
+    rating: 0,
+    reviews: 0,
+    walletBalance: 0,
+    avatarUrl: null as string | null,
+    isProvider: false
   });
 
   useEffect(() => {
@@ -53,22 +60,45 @@ const ProfilePage = () => {
       const user = sessionData.session.user;
       console.log("Current user data in profile:", user);
       
+      // Get profile data from profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError) {
+        console.error("Error fetching profile from database:", profileError);
+        throw profileError;
+      }
+      
+      console.log("Profile data from database:", profileData);
+      
       // Format join date
-      const createdAt = user.created_at ? new Date(user.created_at) : new Date();
+      const createdAt = profileData.created_at ? new Date(profileData.created_at) : new Date();
       const month = new Intl.DateTimeFormat('id-ID', { month: 'long' }).format(createdAt);
       const year = createdAt.getFullYear();
       
+      // Get review data if available (to be implemented)
+      const averageRating = 4.8; // Placeholder - we'll implement this for real later
+      const reviewCount = 24;    // Placeholder - we'll implement this for real later
+      
       // Set user data
       setUserData({
-        name: user.user_metadata?.full_name || 'Pengguna KlikJasa',
+        name: profileData.full_name || 'Pengguna KlikJasa',
         email: user.email || '',
-        phone: user.user_metadata?.phone || '-',
-        joinDate: `Bergabung ${month} ${year}`
+        phone: profileData.phone || '-',
+        joinDate: `Bergabung ${month} ${year}`,
+        rating: averageRating,
+        reviews: reviewCount,
+        walletBalance: profileData.wallet_balance || 0,
+        avatarUrl: profileData.avatar_url,
+        isProvider: profileData.is_provider || false
       });
       
     } catch (error) {
       console.error('Error fetching profile:', error);
-      toast("Gagal memuat data profil", {
+      toast.error("Gagal memuat data profil", {
         description: "Silakan coba lagi nanti",
       });
     } finally {
@@ -106,22 +136,29 @@ const ProfilePage = () => {
         <CardContent className="p-4">
           {loading ? (
             <div className="flex justify-center py-4">
-              <p>Memuat data profil...</p>
+              <Loader2 className="h-6 w-6 animate-spin text-marketplace-primary" />
+              <p className="ml-2">Memuat data profil...</p>
             </div>
           ) : (
             <div className="flex items-center">
               <Avatar className="h-16 w-16 mr-4">
-                <img 
-                  src="https://randomuser.me/api/portraits/men/42.jpg" 
-                  alt="Profile" 
-                  className="rounded-full object-cover w-full h-full"
-                />
+                {userData.avatarUrl ? (
+                  <img 
+                    src={userData.avatarUrl} 
+                    alt="Profile" 
+                    className="rounded-full object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="bg-gray-200 rounded-full w-full h-full flex items-center justify-center">
+                    <span className="text-lg">{userData.name.charAt(0)}</span>
+                  </div>
+                )}
               </Avatar>
               <div>
                 <h2 className="font-semibold text-lg">{userData.name}</h2>
                 <div className="flex items-center text-sm text-gray-500">
                   <Star className="w-4 h-4 text-yellow-400 mr-1 fill-yellow-400" />
-                  <span>4.8 (24 ulasan)</span>
+                  <span>{userData.rating.toFixed(1)} ({userData.reviews} ulasan)</span>
                 </div>
                 <p className="text-sm text-gray-500">{userData.joinDate}</p>
               </div>
@@ -132,8 +169,12 @@ const ProfilePage = () => {
             <Button className="flex-1 mr-2" variant="outline" onClick={() => navigate('/edit-profile')}>
               Edit Profil
             </Button>
-            <Button className="flex-1 ml-2" variant="default" onClick={() => navigate('/provider-mode')}>
-              Mode Penyedia
+            <Button 
+              className="flex-1 ml-2" 
+              variant={userData.isProvider ? "default" : "outline"}
+              onClick={() => navigate('/provider-mode')}
+            >
+              {userData.isProvider ? "Mode Penyedia" : "Jadi Penyedia"}
             </Button>
           </div>
         </CardContent>
@@ -143,7 +184,10 @@ const ProfilePage = () => {
       <Card className="mb-6">
         <CardContent className="p-4">
           <div className="flex justify-between items-center">
-            <h3 className="font-semibold">Saldo KlikJasa</h3>
+            <div className="flex items-center">
+              <Wallet className="w-5 h-5 mr-2 text-marketplace-primary" />
+              <h3 className="font-semibold">Saldo KlikJasa</h3>
+            </div>
             <Link to="/wallet">
               <Button variant="ghost" className="text-marketplace-primary p-0">
                 Lihat Detail
@@ -151,7 +195,7 @@ const ProfilePage = () => {
             </Link>
           </div>
           <div className="mt-2">
-            <p className="text-2xl font-semibold">Rp 250.000</p>
+            <p className="text-2xl font-semibold">Rp {userData.walletBalance.toLocaleString('id-ID')}</p>
             <div className="mt-2 flex space-x-2">
               <Button variant="outline" size="sm" className="flex-1" onClick={() => navigate('/wallet')}>
                 Isi Saldo

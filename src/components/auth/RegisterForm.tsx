@@ -65,6 +65,23 @@ const RegisterForm = ({ isProvider }: RegisterFormProps) => {
       if (error) throw error;
       
       console.log("Registration successful:", data);
+      
+      // Create initial profile in public.profiles table
+      // Note: This is a backup in case the trigger doesn't work
+      try {
+        await supabase.from('profiles').upsert({
+          id: data.user?.id,
+          full_name: name,
+          phone: phone,
+          is_provider: isProvider,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      } catch (profileError) {
+        console.error("Error creating profile:", profileError);
+        // We continue anyway since the DB trigger should create the profile
+      }
+      
       toast.success("Pendaftaran berhasil! Silakan masuk dengan akun Anda");
       
       // Redirect to the login page after successful registration
