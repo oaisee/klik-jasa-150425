@@ -40,6 +40,7 @@ const App = () => {
   const [authenticated, setAuthenticated] = useState(false);
   
   useEffect(() => {
+    // Function to check user session
     const checkUserSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
@@ -63,10 +64,12 @@ const App = () => {
         setAuthenticated(false);
         setIsAdmin(false);
       } finally {
+        // Always set loading to false when done
         setLoading(false);
       }
     };
     
+    // Check session immediately
     checkUserSession();
     
     // Listen for auth changes
@@ -80,6 +83,9 @@ const App = () => {
         setAuthenticated(false);
         setIsAdmin(false);
       }
+      
+      // Ensure loading is set to false when auth state changes
+      setLoading(false);
     });
     
     return () => {
@@ -96,7 +102,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Routes>
-          {/* Public routes */}
+          {/* Public routes - accessible without authentication */}
           <Route path="/splash" element={<SplashScreen />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -106,7 +112,7 @@ const App = () => {
           <Route path="/admin" element={<AdminAuthPage />} />
           <Route path="/admin-dashboard/*" element={isAdmin ? <AdminDashboardPage /> : <Navigate to="/admin" />} />
           
-          {/* Protected user routes */}
+          {/* Protected user routes - redirect to login if not authenticated */}
           <Route path="/" element={
             authenticated ? <Layout><Index /></Layout> : <Navigate to="/login" replace />
           } />
