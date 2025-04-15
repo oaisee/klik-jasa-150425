@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import TabsContainer, { TabItem } from '../shared/TabsContainer';
-import ServicesList from './ServicesList';
+import BookingServicesList from './BookingServicesList';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -86,17 +86,17 @@ const ServicesTab = () => {
     { 
       id: 'active',
       label: 'Aktif',
-      content: <ServicesList services={services} loading={loading} status="active" onStatusToggle={toggleServiceStatus} />
+      content: <BookingServicesList services={services} loading={loading} status="active" onStatusToggle={toggleServiceStatus} />
     },
     { 
       id: 'inactive',
       label: 'Nonaktif',
-      content: <ServicesList services={services} loading={loading} status="inactive" onStatusToggle={toggleServiceStatus} />
+      content: <BookingServicesList services={services} loading={loading} status="inactive" onStatusToggle={toggleServiceStatus} />
     },
     { 
       id: 'drafts',
       label: 'Draft',
-      content: <ServicesList services={services} loading={loading} status="draft" onStatusToggle={toggleServiceStatus} />
+      content: <BookingServicesList services={services} loading={loading} status="draft" onStatusToggle={toggleServiceStatus} />
     }
   ];
 
