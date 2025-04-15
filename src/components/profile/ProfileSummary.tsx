@@ -6,16 +6,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, Loader2, Edit, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export interface ProfileSummaryProps {
-  fullName: string;
-  joinDate: string;
-  rating: number;
-  totalReviews: number;
-  avatarUrl: string | null;
-  isLoading: boolean;
-  isProvider?: boolean;
-}
-
 const ProfileSummary = ({
   fullName,
   joinDate,
@@ -37,7 +27,7 @@ const ProfileSummary = ({
             <p className="ml-2">Memuat data profil...</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center text-center">
             <Avatar className="h-20 w-20 border-4 border-white shadow-md">
               {avatarUrl ? (
                 <AvatarImage 
