@@ -56,13 +56,15 @@ const RegisterForm = ({ isProvider }: RegisterFormProps) => {
           data: {
             full_name: name,
             phone: phone,
-            is_provider: isProvider
+            is_provider: isProvider,
+            created_at: new Date().toISOString() // Add creation timestamp
           }
         }
       });
       
       if (error) throw error;
       
+      console.log("Registration successful:", data);
       toast.success("Pendaftaran berhasil! Silakan masuk dengan akun Anda");
       
       // Redirect to the login page after successful registration
@@ -70,7 +72,7 @@ const RegisterForm = ({ isProvider }: RegisterFormProps) => {
       
     } catch (err: any) {
       toast.error(err.message || "Terjadi kesalahan, silakan coba lagi");
-      console.error(err);
+      console.error("Registration error:", err);
     } finally {
       setLoading(false);
     }

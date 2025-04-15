@@ -16,38 +16,81 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    joinDate: ''
+  });
 
   useEffect(() => {
     document.title = 'Profil | KlikJasa';
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      
+      // Get current user session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw sessionError;
+      }
+      
+      if (!sessionData.session) {
+        console.error("No active session found");
+        navigate('/login');
+        return;
+      }
+      
+      const user = sessionData.session.user;
+      console.log("Current user data in profile:", user);
+      
+      // Format join date
+      const createdAt = user.created_at ? new Date(user.created_at) : new Date();
+      const month = new Intl.DateTimeFormat('id-ID', { month: 'long' }).format(createdAt);
+      const year = createdAt.getFullYear();
+      
+      // Set user data
+      setUserData({
+        name: user.user_metadata?.full_name || 'Pengguna KlikJasa',
+        email: user.email || '',
+        phone: user.user_metadata?.phone || '-',
+        joinDate: `Bergabung ${month} ${year}`
+      });
+      
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast("Gagal memuat data profil", {
+        description: "Silakan coba lagi nanti",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      toast({
-        title: "Berhasil Keluar",
-        description: "Anda telah berhasil keluar dari akun.",
-      });
+      toast.success("Berhasil Keluar");
       
-      // Redirect to homepage after logout with a slight delay to ensure the toast is seen
+      // Redirect to homepage after logout with a slight delay
       setTimeout(() => {
         navigate('/', { replace: true });
         window.location.reload(); // Force reload to clear any cached auth state
       }, 500);
       
     } catch (error) {
-      toast({
-        title: "Gagal Keluar",
-        description: "Terjadi kesalahan saat mencoba keluar.",
-        variant: "destructive",
-      });
+      toast.error("Gagal Keluar");
       console.error('Error logging out:', error);
     }
   };
@@ -61,23 +104,29 @@ const ProfilePage = () => {
       {/* Profile Summary Card */}
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="flex items-center">
-            <Avatar className="h-16 w-16 mr-4">
-              <img 
-                src="https://randomuser.me/api/portraits/men/42.jpg" 
-                alt="Profile" 
-                className="rounded-full object-cover w-full h-full"
-              />
-            </Avatar>
-            <div>
-              <h2 className="font-semibold text-lg">Rahmat Hidayat</h2>
-              <div className="flex items-center text-sm text-gray-500">
-                <Star className="w-4 h-4 text-yellow-400 mr-1 fill-yellow-400" />
-                <span>4.8 (24 ulasan)</span>
-              </div>
-              <p className="text-sm text-gray-500">Bergabung Maret 2025</p>
+          {loading ? (
+            <div className="flex justify-center py-4">
+              <p>Memuat data profil...</p>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center">
+              <Avatar className="h-16 w-16 mr-4">
+                <img 
+                  src="https://randomuser.me/api/portraits/men/42.jpg" 
+                  alt="Profile" 
+                  className="rounded-full object-cover w-full h-full"
+                />
+              </Avatar>
+              <div>
+                <h2 className="font-semibold text-lg">{userData.name}</h2>
+                <div className="flex items-center text-sm text-gray-500">
+                  <Star className="w-4 h-4 text-yellow-400 mr-1 fill-yellow-400" />
+                  <span>4.8 (24 ulasan)</span>
+                </div>
+                <p className="text-sm text-gray-500">{userData.joinDate}</p>
+              </div>
+            </div>
+          )}
           
           <div className="mt-4 flex justify-between">
             <Button className="flex-1 mr-2" variant="outline" onClick={() => navigate('/edit-profile')}>

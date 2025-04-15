@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,13 +7,92 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar } from '@/components/ui/avatar';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from "sonner";
 
 const EditProfilePage = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const [userData, setUserData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: ''
+  });
 
   useEffect(() => {
     document.title = 'Edit Profil | KlikJasa';
+    fetchUserProfile();
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      
+      // Get current user session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw sessionError;
+      }
+      
+      if (!sessionData.session) {
+        toast.error("Sesi tidak ditemukan, silakan login kembali");
+        navigate('/login');
+        return;
+      }
+      
+      const user = sessionData.session.user;
+      console.log("Current user data:", user);
+      
+      // Set user data from user metadata
+      setUserData({
+        name: user.user_metadata?.full_name || '',
+        email: user.email || '',
+        phone: user.user_metadata?.phone || '',
+        address: user.user_metadata?.address || ''
+      });
+      
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast.error("Gagal memuat data profil");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setUserData(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true);
+      
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          full_name: userData.name,
+          phone: userData.phone,
+          address: userData.address
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast.success("Profil berhasil diperbarui");
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error("Gagal memperbarui profil");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="px-4 py-4 pb-20 animate-fade-in">
@@ -39,30 +118,62 @@ const EditProfilePage = () => {
         </div>
       </div>
 
-      <Card className="mb-4">
-        <CardContent className="p-4">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Nama Lengkap</Label>
-              <Input id="name" defaultValue="Rahmat Hidayat" />
-            </div>
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" defaultValue="rahmat.hidayat@example.com" />
-            </div>
-            <div>
-              <Label htmlFor="phone">Nomor Telepon</Label>
-              <Input id="phone" defaultValue="+62 812 3456 7890" />
-            </div>
-            <div>
-              <Label htmlFor="address">Alamat</Label>
-              <Input id="address" defaultValue="Jl. Merdeka No. 123, Jakarta" />
-            </div>
+      {loading ? (
+        <Card className="mb-4">
+          <CardContent className="p-4 flex justify-center items-center">
+            <p>Memuat data profil...</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="mb-4">
+          <CardContent className="p-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">Nama Lengkap</Label>
+                <Input 
+                  id="name" 
+                  value={userData.name} 
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email" 
+                  value={userData.email} 
+                  disabled
+                  className="bg-gray-50"
+                />
+                <p className="text-xs text-gray-500 mt-1">Email tidak dapat diubah</p>
+              </div>
+              <div>
+                <Label htmlFor="phone">Nomor Telepon</Label>
+                <Input 
+                  id="phone" 
+                  value={userData.phone} 
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="address">Alamat</Label>
+                <Input 
+                  id="address" 
+                  value={userData.address} 
+                  onChange={handleInputChange}
+                />
+              </div>
 
-            <Button className="w-full">Simpan Perubahan</Button>
-          </div>
-        </CardContent>
-      </Card>
+              <Button 
+                className="w-full" 
+                onClick={handleSaveProfile}
+                disabled={saving}
+              >
+                {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
