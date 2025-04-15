@@ -1,9 +1,8 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -74,39 +73,37 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/splash" element={<SplashScreen />} />
-            <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            
-            {/* Admin Routes */}
-            <Route path="/admin" element={isAdmin ? <Navigate to="/admin-dashboard" replace /> : <AdminAuthPage />} />
-            <Route path="/admin-dashboard" element={isAdmin ? <AdminDashboardPage /> : <Navigate to="/admin" replace />} />
-            
-            {/* User Routes */}
-            <Route path="/" element={<Layout><Index /></Layout>} />
-            <Route path="/search" element={<Layout><SearchPage /></Layout>} />
-            <Route path="/bookings" element={<Layout><BookingsPage /></Layout>} />
-            <Route path="/chat" element={<Layout><ChatPage /></Layout>} />
-            <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
-            <Route path="/service/:id" element={<Layout><ServiceDetail /></Layout>} />
-            <Route path="/wallet" element={<Layout><WalletPage /></Layout>} />
-            <Route path="/booking-confirmation/:id" element={<Layout><BookingConfirmation /></Layout>} />
-            <Route path="/create-service" element={<Layout><CreateService /></Layout>} />
-            <Route path="/notifications" element={<Layout><NotificationsPage /></Layout>} />
-            <Route path="/security" element={<Layout><SecurityPage /></Layout>} />
-            <Route path="/payment-methods" element={<Layout><PaymentMethodsPage /></Layout>} />
-            <Route path="/settings" element={<Layout><SettingsPage /></Layout>} />
-            <Route path="/help" element={<Layout><HelpPage /></Layout>} />
-            <Route path="/edit-profile" element={<Layout><EditProfilePage /></Layout>} />
-            <Route path="/provider-mode" element={<Layout><ProviderModePage /></Layout>} />
-            <Route path="*" element={<NotFound />} />
-            {/* Default route redirecting to splash screen */}
-            <Route index element={<Navigate to="/splash" replace />} />
-          </Routes>
-        </BrowserRouter>
+        <Routes>
+          <Route path="/splash" element={<SplashScreen />} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={isAdmin ? <Navigate to="/admin-dashboard" replace /> : <AdminAuthPage />} />
+          <Route path="/admin-dashboard" element={isAdmin ? <AdminDashboardPage /> : <Navigate to="/admin" replace />} />
+          
+          {/* User Routes */}
+          <Route path="/" element={<Layout><Index /></Layout>} />
+          <Route path="/search" element={<Layout><SearchPage /></Layout>} />
+          <Route path="/bookings" element={<Layout><BookingsPage /></Layout>} />
+          <Route path="/chat" element={<Layout><ChatPage /></Layout>} />
+          <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
+          <Route path="/service/:id" element={<Layout><ServiceDetail /></Layout>} />
+          <Route path="/wallet" element={<Layout><WalletPage /></Layout>} />
+          <Route path="/booking-confirmation/:id" element={<Layout><BookingConfirmation /></Layout>} />
+          <Route path="/create-service" element={<Layout><CreateService /></Layout>} />
+          <Route path="/notifications" element={<Layout><NotificationsPage /></Layout>} />
+          <Route path="/security" element={<Layout><SecurityPage /></Layout>} />
+          <Route path="/payment-methods" element={<Layout><PaymentMethodsPage /></Layout>} />
+          <Route path="/settings" element={<Layout><SettingsPage /></Layout>} />
+          <Route path="/help" element={<Layout><HelpPage /></Layout>} />
+          <Route path="/edit-profile" element={<Layout><EditProfilePage /></Layout>} />
+          <Route path="/provider-mode" element={<Layout><ProviderModePage /></Layout>} />
+          <Route path="*" element={<NotFound />} />
+          {/* Default route redirecting to splash screen */}
+          <Route index element={<Navigate to="/splash" replace />} />
+        </Routes>
       </TooltipProvider>
     </QueryClientProvider>
   );
