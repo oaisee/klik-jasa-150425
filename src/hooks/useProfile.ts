@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Profile } from '@/types/database';
 
 interface ProfileData {
   name: string;
@@ -61,6 +62,10 @@ export const useProfile = () => {
       if (profileError) {
         console.error("Error fetching profile from database:", profileError);
         throw profileError;
+      }
+      
+      if (!profileData) {
+        throw new Error("Profile data not found");
       }
       
       console.log("Profile data from database:", profileData);

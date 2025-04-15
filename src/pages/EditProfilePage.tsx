@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Camera, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +9,7 @@ import { Avatar } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
+import { Profile } from '@/types/database';
 
 const EditProfilePage = () => {
   const navigate = useNavigate();
@@ -72,7 +72,7 @@ const EditProfilePage = () => {
           bio: '',
           avatarUrl: null
         });
-      } else {
+      } else if (profileData) {
         console.log("Profile data from database:", profileData);
         setUserData({
           name: profileData.full_name || '',

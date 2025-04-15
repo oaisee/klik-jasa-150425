@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Profile } from '@/types/database';
 
 const CATEGORIES = [
   { value: 'cleaning', label: 'Kebersihan Rumah' },
@@ -34,7 +35,7 @@ const CreateService = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form state
-  const [serviceData, setServiceData] = useState({
+  const [formData, setFormData] = useState({
     title: '',
     category: '',
     description: '',
@@ -74,6 +75,12 @@ const CreateService = () => {
       
       if (profileError) throw profileError;
       
+      if (!profile) {
+        toast.error("Profil tidak ditemukan");
+        navigate('/profile');
+        return;
+      }
+      
       // Check if user is a provider
       if (!profile.is_provider) {
         toast.error("Anda harus menjadi penyedia jasa terlebih dahulu");
@@ -91,11 +98,11 @@ const CreateService = () => {
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    setServiceData(prev => ({ ...prev, [id]: value }));
+    setFormData(prev => ({ ...prev, [id]: value }));
   };
   
   const handleSelectChange = (id: string, value: string) => {
-    setServiceData(prev => ({ ...prev, [id]: value }));
+    setFormData(prev => ({ ...prev, [id]: value }));
   };
   
   const handleImageSelect = () => {
@@ -180,8 +187,8 @@ const CreateService = () => {
     }
     
     // Validation
-    if (!serviceData.title || !serviceData.category || !serviceData.description || 
-        !serviceData.price || !serviceData.location || !serviceData.radius) {
+    if (!formData.title || !formData.category || !formData.description || 
+        !formData.price || !formData.location || !formData.radius) {
       toast.error("Mohon lengkapi semua kolom yang diperlukan");
       return;
     }
@@ -195,8 +202,8 @@ const CreateService = () => {
     
     try {
       // Convert price and radius to numbers
-      const price = parseInt(serviceData.price);
-      const radius = parseInt(serviceData.radius);
+      const price = parseInt(formData.price);
+      const radius = parseInt(formData.radius);
       
       if (isNaN(price) || price <= 0) {
         toast.error("Harga harus berupa angka positif");
@@ -211,15 +218,15 @@ const CreateService = () => {
       }
       
       // Insert service data
-      const { data: serviceData, error: serviceError } = await supabase
+      const { data: createdService, error: serviceError } = await supabase
         .from('services')
         .insert({
           provider_id: userData.id,
-          title: serviceData.title,
-          description: serviceData.description,
-          category: serviceData.category,
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
           price: price,
-          location: serviceData.location,
+          location: formData.location,
           service_radius: radius,
           status: 'active'
         })
@@ -228,13 +235,17 @@ const CreateService = () => {
       
       if (serviceError) throw serviceError;
       
+      if (!createdService) {
+        throw new Error("Failed to create service");
+      }
+      
       // Upload images
-      const imageUrls = await uploadImages(serviceData.id);
+      const imageUrls = await uploadImages(createdService.id);
       
       // Insert image records
       if (imageUrls.length > 0) {
         const imageRecords = imageUrls.map((url, index) => ({
-          service_id: serviceData.id,
+          service_id: createdService.id,
           image_url: url,
           sort_order: index
         }));
@@ -271,7 +282,7 @@ const CreateService = () => {
           <Input 
             id="title"
             placeholder="mis. Jasa Bersih Rumah Profesional"
-            value={serviceData.title}
+            value={formData.title}
             onChange={handleInputChange}
             required
           />
@@ -280,7 +291,7 @@ const CreateService = () => {
         <div className="mb-5">
           <label className="block text-sm font-medium mb-1">Kategori</label>
           <Select
-            value={serviceData.category}
+            value={formData.category}
             onValueChange={(value) => handleSelectChange('category', value)}
           >
             <SelectTrigger>
@@ -302,7 +313,7 @@ const CreateService = () => {
             id="description"
             placeholder="Jelaskan jasa Anda secara detail..."
             className="min-h-[150px]"
-            value={serviceData.description}
+            value={formData.description}
             onChange={handleInputChange}
             required
           />
@@ -315,7 +326,7 @@ const CreateService = () => {
             type="number" 
             placeholder="mis. 250000"
             min="1000"
-            value={serviceData.price}
+            value={formData.price}
             onChange={handleInputChange}
             required
           />
@@ -328,7 +339,7 @@ const CreateService = () => {
               id="location"
               placeholder="Area jasa Anda"
               className="flex-1"
-              value={serviceData.location}
+              value={formData.location}
               onChange={handleInputChange}
               required
             />
@@ -351,7 +362,7 @@ const CreateService = () => {
             placeholder="mis. 10"
             min="1"
             max="100"
-            value={serviceData.radius}
+            value={formData.radius}
             onChange={handleInputChange}
             required
           />
