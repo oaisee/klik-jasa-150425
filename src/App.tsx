@@ -12,6 +12,7 @@ import WalletPage from '@/pages/WalletPage';
 import PaymentMethodsPage from '@/pages/PaymentMethodsPage';
 import HelpPage from '@/pages/HelpPage';
 import AdminDashboardPage from '@/pages/AdminDashboardPage';
+import AdminAuthPage from '@/pages/AdminAuthPage';
 import ProviderModePage from '@/pages/ProviderModePage';
 import OnboardingPage from '@/pages/OnboardingPage';
 import ServiceDetail from '@/pages/ServiceDetail';
@@ -33,23 +34,27 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <div className="app-container">
         <Routes>
-          <Route path="/" element={<Index />} />
+          {/* Pages without bottom navigation */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/profile/edit" element={<EditProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/security" element={<SecurityPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="/wallet" element={<WalletPage />} />
-          <Route path="/payment-methods" element={<PaymentMethodsPage />} />
-          <Route path="/help" element={<HelpPage />} />
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/provider" element={<ProviderModePage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/service/:id" element={<ServiceDetail />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/admin" element={<AdminAuthPage />} />
+          <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
+          
+          {/* Pages with bottom navigation */}
+          <Route path="/" element={<Layout><Index /></Layout>} />
+          <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
+          <Route path="/profile/edit" element={<Layout><EditProfilePage /></Layout>} />
+          <Route path="/settings" element={<Layout><SettingsPage /></Layout>} />
+          <Route path="/security" element={<Layout><SecurityPage /></Layout>} />
+          <Route path="/notifications" element={<Layout><NotificationsPage /></Layout>} />
+          <Route path="/wallet" element={<Layout><WalletPage /></Layout>} />
+          <Route path="/payment-methods" element={<Layout><PaymentMethodsPage /></Layout>} />
+          <Route path="/help" element={<Layout><HelpPage /></Layout>} />
+          <Route path="/provider" element={<Layout><ProviderModePage /></Layout>} />
+          <Route path="/service/:id" element={<Layout><ServiceDetail /></Layout>} />
+          <Route path="/search" element={<Layout><SearchPage /></Layout>} />
+          <Route path="/chat" element={<Layout><ChatPage /></Layout>} />
           <Route path="/bookings" element={<Layout><BookingsPage /></Layout>} />
         </Routes>
       </div>

@@ -1,11 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
-import Layout from '@/components/Layout';
 
 const ChatPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,40 +13,38 @@ const ChatPage = () => {
   }, []);
   
   return (
-    <Layout>
-      <div className="px-4 py-4 animate-fade-in">
-        <h1 className="text-xl font-bold mb-4">Pesan</h1>
-        
-        <div className="relative mb-6">
-          <Input
-            type="text"
-            placeholder="Cari pesan"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-        </div>
-        
-        {chatListData.map((chat) => (
-          <ChatListItem 
-            key={chat.id}
-            name={chat.name}
-            message={chat.lastMessage}
-            time={chat.time}
-            unread={chat.unread}
-            avatar={chat.avatar}
-          />
-        ))}
-        
-        {chatListData.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
-            <p>Belum ada percakapan</p>
-            <Button variant="outline" className="mt-4">Mulai Percakapan</Button>
-          </div>
-        )}
+    <div className="px-4 py-4 animate-fade-in">
+      <h1 className="text-xl font-bold mb-4">Pesan</h1>
+      
+      <div className="relative mb-6">
+        <Input
+          type="text"
+          placeholder="Cari pesan"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
       </div>
-    </Layout>
+      
+      {chatListData.map((chat) => (
+        <ChatListItem 
+          key={chat.id}
+          name={chat.name}
+          message={chat.lastMessage}
+          time={chat.time}
+          unread={chat.unread}
+          avatar={chat.avatar}
+        />
+      ))}
+      
+      {chatListData.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12 text-center text-gray-500">
+          <p>Belum ada percakapan</p>
+          <Button variant="outline" className="mt-4">Mulai Percakapan</Button>
+        </div>
+      )}
+    </div>
   );
 };
 
