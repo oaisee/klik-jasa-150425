@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,45 +11,39 @@ import { Wallet, Bell } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 // Define mock services data
-const mockServices = [
-  {
-    id: '1',
-    image: '/placeholder.svg',
-    title: 'Cleaning Service',
-    providerName: 'Budi Santoso',
-    rating: 4.8,
-    price: 150000,
-    distance: 0.8,
-  },
-  {
-    id: '2',
-    image: '/placeholder.svg',
-    title: 'Plumbing Repair',
-    providerName: 'Ahmad Wijaya',
-    rating: 4.5,
-    price: 200000,
-    distance: 1.2,
-  },
-  {
-    id: '3',
-    image: '/placeholder.svg',
-    title: 'Electrical Service',
-    providerName: 'Siti Rahayu',
-    rating: 4.7,
-    price: 250000,
-    distance: 1.5,
-  },
-  {
-    id: '4',
-    image: '/placeholder.svg',
-    title: 'Home Painting',
-    providerName: 'Dewi Kusuma',
-    rating: 4.6,
-    price: 300000,
-    distance: 2.0,
-  },
-];
-
+const mockServices = [{
+  id: '1',
+  image: '/placeholder.svg',
+  title: 'Cleaning Service',
+  providerName: 'Budi Santoso',
+  rating: 4.8,
+  price: 150000,
+  distance: 0.8
+}, {
+  id: '2',
+  image: '/placeholder.svg',
+  title: 'Plumbing Repair',
+  providerName: 'Ahmad Wijaya',
+  rating: 4.5,
+  price: 200000,
+  distance: 1.2
+}, {
+  id: '3',
+  image: '/placeholder.svg',
+  title: 'Electrical Service',
+  providerName: 'Siti Rahayu',
+  rating: 4.7,
+  price: 250000,
+  distance: 1.5
+}, {
+  id: '4',
+  image: '/placeholder.svg',
+  title: 'Home Painting',
+  providerName: 'Dewi Kusuma',
+  rating: 4.6,
+  price: 300000,
+  distance: 2.0
+}];
 const Index = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -58,32 +51,31 @@ const Index = () => {
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [hasNotifications, setHasNotifications] = useState(false);
   const [nearbyServices, setNearbyServices] = useState(mockServices);
-
   useEffect(() => {
     document.title = 'KlikJasa - Temukan Penyedia Jasa Terbaik';
-    
+
     // Check authentication status and get profile data
     const checkAuthAndGetProfile = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
+        const {
+          data: {
+            session
+          }
+        } = await supabase.auth.getSession();
         if (session) {
           setIsAuthenticated(true);
           console.info("Index page auth check: Authenticated");
-          
+
           // Get user profile including wallet balance
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('wallet_balance')
-            .eq('id', session.user.id)
-            .single();
-          
+          const {
+            data: profile,
+            error
+          } = await supabase.from('profiles').select('wallet_balance').eq('id', session.user.id).single();
           if (error) throw error;
-          
           if (profile) {
             setWalletBalance(profile.wallet_balance);
           }
-          
+
           // Check for notifications (placeholder for real notification system)
           // This could be replaced with a real notification check from the database
           setHasNotifications(true);
@@ -96,7 +88,6 @@ const Index = () => {
         setIsLoading(false);
       }
     };
-    
     checkAuthAndGetProfile();
   }, []);
 
@@ -109,49 +100,32 @@ const Index = () => {
   const handleWalletClick = () => {
     navigate('/wallet');
   };
-
   if (isLoading) {
     return <SplashScreen />;
   }
-
-  return (
-    <Layout>
+  return <Layout>
       <div className="px-4 py-5 animate-fade-in">
         <div className="flex items-center mb-6">
           <div className="flex items-center flex-1">
-            <img 
-              src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" 
-              alt="KlikJasa Logo" 
-              className="h-8 w-8 mr-3"
-            />
-            <h1 className="text-xl font-bold text-marketplace-primary">KlikJasa</h1>
+            <img src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" alt="KlikJasa Logo" className="h-8 w-8 mr-3" />
+            <h1 className="text-marketplace-primary text-left text-xl font-extrabold">KlikJasa</h1>
           </div>
           
-          {isAuthenticated && (
-            <div className="flex items-center">
-              <div 
-                className="flex items-center mr-5 text-marketplace-primary cursor-pointer"
-                onClick={handleWalletClick}
-              >
+          {isAuthenticated && <div className="flex items-center">
+              <div className="flex items-center mr-5 text-marketplace-primary cursor-pointer" onClick={handleWalletClick}>
                 <Wallet className="h-5 w-5 mr-2" />
                 <span className="text-sm font-medium">
                   Rp {walletBalance?.toLocaleString('id-ID') ?? '0'}
                 </span>
               </div>
               
-              <div 
-                className="relative cursor-pointer"
-                onClick={handleNotificationClick}
-              >
+              <div className="relative cursor-pointer" onClick={handleNotificationClick}>
                 <Bell className="h-6 w-6 text-gray-600" />
-                {hasNotifications && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-red-500 text-white">
+                {hasNotifications && <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 flex items-center justify-center bg-red-500 text-white">
                     <span className="sr-only">Notifications</span>
-                  </Badge>
-                )}
+                  </Badge>}
               </div>
-            </div>
-          )}
+            </div>}
         </div>
         
         <div className="mb-7">
@@ -164,8 +138,6 @@ const Index = () => {
         
         <ServicesList services={nearbyServices} title="Penyedia Jasa Terdekat" />
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default Index;
