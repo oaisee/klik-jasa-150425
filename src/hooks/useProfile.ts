@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Profile } from '@/types/database';
 
 interface ProfileData {
   name: string;
@@ -96,6 +95,19 @@ export const useProfile = () => {
       console.error('Error fetching profile:', error);
       toast.error("Gagal memuat data profil", {
         description: "Silakan coba lagi nanti",
+      });
+      
+      // Set default values if there's an error
+      setUserData({
+        name: 'Pengguna KlikJasa',
+        email: '',
+        phone: '-',
+        joinDate: 'Bergabung baru-baru ini',
+        rating: 0,
+        reviews: 0,
+        walletBalance: 0,
+        avatarUrl: null,
+        isProvider: false
       });
     } finally {
       setLoading(false);

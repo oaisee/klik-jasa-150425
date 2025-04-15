@@ -2,29 +2,35 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-interface ProfileSummaryProps {
-  loading: boolean;
-  userData: {
-    name: string;
-    rating: number;
-    reviews: number;
-    joinDate: string;
-    avatarUrl: string | null;
-    isProvider: boolean;
-  };
+export interface ProfileSummaryProps {
+  fullName: string;
+  joinDate: string;
+  rating: number;
+  totalReviews: number;
+  avatarUrl: string | null;
+  isLoading: boolean;
+  isProvider?: boolean;
 }
 
-const ProfileSummary = ({ loading, userData }: ProfileSummaryProps) => {
+const ProfileSummary = ({
+  fullName,
+  joinDate,
+  rating,
+  totalReviews,
+  avatarUrl,
+  isLoading,
+  isProvider = false
+}: ProfileSummaryProps) => {
   const navigate = useNavigate();
 
   return (
     <Card className="mb-6">
       <CardContent className="p-4">
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center py-4">
             <Loader2 className="h-6 w-6 animate-spin text-marketplace-primary" />
             <p className="ml-2">Memuat data profil...</p>
@@ -32,25 +38,25 @@ const ProfileSummary = ({ loading, userData }: ProfileSummaryProps) => {
         ) : (
           <div className="flex items-center">
             <Avatar className="h-16 w-16 mr-4">
-              {userData.avatarUrl ? (
+              {avatarUrl ? (
                 <img 
-                  src={userData.avatarUrl} 
+                  src={avatarUrl} 
                   alt="Profile" 
                   className="rounded-full object-cover w-full h-full"
                 />
               ) : (
                 <div className="bg-gray-200 rounded-full w-full h-full flex items-center justify-center">
-                  <span className="text-lg">{userData.name.charAt(0)}</span>
+                  <span className="text-lg">{fullName.charAt(0)}</span>
                 </div>
               )}
             </Avatar>
             <div>
-              <h2 className="font-semibold text-lg">{userData.name}</h2>
+              <h2 className="font-semibold text-lg">{fullName}</h2>
               <div className="flex items-center text-sm text-gray-500">
                 <Star className="w-4 h-4 text-yellow-400 mr-1 fill-yellow-400" />
-                <span>{userData.rating.toFixed(1)} ({userData.reviews} ulasan)</span>
+                <span>{rating.toFixed(1)} ({totalReviews} ulasan)</span>
               </div>
-              <p className="text-sm text-gray-500">{userData.joinDate}</p>
+              <p className="text-sm text-gray-500">{joinDate}</p>
             </div>
           </div>
         )}
@@ -61,10 +67,10 @@ const ProfileSummary = ({ loading, userData }: ProfileSummaryProps) => {
           </Button>
           <Button 
             className="flex-1 ml-2" 
-            variant={userData.isProvider ? "default" : "outline"}
+            variant={isProvider ? "default" : "outline"}
             onClick={() => navigate('/provider-mode')}
           >
-            {userData.isProvider ? "Mode Penyedia" : "Jadi Penyedia"}
+            {isProvider ? "Mode Penyedia" : "Jadi Penyedia"}
           </Button>
         </div>
       </CardContent>

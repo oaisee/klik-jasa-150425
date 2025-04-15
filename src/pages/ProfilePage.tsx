@@ -57,6 +57,7 @@ const ProfilePage = () => {
           totalReviews={userData.reviews}
           avatarUrl={userData.avatarUrl}
           isLoading={loading}
+          isProvider={userData.isProvider}
         />
         
         {userId && (
