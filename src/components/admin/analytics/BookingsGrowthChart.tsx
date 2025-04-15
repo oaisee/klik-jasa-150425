@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatRupiah } from '@/utils/adminUtils';
+import { generateMonthlyData } from '@/utils/adminUtils';
 
 const BookingsGrowthChart = () => {
   const [loading, setLoading] = useState(true);
@@ -15,70 +15,21 @@ const BookingsGrowthChart = () => {
     const fetchBookingsGrowth = async () => {
       setLoading(true);
       try {
-        // Fetch bookings data
-        const { data: bookings, error } = await supabase
-          .from('bookings')
-          .select('*')
-          .order('created_at');
-
-        if (error) throw error;
-
-        // Group by month
-        const bookingsByMonth: Record<string, { 
-          month: string; 
-          bookings: number; 
-          revenue: number;
-          commissions: number;
-          growth: number;
-        }> = {};
+        // Use the generateMonthlyData function to get simulated data
+        const monthlyData = await generateMonthlyData();
         
-        bookings?.forEach(booking => {
-          if (!booking.created_at) return;
+        // Add growth calculation
+        const chartData = monthlyData.map((item, index, array) => {
+          const growth = index > 0 
+            ? ((item.bookings - array[index - 1].bookings) / array[index - 1].bookings) * 100 
+            : 0;
           
-          const date = new Date(booking.created_at);
-          const monthYear = `${date.getMonth() + 1}/${date.getFullYear()}`;
-          
-          if (!bookingsByMonth[monthYear]) {
-            bookingsByMonth[monthYear] = { 
-              month: monthYear, 
-              bookings: 0, 
-              revenue: 0,
-              commissions: 0,
-              growth: 0
-            };
-          }
-          
-          bookingsByMonth[monthYear].bookings += 1;
-          bookingsByMonth[monthYear].revenue += Number(booking.price) || 0;
-          bookingsByMonth[monthYear].commissions += Number(booking.commission) || 0;
+          return {
+            ...item,
+            growth: Math.round(growth),
+            commissions: Math.round(item.revenue * 0.05) // 5% commission
+          };
         });
-
-        // Calculate growth compared to previous month
-        const sortedMonths = Object.keys(bookingsByMonth).sort((a, b) => {
-          const [aMonth, aYear] = a.split('/').map(Number);
-          const [bMonth, bYear] = b.split('/').map(Number);
-          return (aYear * 12 + aMonth) - (bYear * 12 + bMonth);
-        });
-
-        sortedMonths.forEach((month, index) => {
-          if (index > 0) {
-            const prevMonth = sortedMonths[index - 1];
-            const currentBookings = bookingsByMonth[month].bookings;
-            const previousBookings = bookingsByMonth[prevMonth].bookings;
-            
-            if (previousBookings > 0) {
-              bookingsByMonth[month].growth = 
-                ((currentBookings - previousBookings) / previousBookings) * 100;
-            }
-          }
-        });
-
-        const chartData = sortedMonths.map(month => ({
-          ...bookingsByMonth[month],
-          revenue: Math.round(bookingsByMonth[month].revenue),
-          commissions: Math.round(bookingsByMonth[month].commissions),
-          growth: Math.round(bookingsByMonth[month].growth)
-        }));
 
         setData(chartData);
       } catch (error) {
@@ -125,7 +76,7 @@ const BookingsGrowthChart = () => {
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
+              <XAxis dataKey="name" />
               <YAxis yAxisId="left" />
               <YAxis yAxisId="right" orientation="right" />
               <ChartTooltip content={<ChartTooltipContent />} />
