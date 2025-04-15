@@ -11,6 +11,10 @@ import ServiceDetail from "./pages/ServiceDetail";
 import WalletPage from "./pages/WalletPage";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import CreateService from "./pages/CreateService";
+import SearchPage from "./pages/SearchPage";
+import BookingsPage from "./pages/BookingsPage";
+import ChatPage from "./pages/ChatPage";
+import ProfilePage from "./pages/ProfilePage";
 import Layout from "./components/Layout";
 
 const queryClient = new QueryClient();
@@ -23,6 +27,10 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout><Index /></Layout>} />
+          <Route path="/search" element={<Layout><SearchPage /></Layout>} />
+          <Route path="/bookings" element={<Layout><BookingsPage /></Layout>} />
+          <Route path="/chat" element={<Layout><ChatPage /></Layout>} />
+          <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
           <Route path="/service/:id" element={<Layout><ServiceDetail /></Layout>} />
           <Route path="/wallet" element={<Layout><WalletPage /></Layout>} />
           <Route path="/booking-confirmation/:id" element={<Layout><BookingConfirmation /></Layout>} />

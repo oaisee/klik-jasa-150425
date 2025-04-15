@@ -17,15 +17,15 @@ const BottomNavigation = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className={`flex flex-col items-center w-1/5 ${getActiveClass('/')}`}>
             <Home size={22} />
-            <span className="text-xs mt-1">Home</span>
+            <span className="text-xs mt-1">Beranda</span>
           </Link>
           <Link to="/search" className={`flex flex-col items-center w-1/5 ${getActiveClass('/search')}`}>
             <Search size={22} />
-            <span className="text-xs mt-1">Search</span>
+            <span className="text-xs mt-1">Cari</span>
           </Link>
           <Link to="/bookings" className={`flex flex-col items-center w-1/5 ${getActiveClass('/bookings')}`}>
             <Calendar size={22} />
-            <span className="text-xs mt-1">Bookings</span>
+            <span className="text-xs mt-1">Pesanan</span>
           </Link>
           <Link to="/chat" className={`flex flex-col items-center w-1/5 ${getActiveClass('/chat')}`}>
             <MessageCircle size={22} />
@@ -33,7 +33,7 @@ const BottomNavigation = () => {
           </Link>
           <Link to="/profile" className={`flex flex-col items-center w-1/5 ${getActiveClass('/profile')}`}>
             <User size={22} />
-            <span className="text-xs mt-1">Profile</span>
+            <span className="text-xs mt-1">Profil</span>
           </Link>
         </div>
       </div>

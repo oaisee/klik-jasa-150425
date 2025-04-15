@@ -42,11 +42,11 @@ const ServiceCard = ({
           </div>
         </div>
         <div className="flex justify-between items-center mt-2">
-          <p className="text-sm font-medium">Starts from {currency} {price.toLocaleString()}</p>
+          <p className="text-sm font-medium">Mulai {currency} {price.toLocaleString()}</p>
         </div>
         <div className="flex items-center mt-1 text-xs text-gray-500">
           <MapPin size={12} />
-          <span className="ml-1">{distance.toFixed(1)} km away</span>
+          <span className="ml-1">{distance.toFixed(1)} km dari Anda</span>
         </div>
       </div>
     </Link>

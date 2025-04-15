@@ -3,14 +3,14 @@ import { Home, Book, Wrench, Camera, Scissors, PaintBucket, Car, Briefcase } fro
 import { Link } from 'react-router-dom';
 
 const categories = [
-  { name: 'Home Cleaning', icon: Home, color: 'bg-blue-100 text-blue-500' },
-  { name: 'Tutoring', icon: Book, color: 'bg-purple-100 text-purple-500' },
-  { name: 'Handyman', icon: Wrench, color: 'bg-amber-100 text-amber-500' },
-  { name: 'Photography', icon: Camera, color: 'bg-pink-100 text-pink-500' },
-  { name: 'Hair & Beauty', icon: Scissors, color: 'bg-red-100 text-red-500' },
-  { name: 'Painting', icon: PaintBucket, color: 'bg-green-100 text-green-500' },
-  { name: 'Car Service', icon: Car, color: 'bg-slate-100 text-slate-500' },
-  { name: 'Business', icon: Briefcase, color: 'bg-indigo-100 text-indigo-500' },
+  { name: 'Bersih Rumah', icon: Home, color: 'bg-blue-100 text-blue-500' },
+  { name: 'Bimbel', icon: Book, color: 'bg-purple-100 text-purple-500' },
+  { name: 'Tukang', icon: Wrench, color: 'bg-amber-100 text-amber-500' },
+  { name: 'Fotografi', icon: Camera, color: 'bg-pink-100 text-pink-500' },
+  { name: 'Salon', icon: Scissors, color: 'bg-red-100 text-red-500' },
+  { name: 'Cat Rumah', icon: PaintBucket, color: 'bg-green-100 text-green-500' },
+  { name: 'Servis Mobil', icon: Car, color: 'bg-slate-100 text-slate-500' },
+  { name: 'Bisnis', icon: Briefcase, color: 'bg-indigo-100 text-indigo-500' },
 ];
 
 const CategoryList = () => {
