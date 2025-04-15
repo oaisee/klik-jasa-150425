@@ -39,10 +39,10 @@ const ProfilePage = () => {
   
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 animate-fade-in">
-      <div className="bg-white px-4 py-3 flex items-center shadow-sm">
+      <div className="bg-white px-4 py-3 flex items-center shadow-sm sticky top-0 z-10">
         <button 
           onClick={() => navigate(-1)} 
-          className="mr-3"
+          className="mr-3 p-2 rounded-full hover:bg-gray-100 transition-colors"
           aria-label="Kembali"
         >
           <ArrowLeft size={24} />
@@ -76,7 +76,7 @@ const ProfilePage = () => {
         )}
         
         <div className="mt-4">
-          <h2 className="text-lg font-semibold mb-2">Pengaturan Akun</h2>
+          <h2 className="text-lg font-semibold mb-3 px-1">Pengaturan Akun</h2>
           <ProfileMenu />
         </div>
       </div>

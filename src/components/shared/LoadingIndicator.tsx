@@ -1,20 +1,22 @@
 
-import React from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface LoadingIndicatorProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'default' | 'lg';
+  text?: string;
 }
 
-const LoadingIndicator = ({ size = 'md' }: LoadingIndicatorProps) => {
-  const sizeClasses = {
-    sm: 'h-6 w-6 border-t-2 border-b-2',
-    md: 'h-8 w-8 border-t-2 border-b-2',
-    lg: 'h-10 w-10 border-t-3 border-b-3'
+const LoadingIndicator = ({ size = 'default', text }: LoadingIndicatorProps) => {
+  const sizeMap = {
+    sm: 'w-4 h-4',
+    default: 'w-6 h-6',
+    lg: 'w-8 h-8'
   };
 
   return (
-    <div className="flex justify-center items-center py-8">
-      <div className={`animate-spin ${sizeClasses[size]} border-marketplace-primary rounded-full`}></div>
+    <div className="flex flex-col items-center justify-center py-4">
+      <Loader2 className={`${sizeMap[size]} animate-spin text-marketplace-primary`} />
+      {text && <p className="mt-2 text-sm text-gray-500">{text}</p>}
     </div>
   );
 };
