@@ -42,20 +42,22 @@ const LoadingIndicator = ({ size = 'default', text }: LoadingIndicatorProps) => 
       </div>
       {text && <p className="mt-3 text-sm text-gray-500">{text}</p>}
 
-      {/* Add the keyframes animation */}
-      <style jsx global>{`
-        @keyframes dotFade {
-          0%, 20% {
-            opacity: 0;
+      {/* Add the keyframes animation using standard style tag */}
+      <style>
+        {`
+          @keyframes dotFade {
+            0%, 20% {
+              opacity: 0;
+            }
+            30%, 70% {
+              opacity: 1;
+            }
+            80%, 100% {
+              opacity: 0;
+            }
           }
-          30%, 70% {
-            opacity: 1;
-          }
-          80%, 100% {
-            opacity: 0;
-          }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 };
