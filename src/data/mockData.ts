@@ -1,4 +1,7 @@
-export const nearbyServices = [
+
+import { Service } from '@/types/service';
+
+export const nearbyServices: Service[] = [
   {
     id: '1',
     image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
@@ -41,7 +44,7 @@ export const nearbyServices = [
   },
 ];
 
-export const popularServices = [
+export const popularServices: Service[] = [
   {
     id: '5',
     image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',

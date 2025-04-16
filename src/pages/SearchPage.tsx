@@ -6,11 +6,12 @@ import ServicesList from '@/components/ServicesList';
 import { nearbyServices } from '@/data/mockData';
 import CategoryList from '@/components/CategoryList';
 import SearchBar from '@/components/SearchBar';
+import { Service } from '@/types/service';
 
 const SearchPage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredServices, setFilteredServices] = useState(nearbyServices);
+  const [filteredServices, setFilteredServices] = useState<Service[]>(nearbyServices);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   useEffect(() => {
@@ -31,13 +32,12 @@ const SearchPage = () => {
       const lowercaseQuery = query.toLowerCase();
       filtered = filtered.filter(service => 
         service.title.toLowerCase().includes(lowercaseQuery) || 
-        service.providerName.toLowerCase().includes(lowercaseQuery)
+        service.providerName?.toLowerCase().includes(lowercaseQuery) || false
       );
     }
     
     if (selectedCategory) {
       // Assuming services have a category property
-      // This is a mock implementation since the original data doesn't have categories
       filtered = filtered.filter(service => 
         service.category === selectedCategory || 
         service.title.includes(selectedCategory)
@@ -56,7 +56,6 @@ const SearchPage = () => {
       setFilteredServices(nearbyServices);
     } else {
       // Filter by the new selected category
-      // This is a mock implementation
       const filtered = nearbyServices.filter(service => 
         service.category === category || 
         service.title.includes(category)

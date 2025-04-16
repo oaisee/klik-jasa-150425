@@ -2,7 +2,7 @@
 // Database-aligned service type
 export interface Service {
   id: string;
-  provider_id: string;
+  provider_id?: string; // Made optional to accommodate mock data
   title: string;
   description?: string;
   category?: string;
