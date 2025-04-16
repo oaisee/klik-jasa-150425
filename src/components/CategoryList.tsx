@@ -16,7 +16,7 @@ const CategoryList = ({ onCategoryClick, selectedCategory, layout }: CategoryLis
       {layout !== 'row' && (
         <h2 className="text-lg font-semibold mb-3 text-left">Kategori</h2>
       )}
-      <div className="flex overflow-x-auto pb-2 no-scrollbar">
+      <div className="flex overflow-x-auto pb-3 no-scrollbar">
         <div className="flex space-x-3">
           {CATEGORIES.map((category) => {
             // Dynamic icon retrieval from lucide-react
@@ -27,10 +27,10 @@ const CategoryList = ({ onCategoryClick, selectedCategory, layout }: CategoryLis
               <button
                 key={category.id}
                 onClick={() => onCategoryClick(category.name)}
-                className={`flex flex-col items-center justify-center p-3 rounded-lg min-w-[80px] ${
+                className={`flex flex-col items-center justify-center p-2.5 rounded-lg min-w-[75px] ${
                   selectedCategory === category.name
                     ? 'bg-green-500 text-white'
-                    : `${category.color} bg-opacity-20`
+                    : `${category.color} bg-opacity-90`
                 }`}
               >
                 <div
@@ -42,7 +42,7 @@ const CategoryList = ({ onCategoryClick, selectedCategory, layout }: CategoryLis
                 >
                   <IconComponent className="w-5 h-5" />
                 </div>
-                <span className="text-xs mt-2 whitespace-nowrap">{category.name}</span>
+                <span className="text-xs mt-1.5 whitespace-nowrap">{category.name}</span>
               </button>
             );
           })}

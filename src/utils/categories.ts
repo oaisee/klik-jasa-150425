@@ -15,10 +15,22 @@ export const CATEGORIES: Category[] = [
     color: 'bg-blue-100 text-blue-800'
   },
   {
-    id: 'elektronik',
-    name: 'Elektronik',
-    icon: 'Zap',
-    color: 'bg-yellow-100 text-yellow-800'
+    id: 'perbaikan',
+    name: 'Perbaikan',
+    icon: 'Wrench',
+    color: 'bg-zinc-100 text-zinc-800'
+  },
+  {
+    id: 'kebersihan',
+    name: 'Kebersihan',
+    icon: 'Droplets',
+    color: 'bg-sky-100 text-sky-800'
+  },
+  {
+    id: 'transportasi',
+    name: 'Transportasi',
+    icon: 'Bus',
+    color: 'bg-amber-100 text-amber-800'
   },
   {
     id: 'kendaraan',
@@ -27,28 +39,58 @@ export const CATEGORIES: Category[] = [
     color: 'bg-red-100 text-red-800'
   },
   {
-    id: 'kebersihan',
-    name: 'Kebersihan',
-    icon: 'Droplets',
-    color: 'bg-green-100 text-green-800'
-  },
-  {
-    id: 'kesehatan',
-    name: 'Kesehatan',
-    icon: 'HeartPulse',
-    color: 'bg-pink-100 text-pink-800'
-  },
-  {
     id: 'kecantikan',
     name: 'Kecantikan',
     icon: 'Scissors',
-    color: 'bg-purple-100 text-purple-800'
+    color: 'bg-pink-100 text-pink-800'
   },
   {
     id: 'pendidikan',
     name: 'Pendidikan',
     icon: 'GraduationCap',
     color: 'bg-indigo-100 text-indigo-800'
+  },
+  {
+    id: 'acara',
+    name: 'Acara',
+    icon: 'Calendar',
+    color: 'bg-violet-100 text-violet-800'
+  },
+  {
+    id: 'kreatif',
+    name: 'Kreatif',
+    icon: 'Palette',
+    color: 'bg-fuchsia-100 text-fuchsia-800'
+  },
+  {
+    id: 'otomotif',
+    name: 'Otomotif',
+    icon: 'Engine',
+    color: 'bg-stone-100 text-stone-800'
+  },
+  {
+    id: 'hewan',
+    name: 'Hewan',
+    icon: 'Cat',
+    color: 'bg-lime-100 text-lime-800'
+  },
+  {
+    id: 'sewa',
+    name: 'Sewa',
+    icon: 'Key',
+    color: 'bg-emerald-100 text-emerald-800'
+  },
+  {
+    id: 'elektronik',
+    name: 'Elektronik',
+    icon: 'Zap',
+    color: 'bg-yellow-100 text-yellow-800'
+  },
+  {
+    id: 'kesehatan',
+    name: 'Kesehatan',
+    icon: 'HeartPulse',
+    color: 'bg-rose-100 text-rose-800'
   },
   {
     id: 'teknologi',

@@ -1,8 +1,9 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Wallet } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { BellIcon, Wallet } from 'lucide-react';
+import { formatRupiah } from '@/utils/formatters';
+import { Button } from '@/components/ui/button';
 
 interface HomeHeaderProps {
   isAuthenticated: boolean;
@@ -10,50 +11,48 @@ interface HomeHeaderProps {
   hasNotifications: boolean;
 }
 
-const HomeHeader: React.FC<HomeHeaderProps> = ({ 
+const HomeHeader = ({ 
   isAuthenticated, 
   walletBalance, 
   hasNotifications 
-}) => {
-  // Update status bar color on mount
-  useEffect(() => {
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (metaThemeColor) metaThemeColor.setAttribute('content', '#1EAEDB');
-    
-    const statusBarStyle = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
-    if (statusBarStyle) statusBarStyle.setAttribute('content', 'light-content');
-    
-    document.documentElement.classList.add('status-bar-dark');
-    document.documentElement.classList.remove('status-bar-light');
-  }, []);
-  
+}: HomeHeaderProps) => {
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-marketplace-primary text-white shadow-md">
-      <div className="flex items-center justify-between py-3 px-4">
-        <div className="flex items-center space-x-2">
-          <img 
-            src="/lovable-uploads/3e7ce3dd-6c4b-47e9-971d-7483e3d4ab64.png" 
-            alt="KlikJasa Logo" 
-            className="w-8 h-8" 
-          />
-          <h1 className="text-xl font-bold">KlikJasa</h1>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          {isAuthenticated && (
-            <Link to="/wallet" className="flex items-center">
-              <Wallet size={20} className="mr-1" />
-              <span className="text-sm">{formatCurrency(walletBalance)}</span>
+    <div className="bg-gradient-to-r from-green-500 to-blue-600 fixed top-0 left-0 right-0 z-10 px-4 py-3 flex justify-between items-center text-white">
+      <div className="flex items-center">
+        <img 
+          src="/logo.png" 
+          alt="KlikJasa" 
+          className="h-8 mr-2" 
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/placeholder.svg";
+          }} 
+        />
+        <h1 className="text-xl font-bold">KlikJasa</h1>
+      </div>
+      
+      <div className="flex items-center space-x-2">
+        {isAuthenticated ? (
+          <>
+            <Link to="/wallet" className="relative flex items-center mr-1 p-2">
+              <Wallet size={20} />
+              <span className="ml-1 text-sm font-medium">
+                {formatRupiah(walletBalance)}
+              </span>
             </Link>
-          )}
-          
-          <Link to="/notifications" className="relative">
-            <Bell size={22} />
-            {hasNotifications && (
-              <span className="absolute -top-1 -right-1 bg-red-500 rounded-full w-3 h-3"></span>
-            )}
-          </Link>
-        </div>
+            
+            <Link to="/notifications" className="relative p-2">
+              <BellIcon size={20} />
+              {hasNotifications && (
+                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+              )}
+            </Link>
+          </>
+        ) : (
+          <Button asChild size="sm" variant="secondary" className="bg-white text-blue-600 hover:bg-blue-50">
+            <Link to="/login">Masuk</Link>
+          </Button>
+        )}
       </div>
     </div>
   );

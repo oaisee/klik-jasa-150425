@@ -7,6 +7,7 @@ import { nearbyServices } from '@/data/mockData';
 import CategoryList from '@/components/CategoryList';
 import SearchBar from '@/components/SearchBar';
 import { Service } from '@/types/service';
+import { ArrowLeft } from 'lucide-react';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -66,8 +67,14 @@ const SearchPage = () => {
   
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 animate-fade-in">
-      <div className="bg-white px-4 py-3 flex items-center shadow-sm z-10">
-        <h1 className="text-lg font-semibold text-left">Cari Jasa</h1>
+      <div className="bg-gradient-to-r from-blue-600 to-green-500 px-4 py-3 flex items-center shadow-sm z-10">
+        <button 
+          onClick={() => navigate('/')} 
+          className="mr-3 text-white"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-lg font-semibold text-left text-white">Cari Jasa</h1>
       </div>
       
       <div className="flex-1 p-4 pb-20 pt-5">
@@ -75,7 +82,7 @@ const SearchPage = () => {
           <SearchBar 
             onSearch={handleSearch} 
             placeholder="Cari jasa atau penyedia"
-            className="z-0"
+            className="z-0 shadow-lg"
           />
         </div>
         

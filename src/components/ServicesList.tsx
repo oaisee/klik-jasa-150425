@@ -10,7 +10,7 @@ interface ServicesListProps {
 const ServicesList = ({ services = [], title }: ServicesListProps) => {
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4 text-left bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent pb-1 border-b border-gray-200">
+      <h2 className="text-xl font-bold mb-4 text-left bg-gradient-to-r from-green-600 to-blue-500 bg-clip-text text-transparent pb-1 border-b border-gray-200">
         {title}
       </h2>
       <div className="grid grid-cols-2 gap-4">
