@@ -23,7 +23,7 @@ const BookingsPage = () => {
   }, []);
   return <div className="flex flex-col min-h-screen bg-gray-50 animate-fade-in">
       <div className="bg-gradient-to-r from-blue-600 to-green-500 px-4 py-3 flex items-center shadow-sm z-10">
-        <h1 className="text-lg font-semibold">{pageTitle}</h1>
+        <h1 className="text-lg font-semibold text-gray-50">{pageTitle}</h1>
       </div>
       
       <div className="flex-1 p-4 pb-20">
