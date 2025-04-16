@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Service, ServiceWithImages } from '@/types/service';
+import { Service, ServiceWithImages, ServiceImage } from '@/types/service';
 import { toast } from 'sonner';
 
 export const useServices = () => {
@@ -9,7 +9,7 @@ export const useServices = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const fetchServices = async (category?: string, searchQuery?: string) => {
+  const fetchServices = async (category?: string | null, searchQuery?: string) => {
     setLoading(true);
     setError(null);
     
@@ -100,15 +100,23 @@ export const useServices = () => {
       const sortedImages = service.service_images.sort((a: any, b: any) => 
         (a.sort_order || 0) - (b.sort_order || 0)
       );
+
+      // Transform service_images to ServiceImage type
+      const formattedImages: ServiceImage[] = sortedImages.map((img: any) => ({
+        id: img.id,
+        service_id: service.id,
+        image_url: img.image_url,
+        sort_order: img.sort_order,
+      }));
       
       // Transform to ServiceWithImages
       const serviceWithImages: ServiceWithImages = {
         ...service,
-        image: sortedImages[0]?.image_url,
+        image: formattedImages[0]?.image_url,
         rating: 4.5 + (Math.random() * 0.5), // Mock rating
         distance: Math.floor(Math.random() * 5) + 1, // Mock distance
         providerName: service.provider?.full_name,
-        images: sortedImages,
+        images: formattedImages,
       };
       
       return serviceWithImages;

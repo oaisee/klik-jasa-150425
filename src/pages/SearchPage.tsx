@@ -82,7 +82,11 @@ const SearchPage = () => {
         
         <div className="mb-6">
           <h2 className="text-lg font-semibold mb-3">Kategori</h2>
-          <CategoryList layout="row" onCategoryClick={handleCategoryClick} />
+          <CategoryList 
+            layout="row" 
+            onCategoryClick={handleCategoryClick} 
+            selectedCategory={selectedCategory}
+          />
         </div>
         
         <div className="mt-6">

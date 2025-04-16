@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React from 'react';
 import SearchBar from '@/components/SearchBar';
 import CategoryList from '@/components/CategoryList';
 import ServicesList from '@/components/ServicesList';
@@ -42,7 +42,10 @@ const HomeContent = ({
       </div>
       
       <div className="mb-6">
-        <CategoryList onCategoryClick={onCategoryClick} />
+        <CategoryList 
+          onCategoryClick={onCategoryClick} 
+          selectedCategory={selectedCategory} 
+        />
       </div>
       
       <ServicesList services={services} title={getServicesTitle()} />

@@ -32,7 +32,7 @@ export interface ServiceWithImages extends Service {
 
 export interface ServiceImage {
   id: string;
-  service_id: string;
+  service_id?: string; // Made optional to accommodate database format
   image_url: string;
   sort_order?: number;
   created_at?: string;

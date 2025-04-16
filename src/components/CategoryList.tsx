@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Icon from '@/components/Icon';
 
@@ -6,13 +7,14 @@ import { CATEGORIES } from '@/utils/categories';
 interface CategoryListProps {
   onCategoryClick: (category: string) => void;
   selectedCategory: string | null;
+  layout?: string;
 }
 
-const CategoryList = ({ onCategoryClick, selectedCategory }: CategoryListProps) => {
+const CategoryList = ({ onCategoryClick, selectedCategory, layout }: CategoryListProps) => {
   
   return (
     <div className="mb-4">
-      <h2 className="text-lg font-semibold mb-3">Kategori</h2>
+      {layout !== 'row' && <h2 className="text-lg font-semibold mb-3">Kategori</h2>}
       <div className="flex overflow-x-auto pb-2 no-scrollbar">
         <div className="flex space-x-3">
           {CATEGORIES.map((category) => (
@@ -21,7 +23,7 @@ const CategoryList = ({ onCategoryClick, selectedCategory }: CategoryListProps) 
               onClick={() => onCategoryClick(category.name)}
               className={`flex flex-col items-center justify-center p-3 rounded-lg min-w-[80px] ${
                 selectedCategory === category.name
-                  ? 'bg-marketplace-primary text-white'
+                  ? 'bg-green-500 text-white'
                   : `${category.color} bg-opacity-20`
               }`}
             >
