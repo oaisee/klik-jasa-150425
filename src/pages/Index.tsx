@@ -25,20 +25,22 @@ const Index = () => {
   
   return (
     <Layout>
-      <div className="px-4 py-5 animate-fade-in">
+      <div className="animate-fade-in">
         <HomeHeader 
           isAuthenticated={isAuthenticated} 
           walletBalance={walletBalance} 
           hasNotifications={hasNotifications} 
         />
         
-        <HomeContent 
-          services={services}
-          selectedCategory={selectedCategory}
-          searchQuery={searchQuery}
-          onCategoryClick={handleCategoryClick}
-          onSearch={handleSearch}
-        />
+        <div className="pt-16 px-4">
+          <HomeContent 
+            services={services}
+            selectedCategory={selectedCategory}
+            searchQuery={searchQuery}
+            onCategoryClick={handleCategoryClick}
+            onSearch={handleSearch}
+          />
+        </div>
       </div>
     </Layout>
   );

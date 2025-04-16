@@ -33,15 +33,15 @@ const HomeContent = ({
 
   return (
     <>
-      <div className="mb-7 mt-2">
+      <div className="mb-6">
         <SearchBar 
           onSearch={onSearch} 
           placeholder="Cari layanan atau penyedia..." 
-          className="z-0" // Ensure lower z-index than header
+          className="rounded-xl shadow-md"
         />
       </div>
       
-      <div className="mb-8">
+      <div className="mb-6">
         <CategoryList onCategoryClick={onCategoryClick} />
       </div>
       
