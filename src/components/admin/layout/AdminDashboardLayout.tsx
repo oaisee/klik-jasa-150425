@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, LogOut, RefreshCw } from 'lucide-react';
+import { Menu, RefreshCw } from 'lucide-react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
+import NotificationsPopover from '@/components/admin/notifications/NotificationsPopover';
 import { toast } from 'sonner';
 
 interface AdminDashboardLayoutProps {
@@ -105,15 +105,10 @@ const AdminDashboardLayout = ({
               <span className="hidden sm:inline">{refreshing ? 'Menyegarkan...' : 'Segarkan Data'}</span>
             </Button>
             
-            <Button 
-              variant="destructive" 
-              size="sm" 
-              onClick={onSignOut}
-              className="flex items-center gap-1"
-            >
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Keluar</span>
-            </Button>
+            {/* Replace logout button with notifications */}
+            <NotificationsPopover />
+            
+            {/* Keep logout button in sidebar only */}
           </div>
         </div>
         

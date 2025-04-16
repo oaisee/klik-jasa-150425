@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, X, ExternalLink, Loader2 } from 'lucide-react';
 import { VerificationRequest } from '@/types/database';
+import { toast } from 'sonner';
 
 interface VerificationRequestItemProps {
   request: VerificationRequest;
@@ -20,6 +21,8 @@ const VerificationRequestItem = ({
   onPreviewImage,
   processingId 
 }: VerificationRequestItemProps) => {
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'Unknown date';
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -43,6 +46,21 @@ const VerificationRequestItem = ({
         return <Badge variant="outline">Unknown</Badge>;
     }
   };
+  
+  const handlePreviewImage = () => {
+    setIsPreviewLoading(true);
+    // Check if the image URL is valid before showing preview
+    const img = new Image();
+    img.onload = () => {
+      setIsPreviewLoading(false);
+      onPreviewImage(request.document_url);
+    };
+    img.onerror = () => {
+      setIsPreviewLoading(false);
+      toast.error("Gagal memuat gambar. URL mungkin tidak valid.");
+    };
+    img.src = request.document_url;
+  };
 
   return (
     <div className="border rounded-lg p-4">
@@ -63,9 +81,19 @@ const VerificationRequestItem = ({
             variant="outline" 
             size="sm" 
             className="text-xs"
-            onClick={() => onPreviewImage(request.document_url)}
+            onClick={handlePreviewImage}
+            disabled={isPreviewLoading}
           >
-            Lihat Dokumen <ExternalLink className="h-3 w-3 ml-1" />
+            {isPreviewLoading ? (
+              <>
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                Memuat...
+              </>
+            ) : (
+              <>
+                Lihat Dokumen <ExternalLink className="h-3 w-3 ml-1" />
+              </>
+            )}
           </Button>
         </div>
         

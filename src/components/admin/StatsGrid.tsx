@@ -1,3 +1,4 @@
+
 import { Users, Briefcase, FileText, Database } from 'lucide-react';
 import StatCard from './StatCard';
 import { formatRupiah } from '@/utils/admin';
@@ -9,6 +10,39 @@ interface StatsGridProps {
 }
 
 const StatsGrid = ({ userStats, serviceStats, monthlyData }: StatsGridProps) => {
+  // Calculate monthly bookings growth
+  const calculateBookingsGrowth = () => {
+    if (monthlyData.length < 2) return { value: 0, positive: true };
+    
+    const currentMonthBookings = monthlyData[monthlyData.length - 1].bookings;
+    const previousMonthBookings = monthlyData[monthlyData.length - 2].bookings;
+    
+    if (previousMonthBookings === 0) return { value: 100, positive: true };
+    
+    const growthPercentage = Math.round(
+      ((currentMonthBookings - previousMonthBookings) / previousMonthBookings) * 100
+    );
+    
+    return { 
+      value: Math.abs(growthPercentage), 
+      positive: growthPercentage >= 0 
+    };
+  };
+  
+  // Calculate total commission (5% of all revenue)
+  const calculateTotalCommission = () => {
+    const totalRevenue = monthlyData.reduce((sum, item) => sum + item.revenue, 0);
+    return totalRevenue * 0.05; // 5% commission
+  };
+  
+  const bookingsGrowth = calculateBookingsGrowth();
+  const totalCommission = calculateTotalCommission();
+  
+  // Get current month bookings
+  const currentMonthBookings = monthlyData.length > 0 
+    ? monthlyData[monthlyData.length - 1].bookings 
+    : 0;
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <StatCard
@@ -28,20 +62,17 @@ const StatsGrid = ({ userStats, serviceStats, monthlyData }: StatsGridProps) => 
       <StatCard
         icon={<FileText className="h-8 w-8 text-purple-500" />}
         title="Transaksi Bulan Ini"
-        value={monthlyData.length > 0 ? 
-          monthlyData[monthlyData.length - 1].bookings.toString() : "0"}
-        trend={monthlyData.length > 1 ? 
-          `${Math.floor((monthlyData[monthlyData.length - 1].bookings - monthlyData[monthlyData.length - 2].bookings) / 
-          monthlyData[monthlyData.length - 2].bookings * 100)}% dari bulan lalu` : ""}
-        trendPositive={monthlyData.length > 1 ? 
-          monthlyData[monthlyData.length - 1].bookings >= monthlyData[monthlyData.length - 2].bookings : true}
+        value={currentMonthBookings.toString()}
+        trend={monthlyData.length > 1 
+          ? `${bookingsGrowth.value}% ${bookingsGrowth.positive ? 'naik' : 'turun'} dari bulan lalu` 
+          : "Data bulan sebelumnya tidak tersedia"}
+        trendPositive={bookingsGrowth.positive}
       />
       <StatCard
         icon={<Database className="h-8 w-8 text-amber-500" />}
         title="Total Komisi"
-        value={monthlyData.length > 0 ? 
-          formatRupiah(monthlyData.reduce((sum, item) => sum + item.revenue, 0) * 0.05) : "Rp 0"}
-        trend="5% dari transaksi"
+        value={formatRupiah(totalCommission)}
+        trend="5% dari total transaksi"
         trendPositive={true}
       />
     </div>
