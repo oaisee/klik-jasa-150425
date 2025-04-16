@@ -8,6 +8,7 @@ import CategoryList from '@/components/CategoryList';
 import SearchBar from '@/components/SearchBar';
 import { Service } from '@/types/service';
 import { ArrowLeft } from 'lucide-react';
+import { getCategoryByName } from '@/utils/categories';
 
 const SearchPage = () => {
   const navigate = useNavigate();
@@ -38,7 +39,8 @@ const SearchPage = () => {
     }
     
     if (selectedCategory) {
-      // Assuming services have a category property
+      // Match either by category name or by title containing the category
+      const category = getCategoryByName(selectedCategory);
       filtered = filtered.filter(service => 
         service.category === selectedCategory || 
         service.title.includes(selectedCategory)
