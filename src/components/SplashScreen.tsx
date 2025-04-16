@@ -7,12 +7,22 @@ const SplashScreen = () => {
   const [visible, setVisible] = useState(true);
   
   useEffect(() => {
+    // Check if splash screen has already been shown in this session
+    const splashShown = sessionStorage.getItem('splashShown');
+    
+    if (splashShown) {
+      // If already shown in this session, hide immediately
+      navigate('/onboarding', { replace: true });
+      return;
+    }
+    
     const timer = setTimeout(() => {
       // Fade out animation
       setVisible(false);
       
-      // Navigate after animation completes
+      // Navigate after animation completes and mark as shown
       setTimeout(() => {
+        sessionStorage.setItem('splashShown', 'true');
         navigate('/onboarding', { replace: true });
       }, 500);
     }, 2500);

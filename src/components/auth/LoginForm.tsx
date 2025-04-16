@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +19,47 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{email?: string; password?: string}>({});
+  const [previousEmails, setPreviousEmails] = useState<string[]>([]);
+  const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
+
+  // Fetch previously used emails
+  useEffect(() => {
+    const fetchPreviousEmails = () => {
+      try {
+        const storedEmails = localStorage.getItem('previousEmails');
+        if (storedEmails) {
+          setPreviousEmails(JSON.parse(storedEmails));
+        }
+      } catch (error) {
+        console.error('Error fetching previous emails:', error);
+      }
+    };
+    
+    fetchPreviousEmails();
+  }, []);
+
+  // Save email to local storage on successful login
+  const saveEmailToStorage = (email: string) => {
+    try {
+      let emails = [...previousEmails];
+      
+      // Remove the email if it already exists to prevent duplicates
+      emails = emails.filter(e => e !== email);
+      
+      // Add the new email at the beginning
+      emails.unshift(email);
+      
+      // Keep only the latest 5 emails
+      if (emails.length > 5) {
+        emails = emails.slice(0, 5);
+      }
+      
+      localStorage.setItem('previousEmails', JSON.stringify(emails));
+      setPreviousEmails(emails);
+    } catch (error) {
+      console.error('Error saving email to storage:', error);
+    }
+  };
 
   const validateForm = () => {
     const newErrors: {email?: string; password?: string} = {};
@@ -70,6 +110,9 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
         throw error;
       }
       
+      // Save the email on successful login
+      saveEmailToStorage(email);
+      
       toast.success("Login berhasil");
       console.log("Login successful, redirecting to home page...");
       
@@ -91,6 +134,17 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
       setLoading(false);
     }
   };
+  
+  const handleEmailFocus = () => {
+    if (previousEmails.length > 0) {
+      setShowEmailSuggestions(true);
+    }
+  };
+  
+  const handleEmailSelection = (selectedEmail: string) => {
+    setEmail(selectedEmail);
+    setShowEmailSuggestions(false);
+  };
 
   const rightElement = (
     <button 
@@ -105,17 +159,43 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
 
   return (
     <form onSubmit={handleLogin} className="space-y-6 animate-fade-in" style={{animationDelay: "100ms"}}>
-      <FormField
-        id="email"
-        label="Email"
-        type="email"
-        placeholder="nama@email.com"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        icon={<Mail size={18} />}
-        required={true}
-      />
-      {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+      <div className="space-y-2 relative">
+        <Label htmlFor="email" className="text-gray-700">Email</Label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+            <Mail size={18} />
+          </div>
+          <Input 
+            id="email"
+            type="email" 
+            placeholder="nama@email.com" 
+            className={`pl-10 border-gray-200 focus:border-marketplace-primary focus:ring focus:ring-marketplace-primary/10 ${errors.email ? 'border-red-500' : ''}`}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onFocus={handleEmailFocus}
+            onBlur={() => setTimeout(() => setShowEmailSuggestions(false), 200)}
+          />
+        </div>
+        {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
+        
+        {/* Email suggestions dropdown */}
+        {showEmailSuggestions && previousEmails.length > 0 && (
+          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg">
+            <ul className="py-1 max-h-48 overflow-auto">
+              {previousEmails.map((prevEmail, index) => (
+                <li 
+                  key={index}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                  onClick={() => handleEmailSelection(prevEmail)}
+                >
+                  <Mail size={16} className="mr-2 text-gray-400" />
+                  <span>{prevEmail}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
       
       <div className="space-y-2">
         <div className="flex items-center justify-between">

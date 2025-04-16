@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import ReviewItem from '@/components/reviews/ReviewItem';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
+import LoadingIndicator from '@/components/shared/LoadingIndicator';
+
 const ServiceDetail = () => {
   const {
     id
@@ -18,22 +20,28 @@ const ServiceDetail = () => {
   } = useToast();
   const [currentImage, setCurrentImage] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // In a real app, you would fetch this data based on the ID
   const service = serviceDetail;
+  
   useEffect(() => {
     document.title = `${service.title} | KlikJasa`;
     window.scrollTo(0, 0);
 
     // Check authentication status
+    const checkAuth = async () => {
+      setLoading(true);
+      const {
+        data
+      } = await supabase.auth.getSession();
+      setIsAuthenticated(!!data.session);
+      setLoading(false);
+    };
+    
     checkAuth();
   }, [service.title]);
-  const checkAuth = async () => {
-    const {
-      data
-    } = await supabase.auth.getSession();
-    setIsAuthenticated(!!data.session);
-  };
+  
   const handleRequestBooking = () => {
     if (isAuthenticated) {
       navigate(`/booking-confirmation/${id}`);
@@ -47,6 +55,7 @@ const ServiceDetail = () => {
       navigate('/login');
     }
   };
+  
   const handleChat = () => {
     if (isAuthenticated) {
       navigate('/chat');
@@ -59,7 +68,17 @@ const ServiceDetail = () => {
       navigate('/login');
     }
   };
-  return <div className="animate-fade-in pb-8">
+  
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <LoadingIndicator size="lg" text="Memuat detail layanan..." />
+      </div>
+    );
+  }
+  
+  return (
+    <div className="animate-fade-in pb-8">
       {/* Header images with gallery */}
       <div className="relative h-64">
         <button className="absolute left-4 top-4 z-10 bg-white/80 p-1.5 rounded-full" onClick={() => navigate(-1)}>
@@ -71,6 +90,7 @@ const ServiceDetail = () => {
         </div>
       </div>
       
+      {/* Keep the rest of the existing code */}
       <div className="px-4">
         {/* Provider info */}
         <div className="flex items-center -mt-6 relative bg-slate-500 rounded-full">
@@ -129,6 +149,8 @@ const ServiceDetail = () => {
           </Button>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ServiceDetail;
