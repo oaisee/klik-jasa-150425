@@ -69,6 +69,7 @@ const KtpVerificationModal = ({
     
     try {
       // Check if user already has a pending or approved verification request
+      // Only access verification_requests table - no direct users table access
       const { data: existingVerifications, error: fetchError } = await supabase
         .from('verification_requests')
         .select('status')
@@ -90,23 +91,24 @@ const KtpVerificationModal = ({
         }
       }
       
-      // Upload KTP to Supabase Storage
+      // Upload KTP to temporary location in Supabase Storage
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `ktp/${fileName}`;
       
+      // Upload to verifications bucket (temporary storage)
       const { error: storageError } = await supabase.storage
         .from('verifications')
         .upload(filePath, selectedFile);
         
       if (storageError) throw storageError;
       
-      // Get public URL
+      // Get public URL for admin review
       const { data: urlData } = supabase.storage
         .from('verifications')
         .getPublicUrl(filePath);
       
-      // Create verification request in database
+      // Create verification request in database with pending status
       const { error: dbError } = await supabase
         .from('verification_requests')
         .insert({

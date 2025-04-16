@@ -19,7 +19,9 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
   const [rejectionNotes, setRejectionNotes] = useState<string | null>(null);
 
   useEffect(() => {
-    checkVerificationStatus();
+    if (userId) {
+      checkVerificationStatus();
+    }
   }, [userId]);
 
   const checkVerificationStatus = async () => {
@@ -27,7 +29,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
     
     setLoading(true);
     try {
-      // Query verification_requests table to check status
+      // Only check verification_requests table - no need to access users table
       const { data, error } = await supabase
         .from('verification_requests')
         .select('status, notes')
@@ -64,7 +66,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
   };
 
   const handleVerificationSubmitted = () => {
-    // Update status to pending
+    // Update status to pending and refresh
     setVerificationStatus('pending');
     checkVerificationStatus();
   };

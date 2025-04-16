@@ -114,7 +114,8 @@ const VerificationRequestsList = () => {
 
       if (verificationError) throw verificationError;
 
-      // Update user is_provider status to true
+      // Update user is_provider status to true in profiles table
+      // Note: we use profiles table instead of users table
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ is_provider: true })
