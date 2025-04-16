@@ -35,7 +35,7 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Service } from '@/types/database';
-import { formatRupiah } from '@/utils/adminUtils';
+import { formatRupiah } from '@/utils/admin';
 
 const ServiceManagement = () => {
   const [loading, setLoading] = useState(true);

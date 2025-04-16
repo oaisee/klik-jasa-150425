@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Eye, Download } from 'lucide-react';
 import TransactionStatusBadge from './TransactionStatusBadge';
 import TransactionTypeIcon from './TransactionTypeIcon';
-import { formatRupiah } from '@/utils/adminUtils';
+import { formatRupiah } from '@/utils/admin';
 
 interface Transaction {
   id: string;
