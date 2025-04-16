@@ -80,25 +80,68 @@ export const fetchBookingStats = async () => {
 
 export const generateMonthlyData = async () => {
   try {
-    // Generate mock monthly data for charts
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentMonth = new Date().getMonth();
+    // Get real data if available
+    const { data: transactions, error } = await supabase
+      .from('wallet_transactions')
+      .select('amount, created_at, type')
+      .order('created_at', { ascending: true });
+      
+    if (error) throw error;
     
-    // Create mock data for each month with gradually increasing values
-    return months.slice(0, currentMonth + 1).map((month, index) => {
-      // Base values that grow over time
-      const baseBookings = 10 + (index * 5);
-      const baseRevenue = 1000000 + (index * 200000);
+    if (transactions && transactions.length > 0) {
+      // Process real transaction data
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const currentYear = new Date().getFullYear();
+      const monthlyData: Record<string, { bookings: number, revenue: number }> = {};
       
-      // Add some randomness
-      const randomFactor = 0.8 + (Math.random() * 0.4); // 0.8 to 1.2
+      // Initialize all months up to current month
+      const currentMonth = new Date().getMonth();
+      for (let i = 0; i <= currentMonth; i++) {
+        monthlyData[months[i]] = { bookings: 0, revenue: 0 };
+      }
       
-      return {
-        name: month,
-        bookings: Math.floor(baseBookings * randomFactor),
-        revenue: Math.floor(baseRevenue * randomFactor),
-      };
-    });
+      // Aggregate transaction data by month
+      transactions.forEach(transaction => {
+        const date = new Date(transaction.created_at);
+        // Only include current year data
+        if (date.getFullYear() === currentYear) {
+          const month = months[date.getMonth()];
+          if (monthlyData[month]) {
+            if (transaction.type === 'commission') {
+              monthlyData[month].bookings += 1;
+            }
+            monthlyData[month].revenue += transaction.amount;
+          }
+        }
+      });
+      
+      // Convert to array format for charts
+      return Object.entries(monthlyData).map(([name, data]) => ({
+        name,
+        bookings: data.bookings,
+        revenue: data.revenue
+      }));
+    } else {
+      // Generate mock data if no real data available
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const currentMonth = new Date().getMonth();
+      
+      // Create mock data for each month with gradually increasing values
+      return months.slice(0, currentMonth + 1).map((month, index) => {
+        // Base values that grow over time
+        const baseBookings = 10 + (index * 5);
+        const baseRevenue = 1000000 + (index * 200000);
+        
+        // Add some randomness
+        const randomFactor = 0.8 + (Math.random() * 0.4); // 0.8 to 1.2
+        
+        return {
+          name: month,
+          bookings: Math.floor(baseBookings * randomFactor),
+          revenue: Math.floor(baseRevenue * randomFactor),
+        };
+      });
+    }
   } catch (error) {
     console.error('Error generating monthly data:', error);
     
@@ -121,4 +164,58 @@ export const formatRupiah = (amount: number) => {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(amount);
+};
+
+// New utility function to compare dates and format them
+export const formatDate = (dateString?: string, format: 'short' | 'long' = 'long') => {
+  if (!dateString) return '-';
+  
+  try {
+    const date = new Date(dateString);
+    
+    if (format === 'short') {
+      return date.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    }
+    
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
+};
+
+// New utility function for time ago formatting
+export const formatTimeAgo = (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+    
+    if (diffDay > 30) {
+      return formatDate(dateString, 'short');
+    } else if (diffDay > 0) {
+      return `${diffDay} hari lalu`;
+    } else if (diffHour > 0) {
+      return `${diffHour} jam lalu`;
+    } else if (diffMin > 0) {
+      return `${diffMin} menit lalu`;
+    } else {
+      return 'Baru saja';
+    }
+  } catch (error) {
+    console.error('Error calculating time ago:', error);
+    return dateString;
+  }
 };

@@ -7,11 +7,16 @@ import { RefreshCw } from 'lucide-react';
 
 const VerificationDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
+  const [statsKey, setStatsKey] = useState(Date.now());
+  const [requestsKey, setRequestsKey] = useState(Date.now());
   
   const handleRefresh = async () => {
     setRefreshing(true);
-    // This will trigger useEffect in both child components
-    // We just need a delay to show the refresh animation
+    // Update keys to force re-render of child components
+    setStatsKey(Date.now());
+    setRequestsKey(Date.now());
+    
+    // Simulate delay to show the refresh animation
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
@@ -33,9 +38,9 @@ const VerificationDashboard = () => {
         </Button>
       </div>
       
-      <VerificationStatsWidget />
+      <VerificationStatsWidget key={`stats-${statsKey}`} />
       
-      <VerificationRequestsList />
+      <VerificationRequestsList key={`requests-${requestsKey}`} />
     </div>
   );
 };

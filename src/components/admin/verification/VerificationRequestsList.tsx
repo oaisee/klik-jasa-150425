@@ -7,13 +7,14 @@ import { toast } from 'sonner';
 import { VerificationRequest } from '@/types/database';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import EmptyState from '@/components/shared/EmptyState';
-import { FileX } from 'lucide-react';
+import { FileX, RefreshCw } from 'lucide-react';
 import VerificationRequestItem from './VerificationRequestItem';
 import ImagePreviewDialog from './ImagePreviewDialog';
 
 const VerificationRequestsList = () => {
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
@@ -26,7 +27,7 @@ const VerificationRequestsList = () => {
     try {
       const { data, error } = await supabase
         .from('verification_requests')
-        .select('*, profile:profiles(full_name, phone)')
+        .select('*, profile:profiles(id, full_name, phone)')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -34,7 +35,7 @@ const VerificationRequestsList = () => {
       // Map the data to match VerificationRequest type
       const mappedRequests = (data || []).map(req => ({
         ...req,
-        profile: req.profile ? req.profile[0] : undefined
+        profile: req.profile || undefined
       }));
 
       setRequests(mappedRequests as VerificationRequest[]);
@@ -43,6 +44,19 @@ const VerificationRequestsList = () => {
       toast.error('Gagal memuat permintaan verifikasi');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchVerificationRequests();
+      toast.success('Data berhasil disegarkan');
+    } catch (error) {
+      console.error('Error refreshing verification requests:', error);
+      toast.error('Gagal menyegarkan data');
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -140,8 +154,23 @@ const VerificationRequestsList = () => {
         )}
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full" onClick={fetchVerificationRequests}>
-          Muat Ulang Data
+        <Button 
+          variant="outline" 
+          className="w-full" 
+          onClick={handleRefresh}
+          disabled={refreshing}
+        >
+          {refreshing ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Memuat Ulang...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Muat Ulang Data
+            </>
+          )}
         </Button>
       </CardFooter>
 

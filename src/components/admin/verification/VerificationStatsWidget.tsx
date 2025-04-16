@@ -7,9 +7,12 @@ import {
   UserCheck, 
   UserX, 
   Clock, 
-  Users
+  Users,
+  RefreshCw
 } from 'lucide-react';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface VerificationStats {
   total: number;
@@ -26,6 +29,7 @@ const VerificationStatsWidget = () => {
     rejected: 0
   });
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchVerificationStats();
@@ -51,8 +55,21 @@ const VerificationStatsWidget = () => {
       }
     } catch (error) {
       console.error('Error fetching verification stats:', error);
+      toast.error('Gagal memuat statistik verifikasi');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchVerificationStats();
+      toast.success('Statistik berhasil disegarkan');
+    } catch (error) {
+      console.error('Error refreshing verification stats:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -71,8 +88,18 @@ const VerificationStatsWidget = () => {
 
   return (
     <Card>
-      <CardHeader className="pb-2">
+      <CardHeader className="pb-2 flex flex-row items-center justify-between">
         <CardTitle className="text-lg">Statistik Verifikasi</CardTitle>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="h-8 w-8 p-0"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          <span className="sr-only">Refresh stats</span>
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4">
@@ -91,7 +118,7 @@ const VerificationStatsWidget = () => {
             </div>
             <div className="flex items-center gap-1">
               <span className="text-2xl font-bold text-amber-700">{stats.pending}</span>
-              {stats.pending > 0 && (
+              {stats.pending > 0 && stats.total > 0 && (
                 <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
                   {Math.round((stats.pending / stats.total) * 100)}%
                 </Badge>
@@ -106,7 +133,7 @@ const VerificationStatsWidget = () => {
             </div>
             <div className="flex items-center gap-1">
               <span className="text-2xl font-bold text-green-700">{stats.approved}</span>
-              {stats.approved > 0 && (
+              {stats.approved > 0 && stats.total > 0 && (
                 <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
                   {Math.round((stats.approved / stats.total) * 100)}%
                 </Badge>
@@ -121,7 +148,7 @@ const VerificationStatsWidget = () => {
             </div>
             <div className="flex items-center gap-1">
               <span className="text-2xl font-bold text-red-700">{stats.rejected}</span>
-              {stats.rejected > 0 && (
+              {stats.rejected > 0 && stats.total > 0 && (
                 <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
                   {Math.round((stats.rejected / stats.total) * 100)}%
                 </Badge>
