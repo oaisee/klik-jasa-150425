@@ -68,7 +68,7 @@ const KtpVerificationModal = ({
     setErrorMessage(null);
     
     try {
-      // Check if user already has a pending verification
+      // Check if user already has a pending verification - directly access verification_requests
       const { data: existingVerifications, error: fetchError } = await supabase
         .from('verification_requests')
         .select('status')
@@ -95,11 +95,12 @@ const KtpVerificationModal = ({
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `ktp/${fileName}`;
       
-      const { error: uploadError } = await supabase.storage
+      // Ensure the verifications bucket exists
+      const { error: storageError } = await supabase.storage
         .from('verifications')
         .upload(filePath, selectedFile);
         
-      if (uploadError) throw uploadError;
+      if (storageError) throw storageError;
       
       // Get public URL
       const { data: urlData } = supabase.storage

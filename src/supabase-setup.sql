@@ -64,9 +64,34 @@ CREATE TABLE IF NOT EXISTS public.service_images (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
--- Create storage buckets for avatars and service images
+-- Create verification requests table if it doesn't exist
+CREATE TABLE IF NOT EXISTS public.verification_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE,
+  document_url TEXT NOT NULL,
+  document_type TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Enable RLS on verification_requests table
+ALTER TABLE public.verification_requests ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies for verification_requests
+CREATE POLICY "Users can view their own verification requests" 
+ON public.verification_requests FOR SELECT 
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create their own verification requests" 
+ON public.verification_requests FOR INSERT 
+WITH CHECK (auth.uid() = user_id);
+
+-- Create storage buckets for avatars, services, and verifications
 INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', true) ON CONFLICT DO NOTHING;
 INSERT INTO storage.buckets (id, name, public) VALUES ('services', 'services', true) ON CONFLICT DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('verifications', 'verifications', true) ON CONFLICT DO NOTHING;
 
 -- Enable Row Level Security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -106,6 +131,16 @@ CREATE POLICY "Providers can delete their service images" ON public.service_imag
     WHERE id = service_id 
     AND provider_id = auth.uid()
   )
+);
+
+-- Storage policies for verifications
+CREATE POLICY "Verification images are viewable by everyone" ON storage.objects FOR SELECT
+USING (bucket_id = 'verifications');
+
+CREATE POLICY "Users can upload their own verification documents" ON storage.objects FOR INSERT
+WITH CHECK (
+  bucket_id = 'verifications' AND
+  (storage.foldername(name))[1] = 'ktp'
 );
 
 -- Storage policies for avatars

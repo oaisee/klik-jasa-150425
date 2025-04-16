@@ -27,6 +27,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
     
     setLoading(true);
     try {
+      // Instead of querying the users table, we'll check verification_requests directly
       const { data, error } = await supabase
         .from('verification_requests')
         .select('status, notes')
