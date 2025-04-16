@@ -1,19 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface Booking {
-  id: string;
-  service: string;
-  provider: string;
-  date: string;
-  time: string;
-  status: 'active' | 'pending' | 'completed' | 'cancelled';
-  price: number;
-  providerImage?: string;
-  location?: string;
-  rating?: number;
-}
+import { Booking } from '@/types/booking';
+import { toast } from 'sonner';
 
 export const useBookings = () => {
   const [activeBookings, setActiveBookings] = useState<Booking[]>([]);
@@ -22,89 +11,67 @@ export const useBookings = () => {
   const [loading, setLoading] = useState(true);
   
   const fetchUserBookings = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
+      
+      // Get current user
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        console.error('No session found');
-        setLoading(false);
-        return;
+        throw new Error('No authenticated user');
       }
       
-      // In a real app, we would fetch bookings from the database
-      // For now, simulate with mock data
-      setTimeout(() => {
-        const mockActiveBookings: Booking[] = [
-          {
-            id: '1',
-            service: 'Jasa Pembersihan Rumah',
-            provider: 'Budi Santoso',
-            date: '25 April 2023',
-            time: '09:00 - 12:00',
-            status: 'active',
-            price: 150000,
-            providerImage: 'https://randomuser.me/api/portraits/men/32.jpg',
-            location: 'Jakarta Selatan'
+      // For now, let's generate mock data since we don't have a bookings table yet
+      // In a real implementation, we would fetch from the database
+      
+      // Generate random mock bookings
+      const generateMockBookings = (count: number, status: string): Booking[] => {
+        return Array.from({ length: count }, (_, i) => ({
+          id: `booking-${status}-${i}`,
+          user_id: session.user.id,
+          service_id: `service-${i}`,
+          provider_id: `provider-${i}`,
+          status: status as any,
+          booking_date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+          service_date: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+          location: 'Jakarta Selatan',
+          price: Math.floor(Math.random() * 500000) + 100000,
+          commission_amount: Math.floor(Math.random() * 50000),
+          created_at: new Date().toISOString(),
+          service: {
+            title: ['Perbaikan AC', 'Servis Elektronik', 'Tukang Ledeng', 'Cleaning Service'][Math.floor(Math.random() * 4)],
+            category: ['Rumah Tangga', 'Elektronik', 'Perbaikan', 'Jasa'][Math.floor(Math.random() * 4)],
+            image: '/placeholder.svg'
           },
-          {
-            id: '2',
-            service: 'Perbaikan AC',
-            provider: 'Ahmad Rizki',
-            date: '30 April 2023',
-            time: '13:00 - 15:00',
-            status: 'active',
-            price: 250000,
-            providerImage: 'https://randomuser.me/api/portraits/men/55.jpg',
-            location: 'Jakarta Pusat'
+          provider: {
+            full_name: ['Budi Santoso', 'Joko Widodo', 'Siti Nurhaliza', 'Dian Sastro'][Math.floor(Math.random() * 4)],
+            phone: '08123456789',
+            avatar_url: '/placeholder.svg'
           }
-        ];
-        
-        const mockCompletedBookings: Booking[] = [
-          {
-            id: '3',
-            service: 'Jasa Kurir Dokumen',
-            provider: 'Dian Purnama',
-            date: '15 April 2023',
-            time: '10:00 - 11:00',
-            status: 'completed',
-            price: 75000,
-            rating: 5,
-            providerImage: 'https://randomuser.me/api/portraits/women/22.jpg',
-            location: 'Jakarta Barat'
-          }
-        ];
-        
-        const mockCancelledBookings: Booking[] = [
-          {
-            id: '4',
-            service: 'Jasa Tukang Ledeng',
-            provider: 'Joko Santoso',
-            date: '10 April 2023',
-            time: '14:00 - 16:00',
-            status: 'cancelled',
-            price: 200000,
-            providerImage: 'https://randomuser.me/api/portraits/men/42.jpg',
-            location: 'Jakarta Timur'
-          }
-        ];
-        
-        setActiveBookings(mockActiveBookings);
-        setCompletedBookings(mockCompletedBookings);
-        setCancelledBookings(mockCancelledBookings);
-        setLoading(false);
-      }, 1000);
+        }));
+      };
+      
+      // Generate random number of bookings for each status
+      const active = generateMockBookings(Math.floor(Math.random() * 5) + 1, 'confirmed');
+      const completed = generateMockBookings(Math.floor(Math.random() * 10) + 3, 'completed');
+      const cancelled = generateMockBookings(Math.floor(Math.random() * 3), 'cancelled');
+      
+      setActiveBookings(active);
+      setCompletedBookings(completed);
+      setCancelledBookings(cancelled);
       
     } catch (error) {
       console.error('Error fetching bookings:', error);
+      toast.error('Gagal memuat data pesanan');
+    } finally {
       setLoading(false);
     }
   };
-
+  
   useEffect(() => {
     fetchUserBookings();
   }, []);
-
+  
   return {
     activeBookings,
     completedBookings,
