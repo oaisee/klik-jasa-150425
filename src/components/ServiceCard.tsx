@@ -29,7 +29,7 @@ const ServiceCard = ({
       <div className="p-3.5">
         <h3 className="font-semibold text-sm truncate text-marketplace-secondary text-left">{title}</h3>
         <div className="flex items-center mt-1.5 text-xs text-gray-600">
-          <span>{providerName}</span>
+          <span className="text-left">{providerName}</span>
           <div className="flex items-center ml-2">
             <Star size={14} className="text-yellow-400 fill-yellow-400" />
             <span className="ml-0.5">{rating.toFixed(1)}</span>
