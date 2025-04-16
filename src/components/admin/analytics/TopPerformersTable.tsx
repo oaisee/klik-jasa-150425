@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatRupiah } from '@/utils/adminUtils';
+import { formatRupiah } from '@/utils/admin';
 import { User, Star } from 'lucide-react';
 
 interface ProviderStats {

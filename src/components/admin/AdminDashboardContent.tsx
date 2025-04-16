@@ -1,6 +1,5 @@
-
 import { useState, useEffect, useCallback } from 'react';
-import { fetchUserStats, fetchServiceStats, generateMonthlyData } from '@/utils/adminUtils';
+import { fetchUserStats, fetchServiceStats, generateMonthlyData } from '@/utils/admin';
 import DashboardHeader from './DashboardHeader';
 import ConnectionStatusAlert from './ConnectionStatusAlert';
 import StatsGrid from './StatsGrid';

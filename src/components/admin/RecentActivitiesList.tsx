@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import ActivityItem from './ActivityItem';
 import { Service, Profile } from '@/types/database';
+import { formatTimeAgo } from '@/utils/admin';
 
 type ActivityType = 'booking' | 'service' | 'registration';
 
@@ -79,27 +79,6 @@ const RecentActivitiesList = () => {
     
     fetchActivities();
   }, []);
-  
-  // Helper function to format time ago
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffSec = Math.floor(diffMs / 1000);
-    const diffMin = Math.floor(diffSec / 60);
-    const diffHour = Math.floor(diffMin / 60);
-    const diffDay = Math.floor(diffHour / 24);
-    
-    if (diffDay > 0) {
-      return `${diffDay} hari lalu`;
-    } else if (diffHour > 0) {
-      return `${diffHour} jam lalu`;
-    } else if (diffMin > 0) {
-      return `${diffMin} menit lalu`;
-    } else {
-      return 'Baru saja';
-    }
-  };
   
   // Helper function to parse time ago for sorting
   const parseTimeAgo = (timeAgo: string) => {

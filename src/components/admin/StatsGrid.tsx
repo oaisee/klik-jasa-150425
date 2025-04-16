@@ -1,7 +1,6 @@
-
 import { Users, Briefcase, FileText, Database } from 'lucide-react';
 import StatCard from './StatCard';
-import { formatRupiah } from '@/utils/adminUtils';
+import { formatRupiah } from '@/utils/admin';
 
 interface StatsGridProps {
   userStats: { totalUsers: number; providers: number; consumers: number };

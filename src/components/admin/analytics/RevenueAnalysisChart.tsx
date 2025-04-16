@@ -1,11 +1,9 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatRupiah } from '@/utils/adminUtils';
-import { generateMonthlyData } from '@/utils/adminUtils';
+import { formatRupiah, generateMonthlyData } from '@/utils/admin';
 
 const RevenueAnalysisChart = () => {
   const [loading, setLoading] = useState(true);
