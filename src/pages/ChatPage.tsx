@@ -7,6 +7,7 @@ import { chatListData } from '@/data/chatData';
 import ChatPageHeader from '@/components/chat/ChatPageHeader';
 import ChatSearch from '@/components/chat/ChatSearch';
 import ChatList from '@/components/chat/ChatList';
+import { Card } from '@/components/ui/card';
 
 const ChatPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,7 +45,9 @@ const ChatPage = () => {
       //   setChats(data);
       // }
       
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     };
     
     checkAuth();
@@ -74,16 +77,19 @@ const ChatPage = () => {
       <ChatPageHeader />
       
       <div className="flex-1 p-4 pb-20">
-        <ChatSearch 
-          searchQuery={searchQuery} 
-          onChange={handleSearch} 
-        />
-        
-        <ChatList 
-          loading={loading}
-          chats={chats}
-          onChatClick={handleChatClick}
-        />
+        <Card className="p-4 rounded-xl mb-5 bg-white shadow-sm border-gray-100">
+          <ChatSearch 
+            searchQuery={searchQuery} 
+            onChange={handleSearch} 
+          />
+          
+          <ChatList 
+            loading={loading}
+            chats={chats}
+            searchQuery={searchQuery}
+            onChatClick={handleChatClick}
+          />
+        </Card>
       </div>
     </div>
   );

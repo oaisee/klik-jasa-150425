@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
@@ -22,7 +21,11 @@ const ChatDetailPage = () => {
   const { chatId } = useParams<{ chatId: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [chatPartner, setChatPartner] = useState<{ name: string; avatar: string } | null>(null);
+  const [chatPartner, setChatPartner] = useState<{ 
+    name: string; 
+    avatar: string;
+    isOnline?: boolean;
+  } | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   
   useEffect(() => {
@@ -50,7 +53,8 @@ const ChatDetailPage = () => {
       if (mockChatData) {
         setChatPartner({
           name: mockChatData.name,
-          avatar: mockChatData.avatar
+          avatar: mockChatData.avatar,
+          isOnline: mockChatData.isOnline
         });
         
         // Generate mock messages
@@ -59,25 +63,39 @@ const ChatDetailPage = () => {
             id: '1',
             text: 'Halo, saya tertarik dengan jasa yang Anda tawarkan',
             sender: 'me',
-            timestamp: new Date(Date.now() - 3600000 * 5), // 5 hours ago
+            timestamp: new Date(Date.now() - 3600000 * 24), // 24 hours ago
             read: true
           },
           {
             id: '2',
             text: 'Terima kasih telah menghubungi. Ada yang bisa saya bantu?',
             sender: 'other',
-            timestamp: new Date(Date.now() - 3600000 * 4), // 4 hours ago
+            timestamp: new Date(Date.now() - 3600000 * 23), // 23 hours ago
             read: true
           },
           {
             id: '3',
             text: 'Saya ingin booking untuk hari Jumat mendatang. Apakah tersedia?',
             sender: 'me',
-            timestamp: new Date(Date.now() - 3600000 * 3), // 3 hours ago
+            timestamp: new Date(Date.now() - 3600000 * 5), // 5 hours ago
             read: true
           },
           {
             id: '4',
+            text: 'Ya, kami tersedia pada hari Jumat. Jam berapa Anda ingin memesan layanan kami?',
+            sender: 'other',
+            timestamp: new Date(Date.now() - 3600000 * 4), // 4 hours ago
+            read: true
+          },
+          {
+            id: '5',
+            text: 'Sekitar jam 10 pagi. Berapa biaya jasa Anda?',
+            sender: 'me',
+            timestamp: new Date(Date.now() - 3600000 * 3), // 3 hours ago
+            read: true
+          },
+          {
+            id: '6',
             text: mockChatData.lastMessage,
             sender: 'other',
             timestamp: new Date(Date.now() - 3600000 * 1), // 1 hour ago
@@ -91,7 +109,9 @@ const ChatDetailPage = () => {
         navigate('/chat');
       }
       
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     };
     
     fetchChatData();
@@ -112,7 +132,7 @@ const ChatDetailPage = () => {
     // In a real app, we would save the message to the database
     // and potentially trigger a notification
     
-    // Simulate reply after 1 second
+    // Simulate reply after 1.5 second
     setTimeout(() => {
       const reply: Message = {
         id: (Date.now() + 1).toString(),
@@ -123,12 +143,12 @@ const ChatDetailPage = () => {
       };
       
       setMessages(prev => [...prev, reply]);
-    }, 1000);
+    }, 1500);
   };
   
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen bg-gray-50">
         <LoadingIndicator size="lg" />
       </div>
     );
