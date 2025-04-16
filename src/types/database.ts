@@ -10,8 +10,10 @@ export interface VerificationRequest {
   created_at?: string;
   updated_at?: string;
   profile?: {
+    id?: string;
     full_name?: string;
     phone?: string;
+    email?: string;
   };
 }
 

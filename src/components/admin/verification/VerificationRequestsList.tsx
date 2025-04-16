@@ -7,20 +7,55 @@ import { toast } from 'sonner';
 import { VerificationRequest } from '@/types/database';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import EmptyState from '@/components/shared/EmptyState';
-import { FileX, RefreshCw } from 'lucide-react';
+import { FileX, RefreshCw, Filter, Search } from 'lucide-react';
 import VerificationRequestItem from './VerificationRequestItem';
 import ImagePreviewDialog from './ImagePreviewDialog';
+import { Input } from '@/components/ui/input';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const VerificationRequestsList = () => {
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<VerificationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
     fetchVerificationRequests();
   }, []);
+
+  useEffect(() => {
+    filterRequests();
+  }, [searchQuery, statusFilter, requests]);
+
+  const filterRequests = () => {
+    let filtered = [...requests];
+    
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(req => req.status === statusFilter);
+    }
+    
+    // Apply search filter (case insensitive)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(req => 
+        (req.profile?.full_name?.toLowerCase().includes(query) || false) ||
+        (req.profile?.phone?.toLowerCase().includes(query) || false)
+      );
+    }
+    
+    setFilteredRequests(filtered);
+  };
 
   const fetchVerificationRequests = async () => {
     setLoading(true);
@@ -39,6 +74,7 @@ const VerificationRequestsList = () => {
       }));
 
       setRequests(mappedRequests as VerificationRequest[]);
+      setFilteredRequests(mappedRequests as VerificationRequest[]);
     } catch (error) {
       console.error('Error fetching verification requests:', error);
       toast.error('Gagal memuat permintaan verifikasi');
@@ -70,7 +106,10 @@ const VerificationRequestsList = () => {
       // Update verification status to approved
       const { error: verificationError } = await supabase
         .from('verification_requests')
-        .update({ status: 'approved', updated_at: new Date().toISOString() })
+        .update({ 
+          status: 'approved', 
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', id);
 
       if (verificationError) throw verificationError;
@@ -93,13 +132,14 @@ const VerificationRequestsList = () => {
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (id: string, notes?: string) => {
     setProcessingId(id);
     try {
       const { error } = await supabase
         .from('verification_requests')
         .update({ 
           status: 'rejected', 
+          notes: notes || null,
           updated_at: new Date().toISOString() 
         })
         .eq('id', id);
@@ -123,18 +163,64 @@ const VerificationRequestsList = () => {
     setPreviewImage(null);
   };
 
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Permintaan Verifikasi</CardTitle>
         <CardDescription>Mengelola permintaan verifikasi KTP dari calon penyedia jasa</CardDescription>
       </CardHeader>
+      
       <CardContent>
+        {/* Search and filter controls */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Cari berdasarkan nama atau nomor telepon..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          <div className="w-full sm:w-48">
+            <Select 
+              value={statusFilter}
+              onValueChange={setStatusFilter}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Filter status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="pending">Menunggu</SelectItem>
+                <SelectItem value="approved">Disetujui</SelectItem>
+                <SelectItem value="rejected">Ditolak</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {(searchQuery || statusFilter !== 'all') && (
+            <Button 
+              variant="ghost" 
+              onClick={handleClearFilters}
+              className="w-full sm:w-auto"
+            >
+              Reset Filter
+            </Button>
+          )}
+        </div>
+        
         {loading ? (
           <LoadingIndicator />
-        ) : requests.length > 0 ? (
+        ) : filteredRequests.length > 0 ? (
           <div className="space-y-4">
-            {requests.map((request) => (
+            {filteredRequests.map((request) => (
               <VerificationRequestItem
                 key={request.id}
                 request={request}
@@ -148,15 +234,28 @@ const VerificationRequestsList = () => {
         ) : (
           <EmptyState
             icon={FileX}
-            title="Tidak ada permintaan verifikasi"
-            description="Tidak ada permintaan verifikasi saat ini"
+            title={
+              searchQuery || statusFilter !== 'all' 
+                ? "Tidak ada permintaan verifikasi yang sesuai" 
+                : "Tidak ada permintaan verifikasi"
+            }
+            description={
+              searchQuery || statusFilter !== 'all'
+                ? "Coba ubah kata kunci pencarian atau filter status"
+                : "Tidak ada permintaan verifikasi saat ini"
+            }
           />
         )}
       </CardContent>
-      <CardFooter>
+      
+      <CardFooter className="flex flex-col sm:flex-row gap-2">
+        <div className="text-sm text-gray-500 w-full sm:w-auto">
+          Total: {filteredRequests.length} dari {requests.length} permintaan
+        </div>
+        <div className="flex-1"></div>
         <Button 
           variant="outline" 
-          className="w-full" 
+          className="w-full sm:w-auto" 
           onClick={handleRefresh}
           disabled={refreshing}
         >

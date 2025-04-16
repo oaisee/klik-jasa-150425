@@ -8,7 +8,9 @@ import {
   UserX, 
   Clock, 
   Users,
-  RefreshCw
+  RefreshCw,
+  TrendingUp,
+  CalendarDays
 } from 'lucide-react';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import { Button } from '@/components/ui/button';
@@ -19,6 +21,7 @@ interface VerificationStats {
   pending: number;
   approved: number;
   rejected: number;
+  lastWeek: number;
 }
 
 const VerificationStatsWidget = () => {
@@ -26,7 +29,8 @@ const VerificationStatsWidget = () => {
     total: 0,
     pending: 0,
     approved: 0,
-    rejected: 0
+    rejected: 0,
+    lastWeek: 0
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -38,10 +42,15 @@ const VerificationStatsWidget = () => {
   const fetchVerificationStats = async () => {
     setLoading(true);
     try {
+      // Create a date for one week ago
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const oneWeekAgoStr = oneWeekAgo.toISOString();
+
       // Fetch all verification requests
       const { data, error } = await supabase
         .from('verification_requests')
-        .select('status');
+        .select('id, status, created_at');
       
       if (error) throw error;
       
@@ -51,7 +60,12 @@ const VerificationStatsWidget = () => {
         const approved = data.filter(req => req.status === 'approved').length;
         const rejected = data.filter(req => req.status === 'rejected').length;
         
-        setStats({ total, pending, approved, rejected });
+        // Count requests created in the last week
+        const lastWeek = data.filter(req => {
+          return req.created_at && new Date(req.created_at) >= oneWeekAgo;
+        }).length;
+        
+        setStats({ total, pending, approved, rejected, lastWeek });
       }
     } catch (error) {
       console.error('Error fetching verification stats:', error);
@@ -102,13 +116,19 @@ const VerificationStatsWidget = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex flex-col items-center justify-center p-3 bg-blue-50 rounded-lg">
             <div className="flex items-center gap-2 mb-1">
               <Users className="h-5 w-5 text-blue-500" />
               <span className="text-sm font-medium text-gray-600">Total</span>
             </div>
             <span className="text-2xl font-bold text-blue-700">{stats.total}</span>
+            <div className="mt-1 flex items-center gap-1">
+              <CalendarDays className="h-3 w-3 text-blue-400" />
+              <span className="text-xs text-blue-600">
+                {stats.lastWeek} dalam 7 hari terakhir
+              </span>
+            </div>
           </div>
           
           <div className="flex flex-col items-center justify-center p-3 bg-amber-50 rounded-lg">
@@ -123,6 +143,18 @@ const VerificationStatsWidget = () => {
                   {Math.round((stats.pending / stats.total) * 100)}%
                 </Badge>
               )}
+            </div>
+            <div className="mt-1 flex items-center gap-1">
+              {stats.pending > 0 ? (
+                <TrendingUp className="h-3 w-3 text-amber-400" />
+              ) : (
+                <Clock className="h-3 w-3 text-amber-400" />
+              )}
+              <span className="text-xs text-amber-600">
+                {stats.pending > 0 
+                  ? 'Memerlukan verifikasi' 
+                  : 'Tidak ada yang menunggu'}
+              </span>
             </div>
           </div>
           
@@ -139,6 +171,12 @@ const VerificationStatsWidget = () => {
                 </Badge>
               )}
             </div>
+            <div className="mt-1 flex items-center gap-1">
+              <UserCheck className="h-3 w-3 text-green-400" />
+              <span className="text-xs text-green-600">
+                {stats.approved} penyedia jasa aktif
+              </span>
+            </div>
           </div>
           
           <div className="flex flex-col items-center justify-center p-3 bg-red-50 rounded-lg">
@@ -153,6 +191,14 @@ const VerificationStatsWidget = () => {
                   {Math.round((stats.rejected / stats.total) * 100)}%
                 </Badge>
               )}
+            </div>
+            <div className="mt-1 flex items-center gap-1">
+              <UserX className="h-3 w-3 text-red-400" />
+              <span className="text-xs text-red-600">
+                {stats.rejected > 0 
+                  ? 'Ditolak karena masalah dokumen' 
+                  : 'Tidak ada yang ditolak'}
+              </span>
             </div>
           </div>
         </div>
