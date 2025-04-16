@@ -32,7 +32,7 @@ const HomeContent = ({
   };
 
   return (
-    <>
+    <div className="flex flex-col">
       <div className="mb-6">
         <SearchBar 
           onSearch={onSearch} 
@@ -49,7 +49,7 @@ const HomeContent = ({
       </div>
       
       <ServicesList services={services} title={getServicesTitle()} />
-    </>
+    </div>
   );
 };
 

@@ -11,50 +11,56 @@ export const CATEGORIES: Category[] = [
   {
     id: 'rumah-tangga',
     name: 'Rumah Tangga',
-    icon: 'home',
+    icon: 'Home',
     color: 'bg-blue-100 text-blue-800'
   },
   {
     id: 'elektronik',
     name: 'Elektronik',
-    icon: 'zap',
+    icon: 'Zap',
     color: 'bg-yellow-100 text-yellow-800'
   },
   {
     id: 'kendaraan',
     name: 'Kendaraan',
-    icon: 'car',
+    icon: 'Car',
     color: 'bg-red-100 text-red-800'
   },
   {
     id: 'kebersihan',
     name: 'Kebersihan',
-    icon: 'sprayCan',
+    icon: 'Droplets',
     color: 'bg-green-100 text-green-800'
   },
   {
     id: 'kesehatan',
     name: 'Kesehatan',
-    icon: 'heartPulse',
+    icon: 'HeartPulse',
     color: 'bg-pink-100 text-pink-800'
   },
   {
     id: 'kecantikan',
     name: 'Kecantikan',
-    icon: 'scissors',
+    icon: 'Scissors',
     color: 'bg-purple-100 text-purple-800'
   },
   {
     id: 'pendidikan',
     name: 'Pendidikan',
-    icon: 'graduationCap',
+    icon: 'GraduationCap',
     color: 'bg-indigo-100 text-indigo-800'
   },
   {
     id: 'teknologi',
     name: 'Teknologi',
-    icon: 'laptop',
+    icon: 'Laptop',
     color: 'bg-slate-100 text-slate-800'
+  },
+  {
+    id: 'lainnya',
+    name: 'Lainnya',
+    icon: 'MoreHorizontal',
+    color: 'bg-gray-100 text-gray-800'
   }
 ];
 

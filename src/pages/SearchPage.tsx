@@ -67,7 +67,7 @@ const SearchPage = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 animate-fade-in">
       <div className="bg-white px-4 py-3 flex items-center shadow-sm z-10">
-        <h1 className="text-lg font-semibold">Cari Jasa</h1>
+        <h1 className="text-lg font-semibold text-left">Cari Jasa</h1>
       </div>
       
       <div className="flex-1 p-4 pb-20 pt-5">
@@ -80,7 +80,7 @@ const SearchPage = () => {
         </div>
         
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-3">Kategori</h2>
+          <h2 className="text-xl font-bold mb-3 text-left bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent">Kategori</h2>
           <CategoryList 
             layout="row" 
             onCategoryClick={handleCategoryClick} 
