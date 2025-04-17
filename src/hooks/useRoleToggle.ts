@@ -40,7 +40,7 @@ export const useRoleToggle = ({ isProvider, userId, onRoleChange }: UseRoleToggl
         return; // Don't proceed until ID verification
       }
       
-      // Switching to consumer mode
+      // Switching to consumer mode - use profiles table
       try {
         const { error } = await supabase
           .from('profiles')
@@ -92,6 +92,7 @@ export const useRoleToggle = ({ isProvider, userId, onRoleChange }: UseRoleToggl
     
     const updateUserRole = async () => {
       try {
+        // Update the provider status in profiles table, not users table
         const { error } = await supabase
           .from('profiles')
           .update({ is_provider: true })
