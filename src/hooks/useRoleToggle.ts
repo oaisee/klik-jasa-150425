@@ -40,7 +40,7 @@ export const useRoleToggle = ({ isProvider, userId, onRoleChange }: UseRoleToggl
         return; // Don't proceed until ID verification
       }
       
-      // Switching to consumer mode - use profiles table
+      // Switching to consumer mode - use profiles table only
       const { error } = await supabase
         .from('profiles')
         .update({ is_provider: checked })
@@ -87,7 +87,7 @@ export const useRoleToggle = ({ isProvider, userId, onRoleChange }: UseRoleToggl
     
     const updateUserRole = async () => {
       try {
-        // Update profiles table ONLY, not users table
+        // Update profiles table ONLY
         const { error } = await supabase
           .from('profiles')
           .update({ is_provider: true })
@@ -108,7 +108,7 @@ export const useRoleToggle = ({ isProvider, userId, onRoleChange }: UseRoleToggl
         
         // Navigate to provider mode page
         setTimeout(() => {
-          navigate('/provider-mode');
+          navigate('/provider');
         }, 1000);
       } catch (err) {
         console.error('Error updating user role:', err);

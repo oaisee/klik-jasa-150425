@@ -45,6 +45,7 @@ export const useVerificationRequests = () => {
     setLoading(true);
     try {
       console.log('Fetching verification requests');
+      // Join with profiles table to get user data, NOT auth.users
       const { data, error } = await supabase
         .from('verification_requests')
         .select('*, profile:profiles(id, full_name, phone)')
@@ -116,7 +117,7 @@ export const useVerificationRequests = () => {
       
       console.log('Verification status updated successfully');
 
-      // Update user is_provider status to true in profiles table only
+      // Update profile table to mark user as provider
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ is_provider: true })

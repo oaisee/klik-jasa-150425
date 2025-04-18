@@ -74,6 +74,7 @@ const KtpVerification = ({
     
     try {
       // Check if user already has a pending or approved verification request
+      // IMPORTANT: Query verification_requests table directly, NOT the auth.users table
       const { data: existingVerifications, error: fetchError } = await supabase
         .from('verification_requests')
         .select('status')
@@ -95,19 +96,10 @@ const KtpVerification = ({
         }
       }
       
-      // Upload KTP to temporary storage location in Supabase
+      // Upload KTP to verifications storage bucket in Supabase
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `ktp/${fileName}`;
-      
-      // First, check if bucket exists
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const verificationBucketExists = buckets?.some(b => b.name === 'verifications');
-      
-      if (!verificationBucketExists) {
-        console.error('Verification bucket does not exist');
-        throw new Error("Kesalahan konfigurasi penyimpanan. Silakan hubungi administrator.");
-      }
       
       console.log('Uploading to bucket: verifications, path:', filePath);
       
