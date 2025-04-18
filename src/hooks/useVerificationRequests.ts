@@ -98,7 +98,7 @@ export const useVerificationRequests = () => {
 
       if (verificationError) throw verificationError;
 
-      // Update user is_provider status to true in profiles table
+      // Update user is_provider status to true in profiles table only
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ is_provider: true })

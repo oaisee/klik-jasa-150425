@@ -41,32 +41,27 @@ export const useRoleToggle = ({ isProvider, userId, onRoleChange }: UseRoleToggl
       }
       
       // Switching to consumer mode - use profiles table
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ is_provider: checked })
-          .eq('id', userId);
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_provider: checked })
+        .eq('id', userId);
           
-        if (error) {
-          toast.error("Gagal mengubah peran pengguna");
-          console.error('Error updating user role:', error);
-          return;
-        }
-        
-        setIsProviderState(checked);
-        if (onRoleChange) {
-          onRoleChange(checked);
-        }
-        
-        toast.success(
-          checked 
-            ? "Anda sekarang adalah penyedia jasa" 
-            : "Anda sekarang adalah pengguna jasa"
-        );
-      } catch (err) {
-        console.error('Error updating user role:', err);
+      if (error) {
         toast.error("Gagal mengubah peran pengguna");
+        console.error('Error updating user role:', error);
+        return;
       }
+      
+      setIsProviderState(checked);
+      if (onRoleChange) {
+        onRoleChange(checked);
+      }
+      
+      toast.success(
+        checked 
+          ? "Anda sekarang adalah penyedia jasa" 
+          : "Anda sekarang adalah pengguna jasa"
+      );
     } catch (error) {
       console.error('Error updating user role:', error);
       toast.error("Gagal mengubah peran pengguna");
@@ -92,7 +87,7 @@ export const useRoleToggle = ({ isProvider, userId, onRoleChange }: UseRoleToggl
     
     const updateUserRole = async () => {
       try {
-        // Update the provider status in profiles table, not users table
+        // Update profiles table ONLY, not users table
         const { error } = await supabase
           .from('profiles')
           .update({ is_provider: true })
