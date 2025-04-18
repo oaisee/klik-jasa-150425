@@ -29,6 +29,8 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
     
     setLoading(true);
     try {
+      console.log('Checking verification status for user:', userId);
+      
       // Only check verification_requests table - never access users table directly
       const { data, error } = await supabase
         .from('verification_requests')
@@ -37,7 +39,12 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
         .order('created_at', { ascending: false })
         .limit(1);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error checking verification status:', error);
+        throw error;
+      }
+      
+      console.log('Verification status data:', data);
       
       if (data && data.length > 0) {
         setVerificationStatus(data[0].status as any);
@@ -45,9 +52,11 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
         
         // If approved, automatically call onVerify
         if (data[0].status === 'approved') {
+          console.log('User is already approved, calling onVerify');
           onVerify();
         }
       } else {
+        console.log('No verification requests found');
         setVerificationStatus('none');
       }
     } catch (error) {
@@ -67,6 +76,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
 
   const handleVerificationSubmitted = () => {
     // Update status to pending and refresh
+    console.log('Verification submitted, updating status');
     setVerificationStatus('pending');
     checkVerificationStatus();
   };

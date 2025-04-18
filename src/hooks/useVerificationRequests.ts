@@ -44,12 +44,18 @@ export const useVerificationRequests = () => {
   const fetchVerificationRequests = async () => {
     setLoading(true);
     try {
+      console.log('Fetching verification requests');
       const { data, error } = await supabase
         .from('verification_requests')
         .select('*, profile:profiles(id, full_name, phone)')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching verification requests:', error);
+        throw error;
+      }
+      
+      console.log('Verification requests fetched:', data);
       
       // Map the data to match VerificationRequest type
       const mappedRequests = (data || []).map(req => ({
@@ -83,9 +89,16 @@ export const useVerificationRequests = () => {
   const handleApprove = async (id: string) => {
     setProcessingId(id);
     try {
+      console.log('Approving verification request:', id);
+      
       // Find the request to get user_id
       const requestData = requests.find(req => req.id === id);
-      if (!requestData) throw new Error('Request not found');
+      if (!requestData) {
+        console.error('Request not found:', id);
+        throw new Error('Request not found');
+      }
+      
+      console.log('Request data found:', requestData);
 
       // Update verification status to approved
       const { error: verificationError } = await supabase
@@ -96,7 +109,12 @@ export const useVerificationRequests = () => {
         })
         .eq('id', id);
 
-      if (verificationError) throw verificationError;
+      if (verificationError) {
+        console.error('Error updating verification status:', verificationError);
+        throw verificationError;
+      }
+      
+      console.log('Verification status updated successfully');
 
       // Update user is_provider status to true in profiles table only
       const { error: profileError } = await supabase
@@ -104,7 +122,12 @@ export const useVerificationRequests = () => {
         .update({ is_provider: true })
         .eq('id', requestData.user_id);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('Error updating user profile:', profileError);
+        throw profileError;
+      }
+      
+      console.log('User profile updated successfully');
 
       toast.success('Verifikasi berhasil disetujui');
       fetchVerificationRequests(); // Refresh the list
@@ -119,6 +142,8 @@ export const useVerificationRequests = () => {
   const handleReject = async (id: string, notes?: string) => {
     setProcessingId(id);
     try {
+      console.log('Rejecting verification request:', id);
+      
       const { error } = await supabase
         .from('verification_requests')
         .update({ 
@@ -128,7 +153,13 @@ export const useVerificationRequests = () => {
         })
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error rejecting verification:', error);
+        throw error;
+      }
+      
+      console.log('Verification rejected successfully');
+      
       toast.success('Verifikasi berhasil ditolak');
       fetchVerificationRequests(); // Refresh the list
     } catch (error) {

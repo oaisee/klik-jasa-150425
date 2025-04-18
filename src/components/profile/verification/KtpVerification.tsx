@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -73,7 +74,6 @@ const KtpVerification = ({
     
     try {
       // Check if user already has a pending or approved verification request
-      // IMPORTANT: Only access verification_requests table - no direct users table access
       const { data: existingVerifications, error: fetchError } = await supabase
         .from('verification_requests')
         .select('status')
@@ -100,17 +100,42 @@ const KtpVerification = ({
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
       const filePath = `ktp/${fileName}`;
       
-      // Upload to verifications bucket (temporary storage for admin review)
-      const { error: storageError } = await supabase.storage
+      // First, check if bucket exists
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const verificationBucketExists = buckets?.some(b => b.name === 'verifications');
+      
+      if (!verificationBucketExists) {
+        console.error('Verification bucket does not exist');
+        throw new Error("Kesalahan konfigurasi penyimpanan. Silakan hubungi administrator.");
+      }
+      
+      console.log('Uploading to bucket: verifications, path:', filePath);
+      
+      // Upload to verifications bucket
+      const { error: storageError, data: uploadData } = await supabase.storage
         .from('verifications')
-        .upload(filePath, selectedFile);
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
         
-      if (storageError) throw storageError;
+      if (storageError) {
+        console.error('Storage upload error:', storageError);
+        throw storageError;
+      }
+      
+      console.log('Upload successful, getting public URL');
       
       // Get public URL for admin review
       const { data: urlData } = supabase.storage
         .from('verifications')
         .getPublicUrl(filePath);
+      
+      if (!urlData || !urlData.publicUrl) {
+        throw new Error("Gagal mendapatkan URL publik untuk file.");
+      }
+      
+      console.log('Public URL:', urlData.publicUrl);
       
       // Create verification request record in database with pending status
       const { error: dbError } = await supabase
@@ -122,7 +147,10 @@ const KtpVerification = ({
           document_type: 'ktp'
         });
         
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('Database insert error:', dbError);
+        throw dbError;
+      }
       
       toast.success("Dokumen KTP berhasil diunggah. Tim kami akan memverifikasi dalam 1x24 jam.");
       onVerificationSubmitted();
