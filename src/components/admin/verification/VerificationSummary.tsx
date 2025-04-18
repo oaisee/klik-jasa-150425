@@ -18,7 +18,7 @@ const VerificationSummary = ({
   return (
     <div className="flex flex-col sm:flex-row gap-2">
       <div className="text-sm text-gray-500 w-full sm:w-auto">
-        Total: {filteredCount} dari {totalCount} permintaan
+        Total: <span className="font-medium">{filteredCount}</span> dari <span className="font-medium">{totalCount}</span> permintaan
       </div>
       <div className="flex-1"></div>
       <Button 
