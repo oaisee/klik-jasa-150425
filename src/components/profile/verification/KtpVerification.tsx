@@ -73,8 +73,8 @@ const KtpVerification = ({
     setErrorMessage(null);
     
     try {
-      // Check if user already has a pending or approved verification request
-      // IMPORTANT: Query verification_requests table directly, NOT the auth.users table
+      // FIX: Check existing verification requests directly from verification_requests table
+      // instead of the auth.users table which is causing the permission error
       const { data: existingVerifications, error: fetchError } = await supabase
         .from('verification_requests')
         .select('status')

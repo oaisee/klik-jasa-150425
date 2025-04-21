@@ -31,7 +31,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
     try {
       console.log('Checking verification status for user:', userId);
       
-      // Only check verification_requests table - avoid direct auth.users access
+      // Only check verification_requests table directly, don't query auth.users
       const { data, error } = await supabase
         .from('verification_requests')
         .select('status, notes')
