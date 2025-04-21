@@ -40,7 +40,7 @@ const UserRoleToggle = ({
           <Label htmlFor="user-role-toggle" className="sr-only">
             Toggle user role
           </Label>
-          <Switch id="user-role-toggle" checked={isProviderState} onCheckedChange={handleToggleChange} disabled={loading} aria-label="Toggle user role" className="text-base text-slate-950 bg-red-950 hover:bg-red-800" />
+          <Switch id="user-role-toggle" checked={isProviderState} onCheckedChange={handleToggleChange} disabled={loading} aria-label="Toggle user role" className="text-base bg-red-950 hover:bg-red-800 text-gray-200" />
         </div>
       </div>
       
