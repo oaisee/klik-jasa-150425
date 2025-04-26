@@ -32,6 +32,10 @@ const AdminTabsContent = ({ activeTab, connectionStatus }: AdminTabsContentProps
           <AdminTabContents activeTab="transactions" />
         </TabsContent>
         
+        <TabsContent value="verifications" className="mt-0">
+          <AdminTabContents activeTab="verifications" />
+        </TabsContent>
+        
         <TabsContent value="settings" className="mt-0">
           <AdminTabContents activeTab="settings" />
         </TabsContent>
