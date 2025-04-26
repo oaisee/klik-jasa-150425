@@ -26,22 +26,27 @@ export const useKtpVerification = ({
     try {
       // Check for existing verification requests
       console.log('Checking for existing verification requests for user:', userId);
+      
       const { data: existingVerifications, error: fetchError } = await supabase
         .from('verification_requests')
         .select('id, status')
-        .eq('user_id', userId)
-        .in('status', ['pending', 'approved']);
+        .eq('user_id', userId);
       
       if (fetchError) {
         console.error('Error checking existing verification requests:', fetchError);
-        throw new Error('Gagal memeriksa verifikasi yang sudah ada');
+        throw new Error('Gagal memeriksa verifikasi yang sudah ada. Silakan coba lagi.');
       }
       
       console.log('Existing verification requests:', existingVerifications);
       
-      if (existingVerifications && existingVerifications.length > 0) {
-        const hasApproved = existingVerifications.some(v => v.status === 'approved');
-        const hasPending = existingVerifications.some(v => v.status === 'pending');
+      // Filter for pending or approved verifications
+      const pendingOrApprovedVerifications = existingVerifications?.filter(v => 
+        v.status === 'pending' || v.status === 'approved'
+      ) || [];
+      
+      if (pendingOrApprovedVerifications.length > 0) {
+        const hasApproved = pendingOrApprovedVerifications.some(v => v.status === 'approved');
+        const hasPending = pendingOrApprovedVerifications.some(v => v.status === 'pending');
         
         if (hasApproved) {
           throw new Error("Anda sudah terverifikasi sebagai penyedia jasa.");

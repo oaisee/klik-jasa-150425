@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { AlertCircle, X, Shield, CheckCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import KtpVerificationModal from './KtpVerificationModal';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface IdVerificationAlertProps {
   onVerify: () => void;
@@ -31,7 +31,6 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
     try {
       console.log('Checking verification status for user:', userId);
       
-      // Query the verification_requests table directly
       const { data, error } = await supabase
         .from('verification_requests')
         .select('status, notes')
@@ -39,12 +38,15 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
         .order('created_at', { ascending: false })
         .limit(1);
       
-      console.log('Verification status query result:', data);
-      
       if (error) {
-        console.error('Error checking verification status from verification_requests:', error);
-        throw error;
+        console.error('Error checking verification status:', error);
+        toast.error('Gagal memeriksa status verifikasi', { 
+          description: 'Silakan refresh halaman atau coba lagi nanti'
+        });
+        return;
       }
+      
+      console.log('Verification status query result:', data);
       
       if (data && data.length > 0) {
         setVerificationStatus(data[0].status as any);
@@ -61,6 +63,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
       }
     } catch (error) {
       console.error('Error in checkVerificationStatus:', error);
+      toast.error('Terjadi kesalahan saat memeriksa status verifikasi');
     } finally {
       setLoading(false);
     }
