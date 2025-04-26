@@ -55,6 +55,14 @@ const VerificationRequestsList = () => {
     setStatusFilter('all');
   };
 
+  // Log data for debugging
+  console.log('Verification requests data:', { 
+    filteredRequests, 
+    loading, 
+    hasActiveFilters, 
+    totalRequests: requests.length 
+  });
+
   return (
     <Card>
       <CardHeader>

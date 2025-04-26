@@ -60,7 +60,7 @@ export const useVerificationRequests = () => {
         throw error;
       }
       
-      console.log('Verification requests fetched successfully:', data);
+      console.log('Verification requests fetched successfully:', data?.length || 0, 'records');
       
       // Map the data to match VerificationRequest type
       const mappedRequests = (data || []).map(req => ({
