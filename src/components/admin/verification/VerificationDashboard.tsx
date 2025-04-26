@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import VerificationStatsWidget from './VerificationStatsWidget';
 import VerificationRequestsList from './VerificationRequestsList';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,12 @@ const VerificationDashboard = () => {
   const [requestsKey, setRequestsKey] = useState(Date.now());
   
   console.log('VerificationDashboard rendering');
+  
+  // Force refresh on mount to ensure data is loaded
+  useEffect(() => {
+    console.log('VerificationDashboard mounted - triggering initial refresh');
+    handleRefresh();
+  }, []);
   
   const handleRefresh = async () => {
     setRefreshing(true);

@@ -41,7 +41,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/admin" element={<AdminAuthPage />} />
-          <Route path="/admin-dashboard/*" element={<AdminDashboardPage />} />
+          <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
           
           {/* Pages with bottom navigation */}
           <Route path="/" element={<Layout><Index /></Layout>} />

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { VerificationRequest } from '@/types/database';
@@ -13,45 +13,8 @@ export const useVerificationRequests = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  useEffect(() => {
-    console.log('useVerificationRequests hook initialized');
-    fetchVerificationRequests();
-
-    // Set up periodic refresh every 30 seconds
-    const intervalId = setInterval(() => {
-      console.log('Auto-refreshing verification requests');
-      fetchVerificationRequests(false); // Silent refresh (no toasts)
-    }, 30000);
-
-    // Clean up interval on unmount
-    return () => clearInterval(intervalId);
-  }, []);
-
-  useEffect(() => {
-    filterRequests();
-  }, [searchQuery, statusFilter, requests]);
-
-  const filterRequests = () => {
-    let filtered = [...requests];
-    
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(req => req.status === statusFilter);
-    }
-    
-    // Apply search filter (case insensitive)
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(req => 
-        (req.profile?.full_name?.toLowerCase().includes(query) || false) ||
-        (req.profile?.phone?.toLowerCase().includes(query) || false)
-      );
-    }
-    
-    setFilteredRequests(filtered);
-  };
-
-  const fetchVerificationRequests = async (showToasts = true) => {
+  // Define fetchVerificationRequests as useCallback to prevent unnecessary recreation
+  const fetchVerificationRequests = useCallback(async (showToasts = true) => {
     if (refreshing) return; // Prevent multiple simultaneous fetches
     
     showToasts ? setRefreshing(true) : null;
@@ -106,6 +69,44 @@ export const useVerificationRequests = () => {
         setTimeout(() => setRefreshing(false), 500); // Small delay to prevent UI flicker on silent refresh
       }
     }
+  }, [refreshing, loading]);
+
+  useEffect(() => {
+    console.log('useVerificationRequests hook initialized');
+    fetchVerificationRequests();
+
+    // Set up periodic refresh every 30 seconds
+    const intervalId = setInterval(() => {
+      console.log('Auto-refreshing verification requests');
+      fetchVerificationRequests(false); // Silent refresh (no toasts)
+    }, 30000);
+
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+  }, [fetchVerificationRequests]);
+
+  useEffect(() => {
+    filterRequests();
+  }, [searchQuery, statusFilter, requests]);
+
+  const filterRequests = () => {
+    let filtered = [...requests];
+    
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(req => req.status === statusFilter);
+    }
+    
+    // Apply search filter (case insensitive)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(req => 
+        (req.profile?.full_name?.toLowerCase().includes(query) || false) ||
+        (req.profile?.phone?.toLowerCase().includes(query) || false)
+      );
+    }
+    
+    setFilteredRequests(filtered);
   };
 
   const handleRefresh = async () => {

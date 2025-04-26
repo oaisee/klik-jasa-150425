@@ -33,6 +33,13 @@ const VerificationRequestsList = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
+  // Force refresh on mount
+  useEffect(() => {
+    console.log('VerificationRequestsList mounted - triggering initial refresh');
+    handleRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleOpenImagePreview = (url: string) => {
     setIsPreviewLoading(true);
     // Preload the image to avoid flickering
@@ -65,12 +72,6 @@ const VerificationRequestsList = () => {
     totalRequests: requests.length 
   });
 
-  // Force refresh on mount
-  useEffect(() => {
-    handleRefresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <Card>
       <CardHeader>
@@ -90,7 +91,9 @@ const VerificationRequestsList = () => {
         />
         
         {loading ? (
-          <LoadingIndicator />
+          <div className="py-10">
+            <LoadingIndicator text="Memuat permintaan verifikasi..." />
+          </div>
         ) : filteredRequests.length > 0 ? (
           <div className="space-y-4">
             {filteredRequests.map((request) => (
@@ -106,19 +109,21 @@ const VerificationRequestsList = () => {
             ))}
           </div>
         ) : (
-          <EmptyState
-            icon={FileX}
-            title={
-              hasActiveFilters
-                ? "Tidak ada permintaan verifikasi yang sesuai" 
-                : "Tidak ada permintaan verifikasi"
-            }
-            description={
-              hasActiveFilters
-                ? "Coba ubah kata kunci pencarian atau filter status"
-                : "Tidak ada permintaan verifikasi saat ini"
-            }
-          />
+          <div className="py-10">
+            <EmptyState
+              icon={FileX}
+              title={
+                hasActiveFilters
+                  ? "Tidak ada permintaan verifikasi yang sesuai" 
+                  : "Tidak ada permintaan verifikasi"
+              }
+              description={
+                hasActiveFilters
+                  ? "Coba ubah kata kunci pencarian atau filter status"
+                  : "Tidak ada permintaan verifikasi saat ini"
+              }
+            />
+          </div>
         )}
       </CardContent>
       

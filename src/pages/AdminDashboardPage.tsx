@@ -3,12 +3,13 @@ import { useState, useEffect } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import AdminDashboardLayout from '@/components/admin/layout/AdminDashboardLayout';
 import AdminMobileTabsHeader from '@/components/admin/layout/AdminMobileTabsHeader';
-import AdminTabsContent from '@/components/admin/layout/AdminTabsContent';
-import { useSearchParams, useLocation } from 'react-router-dom';
+import AdminTabsContent from '@/components/admin/AdminTabsContent';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 
 const AdminDashboardPage = () => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const tabParam = searchParams.get('tab');
   
   const [activeTab, setActiveTab] = useState(tabParam || 'dashboard');
@@ -27,8 +28,18 @@ const AdminDashboardPage = () => {
     if (tabParam) {
       console.log('Setting active tab to:', tabParam);
       setActiveTab(tabParam);
+    } else if (location.pathname === '/admin-dashboard' && !tabParam) {
+      // Default to dashboard tab if no tab parameter is provided
+      navigate('/admin-dashboard?tab=dashboard', { replace: true });
     }
-  }, [tabParam, location]);
+  }, [tabParam, location, navigate]);
+  
+  // Handle tab changes
+  const handleTabChange = (tab: string) => {
+    console.log('handleTabChange called with tab:', tab);
+    setActiveTab(tab);
+    navigate(`/admin-dashboard?tab=${tab}`);
+  };
   
   console.log('AdminDashboardPage rendering with activeTab:', activeTab);
   
@@ -37,14 +48,14 @@ const AdminDashboardPage = () => {
       isLoading={loading}
       refreshing={refreshing}
       activeTab={activeTab}
-      setActiveTab={setActiveTab}
+      setActiveTab={handleTabChange}
       onRefresh={handleRefresh}
       onSignOut={handleSignOut}
     >
       {/* Mobile tabs header - visible on mobile only */}
       <AdminMobileTabsHeader 
         activeTab={activeTab} 
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         handleSignOut={handleSignOut}
       />
       
