@@ -9,6 +9,7 @@ export const useAdminAuth = () => {
   const [connectionStatus, setConnectionStatus] = useState<{success: boolean, message: string} | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     document.title = 'KlikJasa Admin Dashboard';
@@ -18,13 +19,20 @@ export const useAdminAuth = () => {
       setLoading(true);
       
       try {
-        const { data } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (!data.session || data.session.user?.email !== 'admin@klikjasa.com') {
+        if (error) {
+          throw error;
+        }
+        
+        if (!session || session.user?.email !== 'admin@klikjasa.com') {
+          console.log("Admin auth failed - no session or not admin email");
           toast.error("Akses tidak diizinkan");
           navigate('/admin');
           return;
         }
+        
+        console.log("Admin session active:", session.user.email);
         
         // Check Supabase connection
         const status = await checkSupabaseConnection();
@@ -39,9 +47,26 @@ export const useAdminAuth = () => {
     };
     
     checkAdmin();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event);
+      
+      if (event === 'SIGNED_OUT') {
+        navigate('/admin');
+      }
+    });
+    
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleSignOut = async () => {
+    if (isSigningOut) return; // Prevent multiple logout attempts
+    
+    setIsSigningOut(true);
     try {
       toast.loading("Sedang keluar...");
       
@@ -55,6 +80,7 @@ export const useAdminAuth = () => {
     } catch (error) {
       console.error('Error signing out:', error);
       toast.error("Gagal logout");
+      setIsSigningOut(false);
     }
   };
   

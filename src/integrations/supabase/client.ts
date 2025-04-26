@@ -15,7 +15,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     storage: localStorage,
     detectSessionInUrl: true,
-    flowType: 'pkce' // Changed from 'implicit' to 'pkce' for more secure authentication flow
+    flowType: 'pkce' // Using PKCE flow for more secure authentication
   }
 });
 
@@ -38,28 +38,29 @@ export const checkSupabaseConnection = async () => {
   }
 };
 
-// Improved logout function with better error handling
+// Improved logout function
 export const performLogout = async (navigate) => {
   try {
-    console.log("Starting improved logout process...");
+    console.log("Starting logout process...");
     
-    // Clear any stored session data first
+    // Clear any local storage items related to auth first
     localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('sb-' + SUPABASE_URL.split('//')[1].split('.')[0] + '-auth-token');
     
-    // Attempt to sign out
+    // Attempt to sign out from Supabase
     const { error } = await supabase.auth.signOut({
       scope: 'global' // Ensures all sessions are cleared, not just the current one
     });
     
     if (error) {
-      console.error("Logout error:", error);
+      console.error("Logout API error:", error);
       return { success: false, error: error.message };
     }
     
     console.log("Logout API call successful");
     
-    // Force clear auth state
-    localStorage.removeItem('sb-' + SUPABASE_URL.split('//')[1].split('.')[0] + '-auth-token');
+    // Force clear session state
+    await supabase.auth.signOut(); // Additional signout attempt to ensure session is cleared
     
     return { success: true };
   } catch (err) {
@@ -70,10 +71,11 @@ export const performLogout = async (navigate) => {
     // This ensures the UI state is reset
     if (navigate) {
       console.log("Navigating away and reloading page");
+      // Give a small delay before navigation to ensure auth state is cleared
       setTimeout(() => {
         navigate('/', { replace: true });
         window.location.reload();
-      }, 500);
+      }, 1000);
     }
   }
 };

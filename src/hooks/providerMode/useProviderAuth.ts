@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 export const useProviderAuth = () => {
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const checkAuth = async () => {
     try {
@@ -20,9 +21,12 @@ export const useProviderAuth = () => {
       }
       
       if (!session) {
+        console.log("No active session found");
         navigate('/login');
         return null;
       }
+      
+      console.log("Provider auth - session active:", session.user.id);
       
       // Set user ID
       setUserId(session.user.id);
@@ -41,6 +45,7 @@ export const useProviderAuth = () => {
       
       // Check if user is a provider
       if (!profile?.is_provider) {
+        console.log("User is not a provider");
         toast.error("Anda perlu mengaktifkan mode penyedia layanan terlebih dahulu");
         navigate('/profile');
         return null;
@@ -57,9 +62,26 @@ export const useProviderAuth = () => {
   
   useEffect(() => {
     checkAuth();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Provider auth state changed:", event);
+      
+      if (event === 'SIGNED_OUT') {
+        navigate('/login');
+      }
+    });
+    
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple logout attempts
+    
+    setIsLoggingOut(true);
     try {
       toast.loading("Sedang keluar...");
       
@@ -73,6 +95,7 @@ export const useProviderAuth = () => {
     } catch (error) {
       console.error('Error logging out:', error);
       toast.error("Gagal keluar");
+      setIsLoggingOut(false);
     }
   };
 

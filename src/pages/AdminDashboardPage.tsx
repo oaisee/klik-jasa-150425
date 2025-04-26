@@ -5,6 +5,7 @@ import AdminDashboardLayout from '@/components/admin/layout/AdminDashboardLayout
 import AdminMobileTabsHeader from '@/components/admin/layout/AdminMobileTabsHeader';
 import AdminTabsContent from '@/components/admin/AdminTabsContent';
 import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const AdminDashboardPage = () => {
   const [searchParams] = useSearchParams();
@@ -40,6 +41,13 @@ const AdminDashboardPage = () => {
     setActiveTab(tab);
     navigate(`/admin-dashboard?tab=${tab}`);
   };
+  
+  useEffect(() => {
+    // Check connection status on mount
+    if (connectionStatus && !connectionStatus.success) {
+      toast.error("Koneksi ke database bermasalah");
+    }
+  }, [connectionStatus]);
   
   console.log('AdminDashboardPage rendering with activeTab:', activeTab);
   

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Bell, Shield, CreditCard, Settings, HelpCircle, LogOut } from 'lucide-react';
 import MenuItemCard from './MenuItemCard';
 import { useNavigate } from 'react-router-dom';
@@ -10,8 +10,12 @@ import { performLogout } from '@/integrations/supabase/client';
 const ProfileMenu = () => {
   const navigate = useNavigate();
   const { toast: toastHook } = useToast();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple logout attempts
+    
+    setIsLoggingOut(true);
     try {
       toast.loading("Sedang keluar...");
       
@@ -36,6 +40,7 @@ const ProfileMenu = () => {
         description: "Terjadi kesalahan saat keluar dari akun",
         variant: "destructive",
       });
+      setIsLoggingOut(false);
     }
   };
 
@@ -71,7 +76,7 @@ const ProfileMenu = () => {
       <div onClick={handleLogout} className="cursor-pointer">
         <MenuItemCard 
           icon={<LogOut size={20} color="#EF4444" />}
-          title="Keluar"
+          title={isLoggingOut ? "Sedang Keluar..." : "Keluar"}
           path="#"
         />
       </div>

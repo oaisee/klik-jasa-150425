@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -13,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, performLogout } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface AdminSidebarProps {
@@ -24,6 +25,7 @@ interface AdminSidebarProps {
 const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   const navigate = useNavigate();
   const [pendingVerifications, setPendingVerifications] = useState<number>(0);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   useEffect(() => {
     // Fetch pending verification requests on mount
@@ -62,21 +64,29 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   };
   
   const handleSignOut = async () => {
+    if (isLoggingOut) return; // Prevent multiple logout attempts
+    
+    setIsLoggingOut(true);
+    toast.loading("Sedang keluar...");
+    
     try {
-      const { error } = await supabase.auth.signOut();
+      const result = await performLogout(navigate);
       
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error || "Gagal logout");
+      }
       
-      toast.success("Logout berhasil");
+      toast.success("Berhasil keluar dari akun admin");
       
-      // Add a slight delay before navigation to ensure session is cleared
+      // Navigate to login page with a slight delay
       setTimeout(() => {
-        navigate('/login', { replace: true });
-        window.location.reload(); // Force reload to clear any cached state
-      }, 300);
+        navigate('/', { replace: true });
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error('Error signing out:', error);
-      toast.error("Gagal logout");
+      toast.error("Gagal keluar dari akun");
+      setIsLoggingOut(false);
     }
   };
   
@@ -196,9 +206,10 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
           variant="outline"
           className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
           onClick={handleSignOut}
+          disabled={isLoggingOut}
         >
           <LogOut className="mr-2 h-5 w-5" />
-          Keluar
+          {isLoggingOut ? 'Sedang Keluar...' : 'Keluar'}
         </Button>
       </div>
     </div>
