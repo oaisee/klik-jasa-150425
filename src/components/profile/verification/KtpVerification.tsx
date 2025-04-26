@@ -75,7 +75,7 @@ const KtpVerification = ({
     setErrorMessage(null);
     
     try {
-      // Memeriksa verification_requests yang sudah ada
+      // Check for existing verification requests
       console.log('Checking for existing verification requests for user:', userId);
       const { data: existingVerifications, error: fetchError } = await supabase
         .from('verification_requests')
@@ -85,7 +85,7 @@ const KtpVerification = ({
       
       if (fetchError) {
         console.error('Error checking existing verification requests:', fetchError);
-        throw new Error('Tidak dapat memeriksa verifikasi yang sudah ada: ' + fetchError.message);
+        throw new Error('Gagal memeriksa verifikasi yang sudah ada');
       }
       
       console.log('Existing verification requests:', existingVerifications);
