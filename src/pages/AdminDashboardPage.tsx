@@ -4,10 +4,11 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import AdminDashboardLayout from '@/components/admin/layout/AdminDashboardLayout';
 import AdminMobileTabsHeader from '@/components/admin/layout/AdminMobileTabsHeader';
 import AdminTabsContent from '@/components/admin/layout/AdminTabsContent';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 
 const AdminDashboardPage = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const tabParam = searchParams.get('tab');
   
   const [activeTab, setActiveTab] = useState(tabParam || 'dashboard');
@@ -22,10 +23,14 @@ const AdminDashboardPage = () => {
   
   // Update active tab when URL parameters change
   useEffect(() => {
+    console.log('URL changed, tabParam:', tabParam);
     if (tabParam) {
+      console.log('Setting active tab to:', tabParam);
       setActiveTab(tabParam);
     }
-  }, [tabParam]);
+  }, [tabParam, location]);
+  
+  console.log('AdminDashboardPage rendering with activeTab:', activeTab);
   
   return (
     <AdminDashboardLayout

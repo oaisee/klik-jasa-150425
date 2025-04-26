@@ -16,6 +16,15 @@ export const useVerificationRequests = () => {
   useEffect(() => {
     console.log('useVerificationRequests hook initialized');
     fetchVerificationRequests();
+
+    // Set up periodic refresh every 30 seconds
+    const intervalId = setInterval(() => {
+      console.log('Auto-refreshing verification requests');
+      fetchVerificationRequests(false); // Silent refresh (no toasts)
+    }, 30000);
+
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {
@@ -42,8 +51,12 @@ export const useVerificationRequests = () => {
     setFilteredRequests(filtered);
   };
 
-  const fetchVerificationRequests = async () => {
-    setLoading(true);
+  const fetchVerificationRequests = async (showToasts = true) => {
+    if (refreshing) return; // Prevent multiple simultaneous fetches
+    
+    showToasts ? setRefreshing(true) : null;
+    setLoading(loading && showToasts); // Only show loading state on initial load or manual refresh
+    
     try {
       console.log('Fetching verification requests');
       
@@ -62,7 +75,11 @@ export const useVerificationRequests = () => {
       }
       
       console.log('Verification requests fetched successfully:', data?.length || 0, 'records');
-      console.log('Raw verification data:', data);
+      if (data && data.length > 0) {
+        console.log('Sample verification request:', data[0]);
+      } else {
+        console.log('No verification requests found');
+      }
       
       // Map the data to match VerificationRequest type
       const mappedRequests = (data || []).map(req => ({
@@ -72,11 +89,22 @@ export const useVerificationRequests = () => {
 
       setRequests(mappedRequests as VerificationRequest[]);
       setFilteredRequests(mappedRequests as VerificationRequest[]);
+      
+      if (showToasts && mappedRequests.length > 0) {
+        toast.success(`${mappedRequests.length} permintaan verifikasi dimuat`);
+      }
     } catch (error) {
       console.error('Error in fetchVerificationRequests:', error);
-      toast.error('Gagal memuat permintaan verifikasi');
+      if (showToasts) {
+        toast.error('Gagal memuat permintaan verifikasi');
+      }
     } finally {
       setLoading(false);
+      if (showToasts) {
+        setRefreshing(false);
+      } else {
+        setTimeout(() => setRefreshing(false), 500); // Small delay to prevent UI flicker on silent refresh
+      }
     }
   };
 
@@ -84,7 +112,6 @@ export const useVerificationRequests = () => {
     setRefreshing(true);
     try {
       await fetchVerificationRequests();
-      toast.success('Data berhasil disegarkan');
     } catch (error) {
       console.error('Error refreshing verification requests:', error);
       toast.error('Gagal menyegarkan data');

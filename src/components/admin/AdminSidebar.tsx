@@ -28,6 +28,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   
   useEffect(() => {
     // Fetch pending verification requests on mount
+    console.log('AdminSidebar: Fetching pending verifications');
     fetchPendingVerifications();
     
     // Set up a timer to check for new verifications periodically
@@ -45,12 +46,19 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
       
       if (error) throw error;
       
+      console.log('AdminSidebar: Pending verification count:', count);
+      
       if (count !== null) {
         setPendingVerifications(count);
       }
     } catch (error) {
       console.error('Error fetching verification requests:', error);
     }
+  };
+  
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    navigate(`/admin-dashboard?tab=${tab}`);
   };
   
   const handleSignOut = async () => {
@@ -86,7 +94,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
             <Button
               variant={activeTab === 'dashboard' ? 'default' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => handleTabChange('dashboard')}
             >
               <LayoutDashboard className="mr-2 h-5 w-5" />
               Dashboard
@@ -96,7 +104,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
             <Button
               variant={activeTab === 'analytics' ? 'default' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => setActiveTab('analytics')}
+              onClick={() => handleTabChange('analytics')}
             >
               <BarChart3 className="mr-2 h-5 w-5" />
               Analitik
@@ -112,7 +120,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
             <Button
               variant={activeTab === 'users' ? 'default' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => setActiveTab('users')}
+              onClick={() => handleTabChange('users')}
             >
               <Users className="mr-2 h-5 w-5" />
               Pengguna
@@ -122,7 +130,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
             <Button
               variant={activeTab === 'services' ? 'default' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => setActiveTab('services')}
+              onClick={() => handleTabChange('services')}
             >
               <Briefcase className="mr-2 h-5 w-5" />
               Layanan
@@ -132,7 +140,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
             <Button
               variant={activeTab === 'transactions' ? 'default' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => setActiveTab('transactions')}
+              onClick={() => handleTabChange('transactions')}
             >
               <FileText className="mr-2 h-5 w-5" />
               Transaksi
@@ -142,7 +150,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
             <Button
               variant={activeTab === 'verifications' ? 'default' : 'ghost'}
               className="w-full justify-start relative"
-              onClick={() => setActiveTab('verifications')}
+              onClick={() => handleTabChange('verifications')}
             >
               <ClipboardCheck className="mr-2 h-5 w-5" />
               Verifikasi
@@ -166,7 +174,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
             <Button
               variant={activeTab === 'settings' ? 'default' : 'ghost'}
               className="w-full justify-start"
-              onClick={() => setActiveTab('settings')}
+              onClick={() => handleTabChange('settings')}
             >
               <Settings className="mr-2 h-5 w-5" />
               Pengaturan
