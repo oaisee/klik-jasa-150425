@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const useProviderAuth = () => {
   const navigate = useNavigate();
@@ -10,7 +11,13 @@ export const useProviderAuth = () => {
   const checkAuth = async () => {
     try {
       // Get current user
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Error checking session:", sessionError);
+        navigate('/login');
+        return null;
+      }
       
       if (!session) {
         navigate('/login');
@@ -27,10 +34,14 @@ export const useProviderAuth = () => {
         .eq('id', session.user.id)
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
       
       // Check if user is a provider
-      if (!profile.is_provider) {
+      if (!profile?.is_provider) {
+        toast.error("Anda perlu mengaktifkan mode penyedia layanan terlebih dahulu");
         navigate('/profile');
         return null;
       }
@@ -38,6 +49,7 @@ export const useProviderAuth = () => {
       return session.user.id;
     } catch (error) {
       console.error('Error checking auth:', error);
+      toast.error("Terjadi kesalahan saat memeriksa autentikasi");
       navigate('/login');
       return null;
     }
@@ -47,8 +59,28 @@ export const useProviderAuth = () => {
     checkAuth();
   }, [navigate]);
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+      
+      toast.success("Berhasil keluar");
+      
+      // Add a slight delay before navigation to ensure session is cleared
+      setTimeout(() => {
+        navigate('/', { replace: true });
+        window.location.reload(); // Force reload to clear any cached state
+      }, 300);
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error("Gagal keluar");
+    }
+  };
+
   return {
     userId,
-    checkAuth
+    checkAuth,
+    handleLogout
   };
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -64,12 +63,20 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+      
       toast.success("Logout berhasil");
-      navigate('/login');
+      
+      // Add a slight delay before navigation to ensure session is cleared
+      setTimeout(() => {
+        navigate('/login', { replace: true });
+        window.location.reload(); // Force reload to clear any cached state
+      }, 300);
     } catch (error) {
-      toast.error("Gagal logout");
       console.error('Error signing out:', error);
+      toast.error("Gagal logout");
     }
   };
   

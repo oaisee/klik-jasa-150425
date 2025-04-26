@@ -5,22 +5,34 @@ import MenuItemCard from './MenuItemCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const ProfileMenu = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { toast: toastHook } = useToast();
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      toast({
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+      
+      // Use both toast methods to ensure notification shows up
+      toast.success("Berhasil keluar");
+      toastHook({
         title: "Berhasil Keluar",
         description: "Anda telah keluar dari akun",
       });
-      navigate('/');
+      
+      // Add a slight delay before navigation to ensure session is cleared
+      setTimeout(() => {
+        navigate('/', { replace: true });
+        window.location.reload(); // Force reload to clear any cached state
+      }, 300);
     } catch (error) {
       console.error('Error logging out:', error);
-      toast({
+      toast.error("Gagal keluar");
+      toastHook({
         title: "Gagal Keluar",
         description: "Terjadi kesalahan saat keluar dari akun",
         variant: "destructive",

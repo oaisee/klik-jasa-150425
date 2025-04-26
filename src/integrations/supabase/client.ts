@@ -13,7 +13,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    storage: localStorage
+    storage: localStorage,
+    detectSessionInUrl: true,
+    flowType: 'implicit'
   }
 });
 
@@ -33,5 +35,36 @@ export const checkSupabaseConnection = async () => {
   } catch (err) {
     console.error('Failed to connect to Supabase:', err);
     return { success: false, message: String(err) };
+  }
+};
+
+// Helper function to debug logout issues
+export const debugLogout = async () => {
+  try {
+    console.log("Starting logout process...");
+    
+    // Get current session before logout
+    const beforeSession = await supabase.auth.getSession();
+    console.log("Session before logout:", beforeSession);
+    
+    // Attempt to sign out
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error("Logout error:", error);
+      return { success: false, error };
+    }
+    
+    // Check session after logout
+    const afterSession = await supabase.auth.getSession();
+    console.log("Session after logout:", afterSession);
+    
+    // Clear any local storage related to auth manually as a backup measure
+    localStorage.removeItem('supabase.auth.token');
+    
+    return { success: true };
+  } catch (err) {
+    console.error("Exception during logout:", err);
+    return { success: false, error: err };
   }
 };
