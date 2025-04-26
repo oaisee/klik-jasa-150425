@@ -46,16 +46,12 @@ export const useVerificationRequests = () => {
     try {
       console.log('Fetching verification requests');
       
-      // Join dengan profiles table untuk mendapatkan data pengguna
+      // Menggunakan join dengan profiles table untuk mendapatkan data pengguna
       const { data, error } = await supabase
         .from('verification_requests')
         .select(`
           *,
-          profile:user_id(
-            id, 
-            full_name, 
-            phone
-          )
+          profile:profiles(id, full_name, phone)
         `)
         .order('created_at', { ascending: false });
 

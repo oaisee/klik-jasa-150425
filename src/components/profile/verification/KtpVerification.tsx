@@ -50,7 +50,9 @@ const KtpVerification = ({
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (event) => {
-          setPreview(event.target?.result as string);
+          if (event.target) {
+            setPreview(event.target.result as string);
+          }
         };
         reader.readAsDataURL(file);
       } else {
@@ -73,16 +75,17 @@ const KtpVerification = ({
     setErrorMessage(null);
     
     try {
-      // Periksa verification_requests table saja, tanpa mengakses auth.users
+      // Memeriksa verification_requests yang sudah ada
+      console.log('Checking for existing verification requests for user:', userId);
       const { data: existingVerifications, error: fetchError } = await supabase
         .from('verification_requests')
-        .select('status')
+        .select('id, status')
         .eq('user_id', userId)
         .in('status', ['pending', 'approved']);
       
       if (fetchError) {
-        console.error('Error checking verification requests:', fetchError);
-        throw fetchError;
+        console.error('Error checking existing verification requests:', fetchError);
+        throw new Error('Tidak dapat memeriksa verifikasi yang sudah ada: ' + fetchError.message);
       }
       
       console.log('Existing verification requests:', existingVerifications);
