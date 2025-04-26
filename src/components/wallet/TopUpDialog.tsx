@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, Loader2 } from 'lucide-react';
 import PresetAmountButtons from './PresetAmountButtons';
 import CustomAmountInput from './CustomAmountInput';
 import PaymentInfoAlert from './PaymentInfoAlert';
+import TopUpDialogHeader from './TopUpDialogHeader';
+import TopUpDialogFooter from './TopUpDialogFooter';
 import { useMidtransPayment } from '@/hooks/useMidtransPayment';
 
 interface TopUpDialogProps {
@@ -43,12 +43,7 @@ const TopUpDialog = ({ open, onOpenChange, onTopUp }: TopUpDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <CreditCard className="mr-2 h-5 w-5" />
-            Top Up Saldo KlikJasa
-          </DialogTitle>
-        </DialogHeader>
+        <TopUpDialogHeader />
         
         <div className="grid gap-4 py-4">
           <PresetAmountButtons
@@ -66,20 +61,11 @@ const TopUpDialog = ({ open, onOpenChange, onTopUp }: TopUpDialogProps) => {
           <PaymentInfoAlert />
         </div>
         
-        <DialogFooter>
-          <Button
-            onClick={handleTopUp}
-            disabled={!selectedAmount || isProcessing}
-            className="w-full"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Memproses...
-              </>
-            ) : `Top Up ${selectedAmount ? `Rp ${Number(selectedAmount).toLocaleString()}` : ""}`}
-          </Button>
-        </DialogFooter>
+        <TopUpDialogFooter
+          selectedAmount={selectedAmount}
+          isProcessing={isProcessing}
+          onTopUp={handleTopUp}
+        />
       </DialogContent>
     </Dialog>
   );
