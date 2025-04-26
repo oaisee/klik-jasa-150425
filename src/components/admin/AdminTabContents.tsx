@@ -12,6 +12,8 @@ interface AdminTabContentsProps {
 
 const AdminTabContents = ({ activeTab }: AdminTabContentsProps) => {
   // Render the appropriate component based on the active tab
+  console.log('Rendering AdminTabContents with activeTab:', activeTab);
+  
   switch (activeTab) {
     case 'users':
       return <UserManagement />;
@@ -20,6 +22,7 @@ const AdminTabContents = ({ activeTab }: AdminTabContentsProps) => {
     case 'transactions':
       return <TransactionManagement />;
     case 'verifications':
+      console.log('Should render verification dashboard');
       return <VerificationDashboard />;
     case 'settings':
       return <Settings />;

@@ -14,6 +14,7 @@ export const useVerificationRequests = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
+    console.log('useVerificationRequests hook initialized');
     fetchVerificationRequests();
   }, []);
 
@@ -61,6 +62,7 @@ export const useVerificationRequests = () => {
       }
       
       console.log('Verification requests fetched successfully:', data?.length || 0, 'records');
+      console.log('Raw verification data:', data);
       
       // Map the data to match VerificationRequest type
       const mappedRequests = (data || []).map(req => ({

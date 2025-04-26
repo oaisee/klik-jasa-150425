@@ -10,6 +10,8 @@ const VerificationDashboard = () => {
   const [statsKey, setStatsKey] = useState(Date.now());
   const [requestsKey, setRequestsKey] = useState(Date.now());
   
+  console.log('VerificationDashboard rendering');
+  
   const handleRefresh = async () => {
     setRefreshing(true);
     // Update keys to force re-render of child components

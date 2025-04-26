@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import EmptyState from '@/components/shared/EmptyState';
@@ -12,6 +12,8 @@ import { useVerificationRequests } from '@/hooks/useVerificationRequests';
 import { toast } from 'sonner';
 
 const VerificationRequestsList = () => {
+  console.log('VerificationRequestsList rendering');
+  
   const {
     filteredRequests,
     loading,
@@ -62,6 +64,12 @@ const VerificationRequestsList = () => {
     hasActiveFilters, 
     totalRequests: requests.length 
   });
+
+  // Force refresh on mount
+  useEffect(() => {
+    handleRefresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Card>
