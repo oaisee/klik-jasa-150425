@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, performLogout } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export const useProviderAuth = () => {
@@ -32,7 +32,7 @@ export const useProviderAuth = () => {
         .from('profiles')
         .select('is_provider')
         .eq('id', session.user.id)
-        .single();
+        .maybeSingle();
         
       if (error) {
         console.error("Error fetching profile:", error);
@@ -61,17 +61,15 @@ export const useProviderAuth = () => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      toast.loading("Sedang keluar...");
       
-      if (error) throw error;
+      const result = await performLogout(navigate);
+      
+      if (!result.success) {
+        throw new Error(result.error || "Gagal logout");
+      }
       
       toast.success("Berhasil keluar");
-      
-      // Add a slight delay before navigation to ensure session is cleared
-      setTimeout(() => {
-        navigate('/', { replace: true });
-        window.location.reload(); // Force reload to clear any cached state
-      }, 300);
     } catch (error) {
       console.error('Error logging out:', error);
       toast.error("Gagal keluar");

@@ -2,10 +2,10 @@
 import React from 'react';
 import { Bell, Shield, CreditCard, Settings, HelpCircle, LogOut } from 'lucide-react';
 import MenuItemCard from './MenuItemCard';
-import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
+import { performLogout } from '@/integrations/supabase/client';
 
 const ProfileMenu = () => {
   const navigate = useNavigate();
@@ -13,22 +13,21 @@ const ProfileMenu = () => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      toast.loading("Sedang keluar...");
       
-      if (error) throw error;
+      const result = await performLogout(navigate);
       
-      // Use both toast methods to ensure notification shows up
+      if (!result.success) {
+        throw new Error(result.error || "Gagal keluar dari akun");
+      }
+      
+      // Success notifications will appear after navigation/reload
       toast.success("Berhasil keluar");
       toastHook({
         title: "Berhasil Keluar",
         description: "Anda telah keluar dari akun",
       });
       
-      // Add a slight delay before navigation to ensure session is cleared
-      setTimeout(() => {
-        navigate('/', { replace: true });
-        window.location.reload(); // Force reload to clear any cached state
-      }, 300);
     } catch (error) {
       console.error('Error logging out:', error);
       toast.error("Gagal keluar");

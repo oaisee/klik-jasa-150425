@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
+import { supabase, checkSupabaseConnection, performLogout } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export const useAdminAuth = () => {
@@ -16,18 +16,26 @@ export const useAdminAuth = () => {
     // Check user authentication
     const checkAdmin = async () => {
       setLoading(true);
-      const { data } = await supabase.auth.getSession();
       
-      if (!data.session || data.session.user?.email !== 'admin@klikjasa.com') {
-        toast.error("Akses tidak diizinkan");
+      try {
+        const { data } = await supabase.auth.getSession();
+        
+        if (!data.session || data.session.user?.email !== 'admin@klikjasa.com') {
+          toast.error("Akses tidak diizinkan");
+          navigate('/admin');
+          return;
+        }
+        
+        // Check Supabase connection
+        const status = await checkSupabaseConnection();
+        setConnectionStatus(status);
+      } catch (error) {
+        console.error('Error checking admin session:', error);
+        toast.error("Terjadi kesalahan saat memeriksa akses");
         navigate('/admin');
-        return;
+      } finally {
+        setLoading(false);
       }
-      
-      // Check Supabase connection
-      const status = await checkSupabaseConnection();
-      setConnectionStatus(status);
-      setLoading(false);
     };
     
     checkAdmin();
@@ -35,17 +43,15 @@ export const useAdminAuth = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
+      toast.loading("Sedang keluar...");
       
-      if (error) throw error;
+      const result = await performLogout(navigate);
+      
+      if (!result.success) {
+        throw new Error(result.error || "Gagal logout");
+      }
       
       toast.success("Logout berhasil");
-      
-      // Add a slight delay before navigation to ensure session is cleared
-      setTimeout(() => {
-        navigate('/login', { replace: true });
-        window.location.reload(); // Force reload to clear any cached state
-      }, 300);
     } catch (error) {
       console.error('Error signing out:', error);
       toast.error("Gagal logout");

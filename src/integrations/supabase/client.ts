@@ -15,7 +15,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
     storage: localStorage,
     detectSessionInUrl: true,
-    flowType: 'implicit'
+    flowType: 'pkce' // Changed from 'implicit' to 'pkce' for more secure authentication flow
   }
 });
 
@@ -38,33 +38,45 @@ export const checkSupabaseConnection = async () => {
   }
 };
 
-// Helper function to debug logout issues
-export const debugLogout = async () => {
+// Improved logout function with better error handling
+export const performLogout = async (navigate) => {
   try {
-    console.log("Starting logout process...");
+    console.log("Starting improved logout process...");
     
-    // Get current session before logout
-    const beforeSession = await supabase.auth.getSession();
-    console.log("Session before logout:", beforeSession);
+    // Clear any stored session data first
+    localStorage.removeItem('supabase.auth.token');
     
     // Attempt to sign out
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({
+      scope: 'global' // Ensures all sessions are cleared, not just the current one
+    });
     
     if (error) {
       console.error("Logout error:", error);
-      return { success: false, error };
+      return { success: false, error: error.message };
     }
     
-    // Check session after logout
-    const afterSession = await supabase.auth.getSession();
-    console.log("Session after logout:", afterSession);
+    console.log("Logout API call successful");
     
-    // Clear any local storage related to auth manually as a backup measure
-    localStorage.removeItem('supabase.auth.token');
+    // Force clear auth state
+    localStorage.removeItem('sb-' + SUPABASE_URL.split('//')[1].split('.')[0] + '-auth-token');
     
     return { success: true };
   } catch (err) {
     console.error("Exception during logout:", err);
-    return { success: false, error: err };
+    return { success: false, error: String(err) };
+  } finally {
+    // Always navigate and reload, even if there was an error
+    // This ensures the UI state is reset
+    if (navigate) {
+      console.log("Navigating away and reloading page");
+      setTimeout(() => {
+        navigate('/', { replace: true });
+        window.location.reload();
+      }, 500);
+    }
   }
 };
+
+// Legacy debug function, kept for compatibility
+export const debugLogout = performLogout;

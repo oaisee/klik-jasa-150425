@@ -1,4 +1,3 @@
-
 import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -15,9 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 interface AdminMobileHeaderProps {
   activeTab: string;
