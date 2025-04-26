@@ -1,9 +1,8 @@
 
 import { useState, useEffect } from 'react';
+import DashboardHeader from './components/DashboardHeader';
 import VerificationStatsWidget from './VerificationStatsWidget';
 import VerificationRequestsList from './VerificationRequestsList';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
 
 const VerificationDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -32,19 +31,10 @@ const VerificationDashboard = () => {
   
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Verifikasi Pengguna</h2>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={handleRefresh} 
-          disabled={refreshing}
-          className="flex items-center gap-1"
-        >
-          <RefreshCw size={16} className={`${refreshing ? 'animate-spin' : ''}`} />
-          <span>{refreshing ? 'Menyegarkan...' : 'Segarkan Data'}</span>
-        </Button>
-      </div>
+      <DashboardHeader 
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+      />
       
       <VerificationStatsWidget key={`stats-${statsKey}`} />
       
