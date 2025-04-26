@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import DashboardHeader from './components/DashboardHeader';
 import VerificationStatsWidget from './VerificationStatsWidget';
 import VerificationRequestsList from './VerificationRequestsList';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const VerificationDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
@@ -11,10 +13,29 @@ const VerificationDashboard = () => {
   
   console.log('VerificationDashboard rendering');
   
-  // Force refresh on mount to ensure data is loaded
+  const checkVerificationRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('verification_requests')
+        .select('status')
+        .eq('status', 'pending');
+        
+      if (error) {
+        throw error;
+      }
+      
+      if (data && data.length > 0) {
+        toast.info(`${data.length} permintaan verifikasi menunggu review`);
+      }
+    } catch (err) {
+      console.error('Error checking verification requests:', err);
+    }
+  };
+  
   useEffect(() => {
     console.log('VerificationDashboard mounted - triggering initial refresh');
     handleRefresh();
+    checkVerificationRequests();
   }, []);
   
   const handleRefresh = async () => {
@@ -23,10 +44,16 @@ const VerificationDashboard = () => {
     setStatsKey(Date.now());
     setRequestsKey(Date.now());
     
-    // Simulate delay to show the refresh animation
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
+    try {
+      await checkVerificationRequests();
+    } catch (error) {
+      console.error('Error refreshing verification dashboard:', error);
+    } finally {
+      // Add a small delay to show the refresh animation
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 1000);
+    }
   };
   
   return (

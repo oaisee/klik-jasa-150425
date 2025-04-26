@@ -21,12 +21,33 @@ export const useVerificationRequests = () => {
     setLoading(loading && showToasts);
     
     try {
-      const data = await fetchVerificationRequestsApi();
-      setRequests(data);
-      setFilteredRequests(data);
+      const { data, error } = await supabase
+        .from('verification_requests')
+        .select(`
+          *,
+          profile:profiles(id, full_name, phone)
+        `)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        throw error;
+      }
       
-      if (showToasts && data.length > 0) {
-        toast.success(`${data.length} permintaan verifikasi dimuat`);
+      // Map the data to include profile information
+      const mappedData = (data || []).map(req => ({
+        ...req,
+        profile: req.profile || undefined
+      }));
+      
+      setRequests(mappedData);
+      setFilteredRequests(mappedData);
+      
+      if (showToasts && mappedData.length > 0) {
+        const pendingCount = mappedData.filter(r => r.status === 'pending').length;
+        if (pendingCount > 0) {
+          toast.info(`${pendingCount} permintaan verifikasi menunggu review`);
+        }
+        toast.success(`${mappedData.length} permintaan verifikasi dimuat`);
       }
     } catch (error) {
       console.error('Error in fetchVerificationRequests:', error);

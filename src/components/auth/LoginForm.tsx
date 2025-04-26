@@ -92,12 +92,6 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
       return;
     }
     
-    // If admin login is attempted from regular login page, redirect
-    if (email === 'admin@klikjasa.com' && !redirectToAdmin) {
-      navigate('/admin');
-      return;
-    }
-    
     setLoading(true);
     
     try {
@@ -113,13 +107,20 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
       // Save the email on successful login
       saveEmailToStorage(email);
       
+      // Check if this is the admin user
+      if (email === 'admin@klikjasa.com') {
+        console.log('Admin login successful, redirecting to admin dashboard...');
+        toast.success("Login admin berhasil");
+        navigate('/admin-dashboard', { replace: true });
+        return;
+      }
+      
       toast.success("Login berhasil");
       console.log("Login successful, redirecting to home page...");
       
-      // Force navigation to home page with replace to prevent back button issues
+      // For non-admin users, redirect to home page
       navigate('/', { replace: true });
     } catch (err: any) {
-      // Clear specific field errors
       setErrors({});
       
       if (err.message.includes('Invalid login credentials')) {
