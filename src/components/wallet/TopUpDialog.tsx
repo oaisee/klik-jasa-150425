@@ -1,14 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { CreditCard, AlertCircle, Loader2 } from 'lucide-react';
+import { CreditCard, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-
-const PRESET_AMOUNTS = [50000, 100000, 200000, 500000];
+import PresetAmountButtons from './PresetAmountButtons';
+import CustomAmountInput from './CustomAmountInput';
+import PaymentInfoAlert from './PaymentInfoAlert';
 
 interface TopUpDialogProps {
   open: boolean;
@@ -32,13 +32,13 @@ const TopUpDialog = ({ open, onOpenChange, onTopUp }: TopUpDialogProps) => {
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
 
-  // Load Midtrans Snap script
+  // Load Midtrans script when dialog opens
   useEffect(() => {
     if (open && !scriptLoaded) {
       const midtransScriptUrl = 'https://app.sandbox.midtrans.com/snap/snap.js';
       const script = document.createElement('script');
       script.src = midtransScriptUrl;
-      script.setAttribute('data-client-key', 'Mid-client-JQ9Bp2ODOaoiu58P'); // Use the client key
+      script.setAttribute('data-client-key', 'Mid-client-JQ9Bp2ODOaoiu58P');
       script.onload = () => setScriptLoaded(true);
       
       document.body.appendChild(script);
@@ -120,8 +120,7 @@ const TopUpDialog = ({ open, onOpenChange, onTopUp }: TopUpDialogProps) => {
     setCustomAmount(presetAmount.toString());
   };
 
-  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
+  const handleCustomAmountChange = (value: string) => {
     setCustomAmount(value);
     setAmount(value ? parseInt(value, 10) : '');
   };
@@ -159,7 +158,6 @@ const TopUpDialog = ({ open, onOpenChange, onTopUp }: TopUpDialogProps) => {
     try {
       setIsProcessing(true);
       
-      // Call midtrans-payment edge function to create transaction
       const response = await fetch('/functions/v1/midtrans-payment/create-payment', {
         method: 'POST',
         headers: {
@@ -181,7 +179,6 @@ const TopUpDialog = ({ open, onOpenChange, onTopUp }: TopUpDialogProps) => {
       
       setOrderId(order_id);
       
-      // Open Midtrans Snap payment page
       if (window.snap && scriptLoaded) {
         window.snap.pay(token, {
           onSuccess: function(result: any) {
@@ -195,7 +192,6 @@ const TopUpDialog = ({ open, onOpenChange, onTopUp }: TopUpDialogProps) => {
             toast.info("Pembayaran dalam proses", {
               description: "Saldo akan ditambahkan setelah pembayaran selesai"
             });
-            // Don't close yet, keep checking status
           },
           onError: function(result: any) {
             console.log('Payment error:', result);
@@ -236,44 +232,19 @@ const TopUpDialog = ({ open, onOpenChange, onTopUp }: TopUpDialogProps) => {
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-2 gap-2">
-            {PRESET_AMOUNTS.map((presetAmount) => (
-              <Button
-                key={presetAmount}
-                variant={amount === presetAmount ? "default" : "outline"}
-                onClick={() => handlePresetAmountClick(presetAmount)}
-                className="w-full"
-              >
-                Rp {presetAmount.toLocaleString()}
-              </Button>
-            ))}
-          </div>
+          <PresetAmountButtons
+            selectedAmount={amount}
+            onAmountSelect={handlePresetAmountClick}
+          />
           
           <Separator className="my-2" />
           
-          <div className="grid gap-2">
-            <Label htmlFor="amount">Jumlah Kustom</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">Rp</span>
-              <Input
-                id="amount"
-                value={customAmount}
-                onChange={handleCustomAmountChange}
-                className="pl-10"
-                placeholder="Minimal Rp 10.000"
-              />
-            </div>
-          </div>
+          <CustomAmountInput
+            value={customAmount}
+            onChange={handleCustomAmountChange}
+          />
           
-          <div className="bg-yellow-50 p-3 rounded-md text-sm text-yellow-800">
-            <div className="flex items-start">
-              <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 text-yellow-600" />
-              <div>
-                <p className="font-medium">Informasi Pembayaran</p>
-                <p className="mt-1">Top up saldo melalui Midtrans dengan berbagai metode pembayaran (bank transfer, e-wallet, dll)</p>
-              </div>
-            </div>
-          </div>
+          <PaymentInfoAlert />
         </div>
         
         <DialogFooter>
