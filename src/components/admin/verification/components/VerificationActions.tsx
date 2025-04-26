@@ -1,19 +1,10 @@
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Check, X, Eye, Loader2 } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import PreviewButton from './actions/PreviewButton';
+import ActionButtons from './actions/ActionButtons';
+import RejectDialog from './actions/RejectDialog';
+import ApproveDialog from './actions/ApproveDialog';
 
 interface VerificationActionsProps {
   requestId: string;
@@ -74,127 +65,39 @@ const VerificationActions = ({
   return (
     <>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="text-xs flex items-center gap-1"
-          onClick={onPreviewImage}
-          disabled={isPreviewLoading || isDisabled}
-        >
-          {isPreviewLoading ? (
-            <>
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Memuat...
-            </>
-          ) : (
-            <>
-              <Eye className="h-3 w-3" /> Lihat Dokumen
-            </>
-          )}
-        </Button>
+        <PreviewButton
+          onPreviewImage={onPreviewImage}
+          isPreviewLoading={isPreviewLoading}
+          isDisabled={isDisabled}
+        />
         
         {status === 'pending' && (
-          <div className="flex space-x-2 mt-3 sm:mt-0">
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-red-200 text-red-700 hover:bg-red-50"
-              onClick={() => setIsRejectDialogOpen(true)}
-              disabled={isDisabled}
-            >
-              {(processingId === requestId || isProcessing) ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <X className="h-4 w-4 mr-1" /> Tolak
-                </>
-              )}
-            </Button>
-            <Button
-              size="sm"
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => setIsConfirmApproveOpen(true)}
-              disabled={isDisabled}
-            >
-              {(processingId === requestId || isProcessing) ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-1" /> Setujui
-                </>
-              )}
-            </Button>
-          </div>
+          <ActionButtons
+            isProcessing={isProcessing}
+            isDisabled={isDisabled}
+            onReject={() => setIsRejectDialogOpen(true)}
+            onApprove={() => setIsConfirmApproveOpen(true)}
+          />
         )}
       </div>
 
-      {/* Reject Dialog */}
-      <AlertDialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Tolak Verifikasi KTP</AlertDialogTitle>
-            <AlertDialogDescription>
-              Anda yakin ingin menolak permintaan verifikasi KTP dari {userName}?
-              Tambahkan catatan optional di bawah untuk menjelaskan alasan penolakan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="py-3">
-            <Textarea
-              placeholder="Catatan penolakan (opsional)"
-              value={rejectNotes}
-              onChange={(e) => setRejectNotes(e.target.value)}
-              className="min-h-[100px]"
-            />
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isProcessing}>Batal</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleRejectRequest} 
-              className="bg-red-600 hover:bg-red-700"
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Memproses...
-                </div>
-              ) : (
-                'Tolak Verifikasi'
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <RejectDialog
+        isOpen={isRejectDialogOpen}
+        onOpenChange={setIsRejectDialogOpen}
+        userName={userName}
+        notes={rejectNotes}
+        onNotesChange={setRejectNotes}
+        onConfirm={handleRejectRequest}
+        isProcessing={isProcessing}
+      />
 
-      {/* Approve Confirmation Dialog */}
-      <AlertDialog open={isConfirmApproveOpen} onOpenChange={setIsConfirmApproveOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Setujui Verifikasi KTP</AlertDialogTitle>
-            <AlertDialogDescription>
-              Apakah Anda yakin ingin menyetujui verifikasi KTP dari {userName}?
-              Setelah disetujui, pengguna akan mendapatkan status sebagai penyedia jasa.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isProcessing}>Batal</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleApproveRequest} 
-              className="bg-green-600 hover:bg-green-700"
-              disabled={isProcessing}
-            >
-              {isProcessing ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Memproses...
-                </div>
-              ) : (
-                'Setujui Verifikasi'
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ApproveDialog
+        isOpen={isConfirmApproveOpen}
+        onOpenChange={setIsConfirmApproveOpen}
+        userName={userName}
+        onConfirm={handleApproveRequest}
+        isProcessing={isProcessing}
+      />
     </>
   );
 };
