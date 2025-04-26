@@ -73,15 +73,19 @@ const KtpVerification = ({
     setErrorMessage(null);
     
     try {
-      // Periksa permintaan verifikasi yang sudah ada langsung dari tabel verification_requests
-      // bukan dari auth.users yang menyebabkan kesalahan permission denied
+      // Periksa verification_requests table saja, tanpa mengakses auth.users
       const { data: existingVerifications, error: fetchError } = await supabase
         .from('verification_requests')
         .select('status')
         .eq('user_id', userId)
         .in('status', ['pending', 'approved']);
       
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Error checking verification requests:', fetchError);
+        throw fetchError;
+      }
+      
+      console.log('Existing verification requests:', existingVerifications);
       
       if (existingVerifications && existingVerifications.length > 0) {
         const hasApproved = existingVerifications.some(v => v.status === 'approved');

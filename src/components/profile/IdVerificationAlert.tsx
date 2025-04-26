@@ -31,7 +31,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
     try {
       console.log('Checking verification status for user:', userId);
       
-      // Hanya memeriksa tabel verification_requests, tidak mengakses auth.users
+      // Hanya memeriksa tabel verification_requests tanpa mengakses auth.users
       const { data, error } = await supabase
         .from('verification_requests')
         .select('status, notes')
@@ -40,7 +40,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
         .limit(1);
       
       if (error) {
-        console.error('Error checking verification status:', error);
+        console.error('Error checking verification status from verification_requests:', error);
         throw error;
       }
       
@@ -60,7 +60,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
         setVerificationStatus('none');
       }
     } catch (error) {
-      console.error('Error checking verification status:', error);
+      console.error('Error in checkVerificationStatus:', error);
     } finally {
       setLoading(false);
     }

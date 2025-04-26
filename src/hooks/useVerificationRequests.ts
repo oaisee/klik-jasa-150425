@@ -45,10 +45,18 @@ export const useVerificationRequests = () => {
     setLoading(true);
     try {
       console.log('Fetching verification requests');
-      // Join with profiles table to get user data, NOT auth.users
+      
+      // Join dengan profiles table untuk mendapatkan data pengguna
       const { data, error } = await supabase
         .from('verification_requests')
-        .select('*, profile:profiles(id, full_name, phone)')
+        .select(`
+          *,
+          profile:user_id(
+            id, 
+            full_name, 
+            phone
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -56,7 +64,7 @@ export const useVerificationRequests = () => {
         throw error;
       }
       
-      console.log('Verification requests fetched:', data);
+      console.log('Verification requests fetched successfully:', data);
       
       // Map the data to match VerificationRequest type
       const mappedRequests = (data || []).map(req => ({
@@ -67,7 +75,7 @@ export const useVerificationRequests = () => {
       setRequests(mappedRequests as VerificationRequest[]);
       setFilteredRequests(mappedRequests as VerificationRequest[]);
     } catch (error) {
-      console.error('Error fetching verification requests:', error);
+      console.error('Error in fetchVerificationRequests:', error);
       toast.error('Gagal memuat permintaan verifikasi');
     } finally {
       setLoading(false);
