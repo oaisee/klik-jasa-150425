@@ -1,5 +1,5 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Index from '@/pages/Index';
 import LoginPage from '@/pages/LoginPage';
 import RegisterPage from '@/pages/RegisterPage';
@@ -42,6 +42,9 @@ function App() {
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/admin" element={<AdminAuthPage />} />
           <Route path="/admin-dashboard" element={<AdminDashboardPage />} />
+          
+          {/* Redirect old format to new format */}
+          <Route path="/admin/dashboard" element={<Navigate to="/admin-dashboard" replace />} />
           
           {/* Pages with bottom navigation */}
           <Route path="/" element={<Layout><Index /></Layout>} />

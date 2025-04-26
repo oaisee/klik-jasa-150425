@@ -58,6 +58,7 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
+    // Ensure we're using the correct route format with hyphen instead of slash
     navigate(`/admin-dashboard?tab=${tab}`);
   };
   
