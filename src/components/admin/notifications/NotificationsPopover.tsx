@@ -2,13 +2,13 @@
 import { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
 import { Separator } from '@/components/ui/separator';
 
 interface Notification {
@@ -18,16 +18,17 @@ interface Notification {
   created_at: string;
   read: boolean;
   type: 'verification' | 'transaction' | 'system';
+  link?: string;
 }
 
 const NotificationsPopover = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // For demo purposes, let's create some mock notifications
+  // For demo purposes, let's create some mock notifications with links
   useEffect(() => {
-    // In a real app, you would fetch notifications from Supabase
     setLoading(true);
     const mockNotifications: Notification[] = [
       {
@@ -36,7 +37,8 @@ const NotificationsPopover = () => {
         message: 'Ada 3 permintaan verifikasi KTP baru yang menunggu persetujuan',
         created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
         read: false,
-        type: 'verification'
+        type: 'verification',
+        link: '/admin/dashboard?tab=verifications'
       },
       {
         id: '2',
@@ -44,7 +46,8 @@ const NotificationsPopover = () => {
         message: 'Ada 5 transaksi baru dalam 24 jam terakhir',
         created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
         read: true,
-        type: 'transaction'
+        type: 'transaction',
+        link: '/admin/dashboard?tab=transactions'
       },
       {
         id: '3',
@@ -52,7 +55,8 @@ const NotificationsPopover = () => {
         message: 'Sistem telah diperbarui ke versi terbaru',
         created_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
         read: true,
-        type: 'system'
+        type: 'system',
+        link: '/admin/dashboard?tab=settings'
       }
     ];
     
@@ -92,11 +96,23 @@ const NotificationsPopover = () => {
     // In a real app, you would update the read status in Supabase
   };
 
-  const markAsRead = (id: string) => {
+  const markAsRead = (id: string, link?: string) => {
     setNotifications(notifications.map(n => 
       n.id === id ? { ...n, read: true } : n
     ));
-    // In a real app, you would update the read status in Supabase
+    
+    // Close the popover
+    setOpen(false);
+    
+    // Navigate to the linked page if provided
+    if (link) {
+      navigate(link);
+    }
+  };
+
+  const handleViewAll = () => {
+    setOpen(false);
+    navigate('/admin/dashboard?tab=notifications');
   };
 
   return (
@@ -138,7 +154,7 @@ const NotificationsPopover = () => {
               <div 
                 key={notification.id} 
                 className={`p-3 border-b last:border-b-0 cursor-pointer hover:bg-gray-50 ${getNotificationBgColor(notification)}`}
-                onClick={() => markAsRead(notification.id)}
+                onClick={() => markAsRead(notification.id, notification.link)}
               >
                 <div className="flex justify-between items-start">
                   <h4 className="text-sm font-medium">{notification.title}</h4>
@@ -151,7 +167,7 @@ const NotificationsPopover = () => {
         </div>
         <Separator />
         <div className="p-2 text-center">
-          <Button variant="ghost" size="sm" className="text-xs">
+          <Button variant="ghost" size="sm" className="text-xs" onClick={handleViewAll}>
             Lihat Semua Notifikasi
           </Button>
         </div>

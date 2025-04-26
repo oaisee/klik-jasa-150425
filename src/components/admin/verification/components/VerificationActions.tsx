@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 interface VerificationActionsProps {
   requestId: string;
@@ -38,16 +39,37 @@ const VerificationActions = ({
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isConfirmApproveOpen, setIsConfirmApproveOpen] = useState(false);
   const [rejectNotes, setRejectNotes] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleRejectRequest = () => {
-    setIsRejectDialogOpen(false);
-    onReject(requestId, rejectNotes.trim() || undefined);
+  const handleRejectRequest = async () => {
+    try {
+      setIsProcessing(true);
+      await onReject(requestId, rejectNotes.trim() || undefined);
+      toast.success('Verifikasi berhasil ditolak');
+    } catch (error) {
+      console.error('Error rejecting verification:', error);
+      toast.error('Gagal menolak verifikasi');
+    } finally {
+      setIsRejectDialogOpen(false);
+      setIsProcessing(false);
+    }
   };
 
-  const handleApproveRequest = () => {
-    setIsConfirmApproveOpen(false);
-    onApprove(requestId);
+  const handleApproveRequest = async () => {
+    try {
+      setIsProcessing(true);
+      await onApprove(requestId);
+      toast.success('Verifikasi berhasil disetujui');
+    } catch (error) {
+      console.error('Error approving verification:', error);
+      toast.error('Gagal menyetujui verifikasi');
+    } finally {
+      setIsConfirmApproveOpen(false);
+      setIsProcessing(false);
+    }
   };
+
+  const isDisabled = !!processingId || isProcessing;
 
   return (
     <>
@@ -57,7 +79,7 @@ const VerificationActions = ({
           size="sm" 
           className="text-xs flex items-center gap-1"
           onClick={onPreviewImage}
-          disabled={isPreviewLoading}
+          disabled={isPreviewLoading || isDisabled}
         >
           {isPreviewLoading ? (
             <>
@@ -78,9 +100,9 @@ const VerificationActions = ({
               size="sm"
               className="border-red-200 text-red-700 hover:bg-red-50"
               onClick={() => setIsRejectDialogOpen(true)}
-              disabled={!!processingId}
+              disabled={isDisabled}
             >
-              {processingId === requestId ? (
+              {(processingId === requestId || isProcessing) ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
@@ -92,9 +114,9 @@ const VerificationActions = ({
               size="sm"
               className="bg-green-600 hover:bg-green-700"
               onClick={() => setIsConfirmApproveOpen(true)}
-              disabled={!!processingId}
+              disabled={isDisabled}
             >
-              {processingId === requestId ? (
+              {(processingId === requestId || isProcessing) ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <>
@@ -125,9 +147,20 @@ const VerificationActions = ({
             />
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRejectRequest} className="bg-red-600 hover:bg-red-700">
-              Tolak Verifikasi
+            <AlertDialogCancel disabled={isProcessing}>Batal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleRejectRequest} 
+              className="bg-red-600 hover:bg-red-700"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Memproses...
+                </div>
+              ) : (
+                'Tolak Verifikasi'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -144,9 +177,20 @@ const VerificationActions = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleApproveRequest} className="bg-green-600 hover:bg-green-700">
-              Setujui Verifikasi
+            <AlertDialogCancel disabled={isProcessing}>Batal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleApproveRequest} 
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Memproses...
+                </div>
+              ) : (
+                'Setujui Verifikasi'
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

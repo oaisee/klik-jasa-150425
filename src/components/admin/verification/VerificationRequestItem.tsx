@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { VerificationRequest } from '@/types/database';
 import VerificationUserInfo from './components/VerificationUserInfo';
 import VerificationStatus from './components/VerificationStatus';
@@ -12,6 +11,7 @@ interface VerificationRequestItemProps {
   onReject: (id: string, notes?: string) => Promise<void>;
   onPreviewImage: (url: string) => void;
   processingId: string | null;
+  isPreviewLoading?: boolean;
 }
 
 const VerificationRequestItem = ({ 
@@ -19,22 +19,11 @@ const VerificationRequestItem = ({
   onApprove, 
   onReject, 
   onPreviewImage,
-  processingId 
+  processingId,
+  isPreviewLoading = false
 }: VerificationRequestItemProps) => {
-  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
-  
   const handlePreviewImage = () => {
-    setIsPreviewLoading(true);
-    const img = new Image();
-    img.onload = () => {
-      setIsPreviewLoading(false);
-      onPreviewImage(request.document_url);
-    };
-    img.onerror = () => {
-      setIsPreviewLoading(false);
-      console.error('Failed to load image');
-    };
-    img.src = request.document_url;
+    onPreviewImage(request.document_url);
   };
 
   return (

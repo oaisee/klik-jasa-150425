@@ -9,6 +9,7 @@ import ImagePreviewDialog from './ImagePreviewDialog';
 import VerificationFilters from './VerificationFilters';
 import VerificationSummary from './VerificationSummary';
 import { useVerificationRequests } from '@/hooks/useVerificationRequests';
+import { toast } from 'sonner';
 
 const VerificationRequestsList = () => {
   const {
@@ -28,9 +29,21 @@ const VerificationRequestsList = () => {
   } = useVerificationRequests();
   
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   const handleOpenImagePreview = (url: string) => {
-    setPreviewImage(url);
+    setIsPreviewLoading(true);
+    // Preload the image to avoid flickering
+    const img = new Image();
+    img.onload = () => {
+      setIsPreviewLoading(false);
+      setPreviewImage(url);
+    };
+    img.onerror = () => {
+      setIsPreviewLoading(false);
+      toast.error('Gagal memuat gambar dokumen');
+    };
+    img.src = url;
   };
 
   const handleCloseImagePreview = () => {
@@ -70,8 +83,9 @@ const VerificationRequestsList = () => {
                 request={request}
                 onApprove={handleApprove}
                 onReject={handleReject}
-                onPreviewImage={handleOpenImagePreview}
+                onPreviewImage={() => handleOpenImagePreview(request.document_url)}
                 processingId={processingId}
+                isPreviewLoading={isPreviewLoading}
               />
             ))}
           </div>
