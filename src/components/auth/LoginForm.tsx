@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
-import FormField from './FormField';
+import { useEmailStorage } from '@/hooks/useEmailStorage';
+import { useLoginValidation } from '@/hooks/useLoginValidation';
+import EmailSuggestions from './EmailSuggestions';
+import PasswordInput from './PasswordInput';
 
 interface LoginFormProps {
   redirectToAdmin?: boolean;
@@ -18,77 +22,20 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{email?: string; password?: string}>({});
-  const [previousEmails, setPreviousEmails] = useState<string[]>([]);
-  const [showEmailSuggestions, setShowEmailSuggestions] = useState(false);
 
-  // Fetch previously used emails
-  useEffect(() => {
-    const fetchPreviousEmails = () => {
-      try {
-        const storedEmails = localStorage.getItem('previousEmails');
-        if (storedEmails) {
-          setPreviousEmails(JSON.parse(storedEmails));
-        }
-      } catch (error) {
-        console.error('Error fetching previous emails:', error);
-      }
-    };
-    
-    fetchPreviousEmails();
-  }, []);
-
-  // Save email to local storage on successful login
-  const saveEmailToStorage = (email: string) => {
-    try {
-      let emails = [...previousEmails];
-      
-      // Remove the email if it already exists to prevent duplicates
-      emails = emails.filter(e => e !== email);
-      
-      // Add the new email at the beginning
-      emails.unshift(email);
-      
-      // Keep only the latest 5 emails
-      if (emails.length > 5) {
-        emails = emails.slice(0, 5);
-      }
-      
-      localStorage.setItem('previousEmails', JSON.stringify(emails));
-      setPreviousEmails(emails);
-    } catch (error) {
-      console.error('Error saving email to storage:', error);
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors: {email?: string; password?: string} = {};
-    let isValid = true;
-
-    if (!email) {
-      newErrors.email = "Email wajib diisi";
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = "Format email tidak valid";
-      isValid = false;
-    }
-
-    if (!password) {
-      newErrors.password = "Kata sandi wajib diisi";
-      isValid = false;
-    } else if (password.length < 6) {
-      newErrors.password = "Kata sandi minimal 6 karakter";
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
+  const { 
+    previousEmails, 
+    showEmailSuggestions, 
+    setShowEmailSuggestions, 
+    saveEmailToStorage 
+  } = useEmailStorage();
+  
+  const { errors, setErrors, validateForm } = useLoginValidation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validateForm(email, password)) {
       return;
     }
     
@@ -104,10 +51,8 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
         throw error;
       }
       
-      // Save the email on successful login
       saveEmailToStorage(email);
       
-      // Check if this is the admin user
       if (email === 'admin@klikjasa.com') {
         console.log('Admin login successful, redirecting to admin dashboard...');
         toast.success("Login admin berhasil");
@@ -117,8 +62,6 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
       
       toast.success("Login berhasil");
       console.log("Login successful, redirecting to home page...");
-      
-      // For non-admin users, redirect to home page
       navigate('/', { replace: true });
     } catch (err: any) {
       setErrors({});
@@ -135,28 +78,6 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
       setLoading(false);
     }
   };
-  
-  const handleEmailFocus = () => {
-    if (previousEmails.length > 0) {
-      setShowEmailSuggestions(true);
-    }
-  };
-  
-  const handleEmailSelection = (selectedEmail: string) => {
-    setEmail(selectedEmail);
-    setShowEmailSuggestions(false);
-  };
-
-  const rightElement = (
-    <button 
-      type="button"
-      className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-      onClick={() => setShowPassword(!showPassword)}
-      aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
-    >
-      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-    </button>
-  );
 
   return (
     <form onSubmit={handleLogin} className="space-y-6 animate-fade-in" style={{animationDelay: "100ms"}}>
@@ -173,28 +94,20 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
             className={`pl-10 border-gray-200 focus:border-marketplace-primary focus:ring focus:ring-marketplace-primary/10 ${errors.email ? 'border-red-500' : ''}`}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            onFocus={handleEmailFocus}
+            onFocus={() => previousEmails.length > 0 && setShowEmailSuggestions(true)}
             onBlur={() => setTimeout(() => setShowEmailSuggestions(false), 200)}
           />
         </div>
         {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
         
-        {/* Email suggestions dropdown */}
-        {showEmailSuggestions && previousEmails.length > 0 && (
-          <div className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg">
-            <ul className="py-1 max-h-48 overflow-auto">
-              {previousEmails.map((prevEmail, index) => (
-                <li 
-                  key={index}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
-                  onClick={() => handleEmailSelection(prevEmail)}
-                >
-                  <Mail size={16} className="mr-2 text-gray-400" />
-                  <span>{prevEmail}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {showEmailSuggestions && (
+          <EmailSuggestions 
+            previousEmails={previousEmails}
+            onSelect={(selectedEmail) => {
+              setEmail(selectedEmail);
+              setShowEmailSuggestions(false);
+            }}
+          />
         )}
       </div>
       
@@ -205,20 +118,13 @@ const LoginForm = ({ redirectToAdmin = false }: LoginFormProps) => {
             Lupa kata sandi?
           </Link>
         </div>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-            <Lock size={18} />
-          </div>
-          <Input 
-            id="password"
-            type={showPassword ? "text" : "password"} 
-            placeholder="••••••••" 
-            className={`pl-10 border-gray-200 focus:border-marketplace-primary focus:ring focus:ring-marketplace-primary/10 ${errors.password ? 'border-red-500' : ''}`}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          {rightElement}
-        </div>
+        <PasswordInput 
+          password={password}
+          showPassword={showPassword}
+          onChange={(e) => setPassword(e.target.value)}
+          onToggleVisibility={() => setShowPassword(!showPassword)}
+          error={errors.password}
+        />
         {errors.password && <p className="text-sm text-red-500 mt-1">{errors.password}</p>}
       </div>
       
