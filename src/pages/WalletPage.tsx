@@ -5,10 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Wallet, ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { useProfile } from '@/hooks/useProfile';
+import { toast } from 'sonner';
 import TopUpDialog from '@/components/wallet/TopUpDialog';
 import TransactionsList, { Transaction } from '@/components/wallet/TransactionsList';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import { supabase } from '@/integrations/supabase/client';
+import { useSearchParams } from 'react-router-dom';
 
 const WalletPage = () => {
   const { userData, loading, fetchUserProfile } = useProfile();
@@ -16,10 +18,53 @@ const WalletPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [transactionsLoading, setTransactionsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const [searchParams] = useSearchParams();
+
+  // Check payment status from URL parameters (from Midtrans redirect)
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status) {
+      if (status === 'success') {
+        toast.success('Pembayaran berhasil!', {
+          description: 'Saldo Anda telah ditambahkan'
+        });
+      } else if (status === 'pending') {
+        toast.info('Pembayaran sedang diproses', {
+          description: 'Saldo akan ditambahkan setelah pembayaran dikonfirmasi'
+        });
+      } else if (status === 'error') {
+        toast.error('Pembayaran gagal', {
+          description: 'Silakan coba lagi atau gunakan metode pembayaran lain'
+        });
+      }
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     document.title = 'Saldo | KlikJasa';
     fetchTransactions();
+    
+    // Set up real-time listener for wallet_transactions
+    const channel = supabase
+      .channel('wallet_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'wallet_transactions'
+        },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          fetchTransactions();
+          fetchUserProfile(); // Refresh wallet balance
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchTransactions = async () => {
@@ -33,58 +78,42 @@ const WalletPage = () => {
         return;
       }
       
-      // In a real app, we would fetch actual transactions
-      setTimeout(() => {
-        const mockTransactions: Transaction[] = [
-          {
-            id: '1',
-            type: 'topup',
-            amount: 200000,
-            timestamp: '2023-04-20T14:30:00Z',
-            status: 'completed',
-            description: 'Top up via Bank Transfer'
-          },
-          {
-            id: '2',
-            type: 'commission',
-            amount: -12500,
-            timestamp: '2023-04-18T09:15:00Z',
-            status: 'completed',
-            description: 'Komisi layanan "Jasa Pembersihan"'
-          },
-          {
-            id: '3',
-            type: 'topup',
-            amount: 100000,
-            timestamp: '2023-04-15T16:45:00Z',
-            status: 'completed',
-            description: 'Top up via GOPAY'
-          },
-          {
-            id: '4',
-            type: 'commission',
-            amount: -5000,
-            timestamp: '2023-04-10T13:20:00Z',
-            status: 'completed',
-            description: 'Komisi layanan "Antar Dokumen"'
-          }
-        ];
-        
-        setTransactions(mockTransactions);
-        setTransactionsLoading(false);
-      }, 1000);
+      const { data, error } = await supabase
+        .from('wallet_transactions')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
       
+      if (error) {
+        throw error;
+      }
+      
+      // Map database records to Transaction interface
+      const formattedTransactions: Transaction[] = data.map((item) => ({
+        id: item.id,
+        type: item.type,
+        amount: item.amount,
+        timestamp: item.created_at,
+        status: item.status,
+        description: item.description,
+      }));
+      
+      setTransactions(formattedTransactions);
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      toast.error('Gagal memuat data transaksi', {
+        description: 'Silakan coba lagi nanti'
+      });
+    } finally {
       setTransactionsLoading(false);
     }
   };
   
   const handleTopUp = (amount: number) => {
-    // In a real app, this would update the database
-    // For now, we're just updating the local state and showing a toast
-    fetchUserProfile(); // Refresh the profile to get updated balance
-    fetchTransactions(); // Refresh transactions
+    // Refresh the profile to get updated balance
+    fetchUserProfile();
+    // Refresh transactions
+    fetchTransactions();
   };
   
   const filteredTransactions = () => {

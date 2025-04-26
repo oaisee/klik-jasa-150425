@@ -42,6 +42,7 @@ const TransactionsList = ({ transactions, loading = false }: TransactionsListPro
           type={transaction.type}
           amount={transaction.amount}
           timestamp={transaction.timestamp}
+          status={transaction.status}
           description={transaction.description}
         />
       ))}
