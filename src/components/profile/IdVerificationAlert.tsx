@@ -113,16 +113,7 @@ const IdVerificationAlert = ({ onVerify, onCancel, userId }: IdVerificationAlert
         <AlertCircle className="h-5 w-5 text-yellow-500" />
         <AlertDescription className="text-yellow-800">
           <p className="font-medium mb-1">Verifikasi KTP Sedang Diproses</p>
-          <p className="text-sm mb-2">Tim kami sedang memverifikasi dokumen KTP Anda. Proses ini biasanya membutuhkan waktu 1x24 jam kerja.</p>
-          <div className="flex space-x-2 mt-2">
-            <Button 
-              variant="ghost" 
-              className="text-gray-600 hover:bg-gray-100"
-              onClick={onCancel}
-            >
-              <X className="w-4 h-4 mr-1" /> Lanjutkan Tanpa Verifikasi
-            </Button>
-          </div>
+          <p className="text-sm">Tim kami sedang memverifikasi dokumen KTP Anda. Proses ini biasanya membutuhkan waktu 1x24 jam kerja.</p>
         </AlertDescription>
       </Alert>
     );
