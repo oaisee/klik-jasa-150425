@@ -7,7 +7,7 @@ import { CreditCard } from 'lucide-react';
 
 export interface Transaction {
   id: string;
-  type: 'topup' | 'commission';
+  type: 'topup' | 'commission' | 'payout' | string;  // Updated to allow other types from database
   amount: number;
   timestamp: string;
   status: string;

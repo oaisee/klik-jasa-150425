@@ -45,12 +45,12 @@ export interface Profile {
   updated_at?: string;
 }
 
-// Add Transaction type to fix build errors
+// Updated Transaction type to match our Transaction interface
 export interface Transaction {
   id: string;
   user_id: string;
   amount: number;
-  type: 'topup' | 'commission' | 'payout';
+  type: 'topup' | 'commission' | 'payout' | string;  // Updated to allow any string
   status: string;
   description: string;
   created_at: string;

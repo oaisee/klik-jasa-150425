@@ -5,7 +5,7 @@ import { format, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 interface TransactionItemProps {
-  type: 'topup' | 'commission' | 'payout';
+  type: 'topup' | 'commission' | 'payout' | string;  // Updated to match Transaction interface
   amount: number;
   date?: string;
   timestamp?: string;
@@ -14,6 +14,7 @@ interface TransactionItemProps {
 }
 
 const TransactionItem = ({ type, amount, date, timestamp, status, description }: TransactionItemProps) => {
+  // Determine if this is an incoming transaction (adding to wallet)
   const isIncoming = type === 'topup';
   
   // Format the date
