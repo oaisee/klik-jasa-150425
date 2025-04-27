@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { VerificationRequest } from '@/types/database';
 import { fetchVerificationRequestsApi, approveVerificationApi, rejectVerificationApi } from '@/api/verificationRequests';
 import { filterVerificationRequests } from '@/utils/verificationFilters';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useVerificationRequests = () => {
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
