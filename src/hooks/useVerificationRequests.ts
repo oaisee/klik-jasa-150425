@@ -21,27 +21,35 @@ export const useVerificationRequests = () => {
     setLoading(loading && showToasts);
     
     try {
-      const { data, error } = await supabase
+      // First fetch the verification requests
+      const { data: requestsData, error: requestsError } = await supabase
         .from('verification_requests')
-        .select(`
-          id,
-          user_id,
-          document_url,
-          document_type,
-          status,
-          notes,
-          created_at,
-          updated_at,
-          profiles:profiles(id, full_name, phone)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
         
-      if (error) {
-        throw error;
+      if (requestsError) {
+        throw requestsError;
       }
 
+      // Then fetch the profiles separately to get user information
+      const userIds = requestsData.map(req => req.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, phone')
+        .in('id', userIds);
+
+      if (profilesError) {
+        throw profilesError;
+      }
+
+      // Create a map of profiles by user_id for easy access
+      const profileMap = (profilesData || []).reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {});
+
       // Transform the data to match our VerificationRequest type
-      const mappedData: VerificationRequest[] = (data || []).map(req => ({
+      const mappedData: VerificationRequest[] = (requestsData || []).map(req => ({
         id: req.id,
         user_id: req.user_id || '',
         document_url: req.document_url,
@@ -50,7 +58,11 @@ export const useVerificationRequests = () => {
         notes: req.notes || undefined,
         created_at: req.created_at || undefined,
         updated_at: req.updated_at || undefined,
-        profile: req.profiles || undefined
+        profile: profileMap[req.user_id] || {
+          id: req.user_id,
+          full_name: 'Unknown User',
+          phone: ''
+        }
       }));
       
       setRequests(mappedData);
