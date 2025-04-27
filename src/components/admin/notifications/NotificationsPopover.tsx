@@ -38,7 +38,7 @@ const NotificationsPopover = () => {
         created_at: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
         read: false,
         type: 'verification',
-        link: '/admin/dashboard?tab=verifications'
+        link: '/admin-dashboard?tab=verifications'
       },
       {
         id: '2',
@@ -47,7 +47,7 @@ const NotificationsPopover = () => {
         created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
         read: true,
         type: 'transaction',
-        link: '/admin/dashboard?tab=transactions'
+        link: '/admin-dashboard?tab=transactions'
       },
       {
         id: '3',
@@ -56,7 +56,7 @@ const NotificationsPopover = () => {
         created_at: new Date(Date.now() - 259200000).toISOString(), // 3 days ago
         read: true,
         type: 'system',
-        link: '/admin/dashboard?tab=settings'
+        link: '/admin-dashboard?tab=settings'
       }
     ];
     
@@ -106,13 +106,24 @@ const NotificationsPopover = () => {
     
     // Navigate to the linked page if provided
     if (link) {
+      // Force a page reload when navigating to the same route with different params
+      if (window.location.pathname === '/admin-dashboard') {
+        const currentParams = new URLSearchParams(window.location.search);
+        const newParams = new URLSearchParams(new URL(link, window.location.origin).search);
+        
+        if (currentParams.get('tab') !== newParams.get('tab')) {
+          // Navigate and trigger a reload to ensure the tab changes
+          window.location.href = link;
+          return;
+        }
+      }
       navigate(link);
     }
   };
 
   const handleViewAll = () => {
     setOpen(false);
-    navigate('/admin/dashboard?tab=notifications');
+    navigate('/admin-dashboard?tab=notifications');
   };
 
   return (

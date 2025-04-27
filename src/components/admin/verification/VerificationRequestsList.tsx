@@ -3,12 +3,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import EmptyState from '@/components/shared/EmptyState';
-import { FileX } from 'lucide-react';
+import { FileX, RefreshCw } from 'lucide-react';
 import VerificationRequestItem from './VerificationRequestItem';
 import ImagePreviewDialog from './ImagePreviewDialog';
 import VerificationFilters from './VerificationFilters';
 import VerificationSummary from './VerificationSummary';
 import { useVerificationRequests } from '@/hooks/useVerificationRequests';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const VerificationRequestsList = () => {
@@ -32,11 +33,12 @@ const VerificationRequestsList = () => {
   
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   // Force refresh on mount
   useEffect(() => {
     console.log('VerificationRequestsList mounted - triggering initial refresh');
-    handleRefresh();
+    handleRefresh().then(() => setInitialized(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -64,19 +66,37 @@ const VerificationRequestsList = () => {
     setStatusFilter('all');
   };
 
+  const handleManualRefresh = () => {
+    toast.info('Menyegarkan data...');
+    handleRefresh();
+  };
+
   // Log data for debugging
   console.log('Verification requests data:', { 
     filteredRequests, 
     loading, 
     hasActiveFilters, 
-    totalRequests: requests.length 
+    totalRequests: requests.length,
+    initialized
   });
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Permintaan Verifikasi</CardTitle>
-        <CardDescription>Mengelola permintaan verifikasi KTP dari calon penyedia jasa</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div>
+          <CardTitle>Permintaan Verifikasi</CardTitle>
+          <CardDescription>Mengelola permintaan verifikasi KTP dari calon penyedia jasa</CardDescription>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={handleManualRefresh}
+          disabled={refreshing || loading}
+          className="flex items-center gap-1"
+        >
+          <RefreshCw size={16} className={`${refreshing ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">{refreshing ? 'Menyegarkan...' : 'Segarkan Data'}</span>
+        </Button>
       </CardHeader>
       
       <CardContent>
@@ -95,7 +115,7 @@ const VerificationRequestsList = () => {
             <LoadingIndicator text="Memuat permintaan verifikasi..." />
           </div>
         ) : filteredRequests.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-4 mt-4">
             {filteredRequests.map((request) => (
               <VerificationRequestItem
                 key={request.id}
@@ -108,7 +128,7 @@ const VerificationRequestsList = () => {
               />
             ))}
           </div>
-        ) : (
+        ) : initialized ? (
           <div className="py-10">
             <EmptyState
               icon={FileX}
@@ -123,6 +143,10 @@ const VerificationRequestsList = () => {
                   : "Tidak ada permintaan verifikasi saat ini"
               }
             />
+          </div>
+        ) : (
+          <div className="py-10">
+            <LoadingIndicator text="Memuat permintaan verifikasi..." />
           </div>
         )}
       </CardContent>

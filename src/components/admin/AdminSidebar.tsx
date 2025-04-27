@@ -40,18 +40,20 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   
   const fetchPendingVerifications = async () => {
     try {
-      const { count, error } = await supabase
+      console.log('Fetching pending verification requests...');
+      const { data, error } = await supabase
         .from('verification_requests')
-        .select('*', { count: 'exact', head: true })
+        .select('id')
         .eq('status', 'pending');
       
-      if (error) throw error;
-      
-      console.log('AdminSidebar: Pending verification count:', count);
-      
-      if (count !== null) {
-        setPendingVerifications(count);
+      if (error) {
+        console.error('Error fetching pending verifications:', error);
+        throw error;
       }
+      
+      const count = data?.length || 0;
+      console.log('AdminSidebar: Pending verification count:', count);
+      setPendingVerifications(count);
     } catch (error) {
       console.error('Error fetching verification requests:', error);
     }
@@ -61,6 +63,11 @@ const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
     setActiveTab(tab);
     // Ensure we're using the correct route format with hyphen instead of slash
     navigate(`/admin-dashboard?tab=${tab}`);
+    
+    // If navigating to verifications tab, refresh the data
+    if (tab === 'verifications') {
+      fetchPendingVerifications();
+    }
   };
   
   const handleSignOut = async () => {

@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { VerificationRequest } from '@/types/database';
-import { fetchVerificationRequestsApi, approveVerificationApi, rejectVerificationApi } from '@/api/verificationRequests';
 import { filterVerificationRequests } from '@/utils/verificationFilters';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -25,19 +24,33 @@ export const useVerificationRequests = () => {
       const { data, error } = await supabase
         .from('verification_requests')
         .select(`
-          *,
-          profile:profiles(id, full_name, phone)
+          id,
+          user_id,
+          document_url,
+          document_type,
+          status,
+          notes,
+          created_at,
+          updated_at,
+          profiles:profiles(id, full_name, phone)
         `)
         .order('created_at', { ascending: false });
         
       if (error) {
         throw error;
       }
-      
-      // Map the data to include profile information
-      const mappedData = (data || []).map(req => ({
-        ...req,
-        profile: req.profile || undefined
+
+      // Transform the data to match our VerificationRequest type
+      const mappedData: VerificationRequest[] = (data || []).map(req => ({
+        id: req.id,
+        user_id: req.user_id || '',
+        document_url: req.document_url,
+        document_type: req.document_type,
+        status: (req.status as 'pending' | 'approved' | 'rejected'),
+        notes: req.notes || undefined,
+        created_at: req.created_at || undefined,
+        updated_at: req.updated_at || undefined,
+        profile: req.profiles || undefined
       }));
       
       setRequests(mappedData);
@@ -102,7 +115,29 @@ export const useVerificationRequests = () => {
         throw new Error('Request not found');
       }
       
-      await approveVerificationApi(id, requestData.user_id);
+      // Update verification request status
+      const { error: verificationError } = await supabase
+        .from('verification_requests')
+        .update({ 
+          status: 'approved',
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', id);
+
+      if (verificationError) {
+        throw verificationError;
+      }
+      
+      // Update user profile to mark as provider
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ is_provider: true })
+        .eq('id', requestData.user_id);
+
+      if (profileError) {
+        throw profileError;
+      }
+      
       toast.success('Verifikasi berhasil disetujui');
       fetchVerificationRequests();
     } catch (error) {
@@ -116,7 +151,19 @@ export const useVerificationRequests = () => {
   const handleReject = async (id: string, notes?: string) => {
     setProcessingId(id);
     try {
-      await rejectVerificationApi(id, notes);
+      const { error } = await supabase
+        .from('verification_requests')
+        .update({ 
+          status: 'rejected',
+          notes: notes || null,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+      
       toast.success('Verifikasi berhasil ditolak');
       fetchVerificationRequests();
     } catch (error) {
