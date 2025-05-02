@@ -1,18 +1,10 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-export interface VerificationStats {
-  total: number;
-  pending: number;
-  approved: number;
-  rejected: number;
-  lastWeek: number;
-}
+import { fetchVerificationStatsApi, VerificationStatsData } from '@/api/verificationStats';
 
 export const useVerificationStats = () => {
-  const [stats, setStats] = useState<VerificationStats>({
+  const [stats, setStats] = useState<VerificationStatsData>({
     total: 0,
     pending: 0,
     approved: 0,
@@ -25,30 +17,14 @@ export const useVerificationStats = () => {
   const fetchStats = async (showToasts = true) => {
     setRefreshing(true);
     try {
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-      const oneWeekAgoStr = oneWeekAgo.toISOString();
-
-      const { data, error } = await supabase
-        .from('verification_requests')
-        .select('id, status, created_at');
+      const statsData = await fetchVerificationStatsApi();
+      setStats(statsData);
       
-      if (error) throw error;
-      
-      if (data) {
-        const total = data.length;
-        const pending = data.filter(req => req.status === 'pending').length;
-        const approved = data.filter(req => req.status === 'approved').length;
-        const rejected = data.filter(req => req.status === 'rejected').length;
-        const lastWeek = data.filter(req => req.created_at >= oneWeekAgoStr).length;
-        
-        setStats({ total, pending, approved, rejected, lastWeek });
-        if (showToasts) {
-          toast.success('Statistik berhasil dimuat');
-        }
+      if (showToasts) {
+        toast.success('Statistik berhasil dimuat');
       }
     } catch (error) {
-      console.error('Error fetching verification stats:', error);
+      console.error('Error in fetchStats:', error);
       if (showToasts) {
         toast.error('Gagal memuat statistik');
       }
@@ -65,3 +41,5 @@ export const useVerificationStats = () => {
     fetchStats
   };
 };
+
+export type { VerificationStatsData } from '@/api/verificationStats';
