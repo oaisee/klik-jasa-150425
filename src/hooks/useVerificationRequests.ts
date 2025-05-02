@@ -3,7 +3,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { VerificationRequest } from '@/types/database';
 import { filterVerificationRequests } from '@/utils/verificationFilters';
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  fetchVerificationRequestsApi,
+  approveVerificationApi,
+  rejectVerificationApi
+} from '@/api/verificationRequests';
 
 export const useVerificationRequests = () => {
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
@@ -21,49 +25,7 @@ export const useVerificationRequests = () => {
     setLoading(loading && showToasts);
     
     try {
-      // First fetch the verification requests
-      const { data: requestsData, error: requestsError } = await supabase
-        .from('verification_requests')
-        .select('*')
-        .order('created_at', { ascending: false });
-        
-      if (requestsError) {
-        throw requestsError;
-      }
-
-      // Then fetch the profiles separately to get user information
-      const userIds = requestsData.map(req => req.user_id);
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, phone')
-        .in('id', userIds);
-
-      if (profilesError) {
-        throw profilesError;
-      }
-
-      // Create a map of profiles by user_id for easy access
-      const profileMap = (profilesData || []).reduce((acc, profile) => {
-        acc[profile.id] = profile;
-        return acc;
-      }, {});
-
-      // Transform the data to match our VerificationRequest type
-      const mappedData: VerificationRequest[] = (requestsData || []).map(req => ({
-        id: req.id,
-        user_id: req.user_id || '',
-        document_url: req.document_url,
-        document_type: req.document_type,
-        status: (req.status as 'pending' | 'approved' | 'rejected'),
-        notes: req.notes || undefined,
-        created_at: req.created_at || undefined,
-        updated_at: req.updated_at || undefined,
-        profile: profileMap[req.user_id] || {
-          id: req.user_id,
-          full_name: 'Unknown User',
-          phone: ''
-        }
-      }));
+      const mappedData = await fetchVerificationRequestsApi();
       
       setRequests(mappedData);
       setFilteredRequests(mappedData);
@@ -127,31 +89,10 @@ export const useVerificationRequests = () => {
         throw new Error('Request not found');
       }
       
-      // Update verification request status
-      const { error: verificationError } = await supabase
-        .from('verification_requests')
-        .update({ 
-          status: 'approved',
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', id);
-
-      if (verificationError) {
-        throw verificationError;
-      }
-      
-      // Update user profile to mark as provider
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ is_provider: true })
-        .eq('id', requestData.user_id);
-
-      if (profileError) {
-        throw profileError;
-      }
+      await approveVerificationApi(id, requestData.user_id);
       
       toast.success('Verifikasi berhasil disetujui');
-      fetchVerificationRequests();
+      await fetchVerificationRequests();
     } catch (error) {
       console.error('Error approving verification:', error);
       toast.error('Gagal menyetujui verifikasi');
@@ -163,21 +104,10 @@ export const useVerificationRequests = () => {
   const handleReject = async (id: string, notes?: string) => {
     setProcessingId(id);
     try {
-      const { error } = await supabase
-        .from('verification_requests')
-        .update({ 
-          status: 'rejected',
-          notes: notes || null,
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
+      await rejectVerificationApi(id, notes);
       
       toast.success('Verifikasi berhasil ditolak');
-      fetchVerificationRequests();
+      await fetchVerificationRequests();
     } catch (error) {
       console.error('Error rejecting verification:', error);
       toast.error('Gagal menolak verifikasi');

@@ -6,29 +6,68 @@ import { toast } from 'sonner';
 export const fetchVerificationRequestsApi = async () => {
   console.log('Fetching verification requests');
   
-  const { data, error } = await supabase
-    .from('verification_requests')
-    .select(`
-      *,
-      profile:profiles(id, full_name, phone)
-    `)
-    .order('created_at', { ascending: false });
+  try {
+    // First fetch the verification requests
+    const { data: requestsData, error: requestsError } = await supabase
+      .from('verification_requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (requestsError) {
+      throw requestsError;
+    }
 
-  if (error) {
+    // Then fetch the profiles separately to get user information
+    const userIds = requestsData.map(req => req.user_id);
+    
+    // Only fetch profiles if there are verification requests
+    if (userIds.length === 0) {
+      return [];
+    }
+    
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, phone')
+      .in('id', userIds);
+
+    if (profilesError) {
+      throw profilesError;
+    }
+
+    // Create a map of profiles by user_id for easy access
+    const profileMap = (profilesData || []).reduce((acc, profile) => {
+      acc[profile.id] = profile;
+      return acc;
+    }, {});
+
+    // Transform the data to match our VerificationRequest type
+    const mappedData: VerificationRequest[] = (requestsData || []).map(req => ({
+      id: req.id,
+      user_id: req.user_id || '',
+      document_url: req.document_url,
+      document_type: req.document_type,
+      status: (req.status as 'pending' | 'approved' | 'rejected'),
+      notes: req.notes || undefined,
+      created_at: req.created_at || undefined,
+      updated_at: req.updated_at || undefined,
+      profile: profileMap[req.user_id] || {
+        id: req.user_id,
+        full_name: 'Unknown User',
+        phone: ''
+      }
+    }));
+    
+    return mappedData;
+  } catch (error) {
     console.error('Error fetching verification requests:', error);
     throw error;
   }
-  
-  return (data || []).map(req => ({
-    ...req,
-    profile: req.profile || undefined
-  })) as VerificationRequest[];
 };
 
 export const approveVerificationApi = async (id: string, userId: string) => {
   console.log('Approving verification request:', id);
   
-  // Update verification status to approved
+  // Update verification request status to approved
   const { error: verificationError } = await supabase
     .from('verification_requests')
     .update({ 
