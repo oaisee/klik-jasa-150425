@@ -64,6 +64,23 @@ export const useKtpVerification = ({
       
       console.log('Uploading to bucket: verifications, path:', filePath);
       
+      // Check if the bucket exists first
+      const { data: buckets, error: bucketError } = await supabase.storage
+        .listBuckets();
+        
+      if (bucketError) {
+        console.error('Error checking buckets:', bucketError);
+        throw new Error('Gagal memeriksa storage bucket. Silakan coba lagi.');
+      }
+      
+      const verificationsBucketExists = buckets?.some(bucket => bucket.name === 'verifications');
+      
+      if (!verificationsBucketExists) {
+        console.error('Verifications bucket does not exist');
+        throw new Error('Bucket penyimpanan verifikasi tidak tersedia. Silakan hubungi administrator.');
+      }
+      
+      // Proceed with upload
       const { error: storageError, data: uploadData } = await supabase.storage
         .from('verifications')
         .upload(filePath, selectedFile, {
