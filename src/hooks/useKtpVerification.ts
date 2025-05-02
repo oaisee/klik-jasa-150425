@@ -57,28 +57,29 @@ export const useKtpVerification = ({
         }
       }
       
-      // Upload KTP to verifications storage bucket
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `ktp/${fileName}`;
-      
-      console.log('Uploading to bucket: verifications, path:', filePath);
-      
-      // Check if the bucket exists first
-      const { data: buckets, error: bucketError } = await supabase.storage
+      // Check if the 'verifications' bucket exists
+      console.log('Checking if verifications bucket exists...');
+      const { data: buckets, error: bucketListError } = await supabase.storage
         .listBuckets();
         
-      if (bucketError) {
-        console.error('Error checking buckets:', bucketError);
+      if (bucketListError) {
+        console.error('Error checking buckets:', bucketListError);
         throw new Error('Gagal memeriksa storage bucket. Silakan coba lagi.');
       }
       
       const verificationsBucketExists = buckets?.some(bucket => bucket.name === 'verifications');
       
       if (!verificationsBucketExists) {
-        console.error('Verifications bucket does not exist');
+        console.error('Verifications bucket does not exist, this should have been created during setup');
         throw new Error('Bucket penyimpanan verifikasi tidak tersedia. Silakan hubungi administrator.');
       }
+      
+      // Upload KTP to verifications storage bucket
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${userId}-${Date.now()}.${fileExt}`;
+      const filePath = `ktp/${fileName}`;
+      
+      console.log('Uploading to bucket: verifications, path:', filePath);
       
       // Proceed with upload
       const { error: storageError, data: uploadData } = await supabase.storage
@@ -95,22 +96,35 @@ export const useKtpVerification = ({
       
       console.log('Upload successful, getting public URL');
       
-      const { data: urlData } = supabase.storage
+      // Try to get a signed URL first (for better security and guaranteed access)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('verifications')
-        .getPublicUrl(filePath);
-      
-      if (!urlData || !urlData.publicUrl) {
-        throw new Error("Gagal mendapatkan URL publik untuk file.");
+        .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
+        
+      let documentUrl;
+      if (signedUrlData && !signedUrlError) {
+        documentUrl = signedUrlData.signedUrl;
+        console.log('Using signed URL for verification record:', documentUrl);
+      } else {
+        // Fall back to public URL if signed URL fails
+        const { data: publicUrlData } = supabase.storage
+          .from('verifications')
+          .getPublicUrl(filePath);
+        
+        documentUrl = publicUrlData?.publicUrl;
+        console.log('Using public URL for verification record:', documentUrl);
       }
       
-      console.log('Public URL:', urlData.publicUrl);
+      if (!documentUrl) {
+        throw new Error("Gagal mendapatkan URL untuk file.");
+      }
       
       // Create verification request record
       const { error: dbError } = await supabase
         .from('verification_requests')
         .insert({
           user_id: userId,
-          document_url: urlData.publicUrl,
+          document_url: documentUrl,
           status: 'pending',
           document_type: 'ktp'
         });
