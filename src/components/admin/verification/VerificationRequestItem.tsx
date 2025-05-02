@@ -43,6 +43,7 @@ const VerificationRequestItem = ({
         requestId={request.id}
         status={request.status}
         userName={request.profile?.full_name || 'pengguna ini'}
+        documentUrl={request.document_url}
         processingId={processingId}
         onPreviewImage={() => onPreviewImage(request.document_url)}
         onApprove={onApprove}

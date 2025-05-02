@@ -41,21 +41,31 @@ export const fetchVerificationRequestsApi = async () => {
     }, {});
 
     // Transform the data to match our VerificationRequest type
-    const mappedData: VerificationRequest[] = (requestsData || []).map(req => ({
-      id: req.id,
-      user_id: req.user_id || '',
-      document_url: req.document_url,
-      document_type: req.document_type,
-      status: (req.status as 'pending' | 'approved' | 'rejected'),
-      notes: req.notes || undefined,
-      created_at: req.created_at || undefined,
-      updated_at: req.updated_at || undefined,
-      profile: profileMap[req.user_id] || {
-        id: req.user_id,
-        full_name: 'Unknown User',
-        phone: ''
+    const mappedData: VerificationRequest[] = (requestsData || []).map(req => {
+      // Ensure document_url is properly formed
+      let documentUrl = req.document_url;
+      
+      // Log any potentially problematic URLs for debugging
+      if (!documentUrl || documentUrl.trim() === '') {
+        console.warn(`Empty document URL for request ID ${req.id}`);
       }
-    }));
+      
+      return {
+        id: req.id,
+        user_id: req.user_id || '',
+        document_url: documentUrl,
+        document_type: req.document_type,
+        status: (req.status as 'pending' | 'approved' | 'rejected'),
+        notes: req.notes || undefined,
+        created_at: req.created_at || undefined,
+        updated_at: req.updated_at || undefined,
+        profile: profileMap[req.user_id] || {
+          id: req.user_id,
+          full_name: 'Unknown User',
+          phone: ''
+        }
+      };
+    });
     
     return mappedData;
   } catch (error) {

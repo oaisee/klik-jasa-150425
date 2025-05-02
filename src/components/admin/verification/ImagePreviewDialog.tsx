@@ -2,8 +2,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState, useEffect } from 'react';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
-import { AlertTriangle, ZoomIn, ZoomOut } from 'lucide-react';
+import { AlertTriangle, ZoomIn, ZoomOut, RefreshCw, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface ImagePreviewDialogProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [zoom, setZoom] = useState(100); // Zoom percentage
+  const [retryCount, setRetryCount] = useState(0);
 
   // Reset loading, error, and zoom state when dialog opens or image changes
   useEffect(() => {
@@ -33,6 +35,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   const handleImageError = () => {
     setLoading(false);
     setError(true);
+    console.error(`Failed to load image from URL: ${imageUrl}`);
   };
 
   const handleZoomIn = () => {
@@ -42,6 +45,24 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   const handleZoomOut = () => {
     setZoom(prev => Math.max(prev - 20, 60));
   };
+
+  const handleRetry = () => {
+    if (!imageUrl) return;
+    
+    setLoading(true);
+    setError(false);
+    setRetryCount(count => count + 1);
+    
+    // Add a cache-busting parameter to force reload
+    toast.info("Mencoba memuat ulang gambar...");
+  };
+
+  // Check if the URL is a valid supabase storage URL and could be transformed
+  const possiblySupabaseStorageUrl = imageUrl && (
+    imageUrl.includes('storage.googleapis.com') || 
+    imageUrl.includes('supabase') ||
+    imageUrl.includes('storage.app')
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -65,19 +86,37 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
                 <div className="flex flex-col justify-center items-center h-[70vh] w-full text-red-500">
                   <AlertTriangle size={32} />
                   <p className="mt-2 font-medium">Gagal memuat gambar</p>
-                  <p className="text-sm text-gray-500 mt-1">URL mungkin tidak valid atau gambar telah dihapus.</p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => window.open(imageUrl, '_blank')}
-                  >
-                    Buka URL Langsung
-                  </Button>
+                  <p className="text-sm text-gray-500 mt-1 text-center max-w-md">
+                    URL mungkin tidak valid atau gambar telah dihapus.
+                    {possiblySupabaseStorageUrl && (
+                      <span className="block mt-1">
+                        Dokumen mungkin memerlukan autentikasi atau telah kedaluwarsa.
+                      </span>
+                    )}
+                  </p>
+                  
+                  <div className="flex gap-2 mt-4">
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-1"
+                      onClick={handleRetry}
+                    >
+                      <RefreshCw size={16} /> Coba Lagi
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
+                      className="flex items-center gap-1"
+                      onClick={() => window.open(imageUrl, '_blank')}
+                    >
+                      <ExternalLink size={16} /> Buka di Tab Baru
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="overflow-auto max-h-[70vh] relative">
                   <img 
-                    src={imageUrl} 
+                    src={`${imageUrl}${retryCount > 0 ? `?_cb=${Date.now()}` : ''}`}
                     alt="KTP Document" 
                     className={`mx-auto object-contain transition-transform duration-200 ${loading ? 'hidden' : 'block'}`}
                     style={{ transform: `scale(${zoom / 100})` }}

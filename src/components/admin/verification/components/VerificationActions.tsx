@@ -10,6 +10,7 @@ interface VerificationActionsProps {
   requestId: string;
   status: string;
   userName: string;
+  documentUrl: string;
   processingId: string | null;
   onPreviewImage: () => void;
   onApprove: (id: string) => Promise<void>;
@@ -21,6 +22,7 @@ const VerificationActions = ({
   requestId,
   status,
   userName,
+  documentUrl,
   processingId,
   onPreviewImage,
   onApprove,
@@ -69,6 +71,7 @@ const VerificationActions = ({
           onPreviewImage={onPreviewImage}
           isPreviewLoading={isPreviewLoading}
           isDisabled={isDisabled}
+          documentUrl={documentUrl}
         />
         
         {status === 'pending' && (

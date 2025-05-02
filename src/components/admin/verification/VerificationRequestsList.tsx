@@ -44,20 +44,20 @@ const VerificationRequestsList = () => {
 
   const handleOpenImagePreview = (url: string) => {
     console.log('Opening image preview with URL:', url);
+    
+    if (!url || url.trim() === '') {
+      toast.error('URL dokumen tidak valid');
+      return;
+    }
+    
     setIsPreviewLoading(true);
-    // Preload the image to avoid flickering
-    const img = new Image();
-    img.onload = () => {
+    setPreviewImage(url);
+    
+    // We'll let the ImagePreviewDialog component handle the loading state
+    // This helps with race conditions between setting states
+    setTimeout(() => {
       setIsPreviewLoading(false);
-      setPreviewImage(url);
-    };
-    img.onerror = () => {
-      setIsPreviewLoading(false);
-      toast.error('Gagal memuat gambar dokumen');
-      // Still open the dialog to show the error state
-      setPreviewImage(url);
-    };
-    img.src = url;
+    }, 300);
   };
 
   const handleCloseImagePreview = () => {

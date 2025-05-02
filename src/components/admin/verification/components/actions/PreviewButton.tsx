@@ -6,9 +6,17 @@ interface PreviewButtonProps {
   onPreviewImage: () => void;
   isPreviewLoading?: boolean;
   isDisabled: boolean;
+  documentUrl?: string;
 }
 
-const PreviewButton = ({ onPreviewImage, isPreviewLoading, isDisabled }: PreviewButtonProps) => {
+const PreviewButton = ({ 
+  onPreviewImage, 
+  isPreviewLoading, 
+  isDisabled,
+  documentUrl 
+}: PreviewButtonProps) => {
+  const hasDocument = documentUrl && documentUrl.trim() !== '';
+
   return (
     <Button 
       variant="outline" 
@@ -19,7 +27,8 @@ const PreviewButton = ({ onPreviewImage, isPreviewLoading, isDisabled }: Preview
         e.stopPropagation();
         onPreviewImage();
       }}
-      disabled={isPreviewLoading || isDisabled}
+      disabled={isPreviewLoading || isDisabled || !hasDocument}
+      title={!hasDocument ? "Dokumen tidak tersedia" : "Lihat dokumen KTP"}
     >
       {isPreviewLoading ? (
         <>
