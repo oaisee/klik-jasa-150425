@@ -22,10 +22,6 @@ const VerificationRequestItem = ({
   processingId,
   isPreviewLoading = false
 }: VerificationRequestItemProps) => {
-  const handlePreviewImage = () => {
-    onPreviewImage(request.document_url);
-  };
-
   return (
     <div className="border rounded-lg p-4 bg-white hover:shadow-sm transition-shadow">
       <div className="flex justify-between items-start mb-2">
@@ -48,7 +44,7 @@ const VerificationRequestItem = ({
         status={request.status}
         userName={request.profile?.full_name || 'pengguna ini'}
         processingId={processingId}
-        onPreviewImage={handlePreviewImage}
+        onPreviewImage={() => onPreviewImage(request.document_url)}
         onApprove={onApprove}
         onReject={onReject}
         isPreviewLoading={isPreviewLoading}

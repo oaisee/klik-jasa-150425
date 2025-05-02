@@ -43,6 +43,7 @@ const VerificationRequestsList = () => {
   }, []);
 
   const handleOpenImagePreview = (url: string) => {
+    console.log('Opening image preview with URL:', url);
     setIsPreviewLoading(true);
     // Preload the image to avoid flickering
     const img = new Image();
@@ -53,6 +54,8 @@ const VerificationRequestsList = () => {
     img.onerror = () => {
       setIsPreviewLoading(false);
       toast.error('Gagal memuat gambar dokumen');
+      // Still open the dialog to show the error state
+      setPreviewImage(url);
     };
     img.src = url;
   };
@@ -122,9 +125,9 @@ const VerificationRequestsList = () => {
                 request={request}
                 onApprove={handleApprove}
                 onReject={handleReject}
-                onPreviewImage={() => handleOpenImagePreview(request.document_url)}
+                onPreviewImage={handleOpenImagePreview}
                 processingId={processingId}
-                isPreviewLoading={isPreviewLoading}
+                isPreviewLoading={isPreviewLoading && previewImage === request.document_url}
               />
             ))}
           </div>
@@ -160,6 +163,7 @@ const VerificationRequestsList = () => {
         />
       </CardFooter>
 
+      {/* Image Preview Dialog */}
       <ImagePreviewDialog
         isOpen={!!previewImage}
         onClose={handleCloseImagePreview}

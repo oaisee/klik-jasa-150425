@@ -14,7 +14,11 @@ const PreviewButton = ({ onPreviewImage, isPreviewLoading, isDisabled }: Preview
       variant="outline" 
       size="sm" 
       className="text-xs flex items-center gap-1"
-      onClick={onPreviewImage}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onPreviewImage();
+      }}
       disabled={isPreviewLoading || isDisabled}
     >
       {isPreviewLoading ? (
