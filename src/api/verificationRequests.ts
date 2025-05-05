@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { VerificationRequest } from '@/types/database';
 import { toast } from 'sonner';
@@ -44,12 +45,14 @@ export const fetchVerificationRequestsApi = async () => {
       // Ensure we have a valid document URL
       let documentUrl = req.document_url || '';
       
-      // Strip any existing query parameters
-      const baseUrl = documentUrl.split('?')[0];
-      
-      // Add fresh timestamp to prevent caching
-      const timestamp = Date.now();
-      documentUrl = `${baseUrl}?t=${timestamp}`;
+      // Check if this is a Supabase storage URL
+      if (documentUrl && documentUrl.includes('/storage/v1/object/public/')) {
+        // Already a Supabase URL, just add timestamp to prevent caching
+        const timestamp = Date.now();
+        documentUrl = documentUrl.includes('?') 
+          ? `${documentUrl}&t=${timestamp}` 
+          : `${documentUrl}?t=${timestamp}`;
+      }
       
       return {
         id: req.id,

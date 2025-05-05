@@ -39,7 +39,20 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
     
     try {
       // Fetch the image
-      const response = await fetch(processingUrl);
+      const timestamp = Date.now();
+      const cacheBustedUrl = processingUrl.includes('?') 
+        ? `${processingUrl}&cb=${timestamp}` 
+        : `${processingUrl}?cb=${timestamp}`;
+        
+      const response = await fetch(cacheBustedUrl, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+      
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }

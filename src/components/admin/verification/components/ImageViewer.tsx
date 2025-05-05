@@ -4,6 +4,7 @@ import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import ImageViewerControls from './ImageViewerControls';
 import ImageErrorState from './ImageErrorState';
 import { useSupabaseImage } from '@/hooks/useSupabaseImage';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ImageViewerProps {
   imageUrl: string | null;
@@ -12,7 +13,7 @@ interface ImageViewerProps {
 const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   const [zoom, setZoom] = useState(100);
   const [loadedSuccessfully, setLoadedSuccessfully] = useState(false);
-  const [containerHeight, setContainerHeight] = useState(300);
+  const [containerHeight, setContainerHeight] = useState(400); // Increased default height
   const imgRef = useRef<HTMLImageElement>(null);
   
   const { imageData, loading, error, retryCount, handleRetry } = useSupabaseImage(imageUrl);
@@ -21,7 +22,9 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   useEffect(() => {
     setZoom(100);
     setLoadedSuccessfully(false);
-    setContainerHeight(300); // Reset to default height
+    setContainerHeight(400); // Reset to default height
+    
+    console.log("Image URL or retry count changed:", imageUrl, "retry:", retryCount);
   }, [imageUrl, retryCount]);
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -31,9 +34,10 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
     // Set container height based on image size
     const imgElement = e.currentTarget;
     if (imgElement.naturalHeight) {
-      // Set minimum height of 300px or the image height, whichever is larger
-      const newHeight = Math.max(imgElement.naturalHeight, 300);
+      // Set minimum height of 400px or the image height + padding, whichever is larger
+      const newHeight = Math.max(imgElement.naturalHeight + 80, 400);
       setContainerHeight(newHeight);
+      console.log("Setting container height to:", newHeight);
     }
   };
 
@@ -52,7 +56,7 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
 
   if (!imageUrl) {
     return (
-      <div className="flex flex-col justify-center items-center h-[70vh] w-full text-gray-500">
+      <div className="flex flex-col justify-center items-center h-[400px] w-full text-gray-500">
         <p>Tidak ada URL gambar yang valid</p>
       </div>
     );
@@ -60,8 +64,11 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-[70vh] w-full">
-        <LoadingIndicator size="lg" text="Memuat gambar..." />
+      <div className="flex justify-center items-center h-[400px] w-full">
+        <div className="text-center">
+          <LoadingIndicator size="lg" text="Memuat gambar..." />
+          <p className="text-xs text-gray-500 mt-4">URL: {imageUrl.substring(0, 50)}...</p>
+        </div>
       </div>
     );
   }
@@ -80,17 +87,28 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
     <div 
       className="relative overflow-auto bg-gray-100"
       style={{ 
-        minHeight: `${containerHeight}px`, 
+        height: `${containerHeight}px`, 
+        minHeight: '400px',
         maxHeight: '70vh' 
       }}
     >
       {!loadedSuccessfully && !loading && !error && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center flex-col">
           <LoadingIndicator size="lg" text="Memproses gambar..." />
+          <div className="max-w-md px-4 text-center">
+            <p className="text-xs text-gray-500 mt-4 break-words">
+              Memproses gambar dari: {imageUrl.substring(0, 50)}...
+            </p>
+          </div>
         </div>
       )}
       
-      <div className="flex justify-center items-center min-h-[300px] p-4">
+      <div className="flex justify-center items-center min-h-[400px] p-4">
+        {/* Use a loading skeleton while image is loading */}
+        {!loadedSuccessfully && (
+          <Skeleton className="w-4/5 h-4/5 max-w-xl" />
+        )}
+        
         <img 
           ref={imgRef}
           src={imageData}

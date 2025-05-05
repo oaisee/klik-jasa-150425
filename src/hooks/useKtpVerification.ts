@@ -25,6 +25,19 @@ export const useKtpVerification = ({
     setErrorMessage(null);
     
     try {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!validTypes.includes(selectedFile.type)) {
+        throw new Error("Format file tidak valid. Gunakan file JPG atau PNG.");
+      }
+      
+      // Validate file size (max 5MB)
+      if (selectedFile.size > 5 * 1024 * 1024) {
+        throw new Error("Ukuran file terlalu besar. Maksimal 5MB.");
+      }
+      
+      console.log("File selected for upload:", selectedFile.name, "Size:", selectedFile.size, "Type:", selectedFile.type);
+      
       // Step 1: Check for existing verification requests
       const { hasApproved, hasPending } = await checkExistingVerifications(userId);
       
@@ -41,7 +54,7 @@ export const useKtpVerification = ({
       const timestamp = Date.now();
       const fileName = `ktp/${userId}-${timestamp}.${fileExt}`;
       
-      console.log("Uploading file:", fileName, "Size:", selectedFile.size, "Type:", selectedFile.type);
+      console.log("Uploading file:", fileName);
       
       // Step 3: Ensure the verifications bucket exists
       const bucketReady = await ensureBucketExists('verifications');
@@ -52,8 +65,10 @@ export const useKtpVerification = ({
       // Step 4: Upload KTP to verifications storage bucket
       const documentUrl = await uploadFileToBucket('verifications', fileName, selectedFile);
       if (!documentUrl) {
-        throw new Error("Gagal mendapatkan URL untuk file.");
+        throw new Error("Gagal mendapatkan URL untuk file. Pastikan file dapat diupload.");
       }
+      
+      console.log("Successfully uploaded to URL:", documentUrl);
       
       // Step 5: Create verification request record in database
       const requestCreated = await createVerificationRequest(userId, documentUrl);
