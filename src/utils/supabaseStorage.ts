@@ -32,15 +32,9 @@ export const ensureBucketExists = async (bucketName: string): Promise<boolean> =
         return false;
       }
       
-      // Set security policies for the bucket (allow public access for reading)
-      try {
-        const { error: policyError } = await supabase.storage.from(bucketName).setPublic();
-        if (policyError) {
-          console.error(`Error setting ${bucketName} bucket public:`, policyError);
-        }
-      } catch (policyError) {
-        console.error(`Error setting bucket policies:`, policyError);
-      }
+      // Set bucket policies - removing the setPublic() call since it doesn't exist
+      // The bucket is already public because we set public: true when creating it
+      console.log(`${bucketName} bucket created successfully with public access`);
     }
     
     return true;
