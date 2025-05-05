@@ -16,47 +16,47 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   const [retryCount, setRetryCount] = useState(0);
   const [directUrl, setDirectUrl] = useState<string | null>(null);
 
-  const handleDirectImageLoad = async (url: string | null) => {
+  const getSafeImageUrl = async (url: string | null) => {
     if (!url) return null;
     
     try {
-      // If the URL already contains the bucket name, extract it
-      const bucketMatch = url.match(/\/([^\/]+)\/([^\/]+)\/(.*)/);
-      if (!bucketMatch) return url;
+      // Extract bucket name and path from URL
+      // Format: https://pnkdbkjwrcnghhgmhzue.supabase.co/storage/v1/object/public/[bucket]/[path]
+      const urlParts = url.split('/public/');
+      if (urlParts.length !== 2) return url;
       
-      const bucket = bucketMatch[2];
-      const path = bucketMatch[3];
+      const [prefix, pathWithBucket] = urlParts;
+      const [bucket, ...pathParts] = pathWithBucket.split('/');
+      const path = pathParts.join('/');
       
-      console.log("Fetching direct URL from Supabase for bucket:", bucket, "path:", path);
+      console.log("Fetching from bucket:", bucket, "path:", path);
       
-      // Use Supabase storage API to get a fresh URL with current time to avoid cache issues
+      // Get a fresh URL with a timestamp to avoid caching issues
       const { data } = supabase.storage
         .from(bucket)
         .getPublicUrl(path, {
-          download: false,
           transform: {
-            width: 1200,
-            quality: 80,
+            quality: 90,
           }
         });
       
       if (data?.publicUrl) {
-        console.log("Got direct public URL:", data.publicUrl);
-        // Add cache-busting parameter
-        const cacheBuster = `?t=${Date.now()}`;
+        const timestamp = new Date().getTime();
+        const cacheBuster = `?t=${timestamp}`;
         return data.publicUrl + cacheBuster;
       }
+      
+      // If extraction failed, add cache buster to original URL
+      return url + `?t=${new Date().getTime()}`;
     } catch (err) {
-      console.error("Error getting direct URL:", err);
+      console.error("Error generating safe image URL:", err);
+      // Return original URL with cache buster as fallback
+      return url + `?t=${new Date().getTime()}`;
     }
-    
-    // Fallback to original URL with cache buster
-    const cacheBuster = `?t=${Date.now()}`;
-    return url + cacheBuster;
   };
 
   useEffect(() => {
-    const loadDirectUrl = async () => {
+    const loadImage = async () => {
       if (!imageUrl) {
         setDirectUrl(null);
         setLoading(false);
@@ -64,22 +64,23 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
       }
       
       setLoading(true);
+      setError(false);
       
       try {
-        const url = await handleDirectImageLoad(imageUrl);
-        setDirectUrl(url);
+        const safeUrl = await getSafeImageUrl(imageUrl);
+        console.log("Generated safe URL:", safeUrl);
+        setDirectUrl(safeUrl);
       } catch (error) {
         console.error("Failed to get direct URL:", error);
         setError(true);
-      } finally {
-        setLoading(false);
       }
     };
     
-    loadDirectUrl();
+    loadImage();
   }, [imageUrl, retryCount]);
 
   const handleImageLoad = () => {
+    console.log("Image loaded successfully");
     setLoading(false);
     setError(false);
   };
@@ -99,6 +100,7 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   };
 
   const handleRetry = () => {
+    console.log("Retrying image load");
     setRetryCount(count => count + 1);
     setLoading(true);
     setError(false);
@@ -123,7 +125,7 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   if (error) {
     return <ImageErrorState 
       onRetry={handleRetry} 
-      retryCount={retryCount} 
+      retryCount={retryCount}
       publicUrl={directUrl || imageUrl}
     />;
   }

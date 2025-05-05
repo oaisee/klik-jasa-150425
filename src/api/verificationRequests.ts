@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { VerificationRequest } from '@/types/database';
 import { toast } from 'sonner';
@@ -34,7 +35,7 @@ export const fetchVerificationRequestsApi = async () => {
     }
 
     // Create a map of profiles by user_id for easy access
-    const profileMap = (profilesData || []).reduce((acc, profile) => {
+    const profileMap = (profilesData || []).reduce((acc: Record<string, any>, profile) => {
       acc[profile.id] = profile;
       return acc;
     }, {});
