@@ -18,18 +18,18 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   const [imageData, setImageData] = useState<string | null>(null);
 
   // Directly fetch the image using the Supabase storage API
-  const fetchImageDirectly = async (url: string) => {
+  const fetchImageDirectly = async (imageUrl: string) => {
     try {
       setLoading(true);
       setError(false);
       
-      console.log("Attempting to fetch image from URL:", url);
+      console.log("Attempting to fetch image from URL:", imageUrl);
       
       // Extract path from Supabase URL
       // Format: https://[project-ref].supabase.co/storage/v1/object/public/[bucket]/[path]
-      const urlParts = url.split('/public/');
+      const urlParts = imageUrl.split('/public/');
       if (urlParts.length !== 2) {
-        console.error("Invalid Supabase URL format:", url);
+        console.error("Invalid Supabase URL format:", imageUrl);
         throw new Error("Invalid URL format");
       }
       
@@ -56,10 +56,10 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
       }
       
       // Convert blob to data URL
-      const url = URL.createObjectURL(data);
+      const objectUrl = URL.createObjectURL(data);
       console.log("Image loaded and converted to object URL");
-      setImageData(url);
-      return url;
+      setImageData(objectUrl);
+      return objectUrl;
     } catch (err) {
       console.error("Error fetching image directly:", err);
       setError(true);
@@ -73,10 +73,10 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   };
 
   // Alternative method: Get public URL with cache busting
-  const getPublicUrl = async (url: string) => {
+  const getPublicUrl = async (imageUrl: string) => {
     try {
-      const urlParts = url.split('/public/');
-      if (urlParts.length !== 2) return url;
+      const urlParts = imageUrl.split('/public/');
+      if (urlParts.length !== 2) return imageUrl;
       
       const [_, pathWithBucket] = urlParts;
       const bucketAndPath = pathWithBucket.split('/');
@@ -94,10 +94,10 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
         return data.publicUrl + cacheBuster;
       }
       
-      return url;
+      return imageUrl;
     } catch (err) {
       console.error("Error generating public URL:", err);
-      return url;
+      return imageUrl;
     }
   };
 
