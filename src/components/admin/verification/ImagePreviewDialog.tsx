@@ -19,25 +19,19 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   useEffect(() => {
     if (isOpen && imageUrl) {
       // Add cache busting parameter to force fresh image load
+      const timestamp = Date.now();
       const url = imageUrl.includes('?') 
-        ? `${imageUrl}&_=${Date.now()}` 
-        : `${imageUrl}?_=${Date.now()}`;
+        ? `${imageUrl}&_=${timestamp}` 
+        : `${imageUrl}?_=${timestamp}`;
       
+      console.log("Setting processed URL with cache busting:", url);
       setProcessingUrl(url);
     }
   }, [isOpen, imageUrl, retryCount]);
 
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
-    
-    // Generate a new URL with updated timestamp
-    if (imageUrl) {
-      const baseUrl = imageUrl.split('?')[0];
-      const refreshedUrl = `${baseUrl}?_=${Date.now()}`;
-      setProcessingUrl(refreshedUrl);
-    }
-    
-    toast.info("Mencoba memuat ulang gambar...");
+    toast.info("Memuat ulang gambar...");
   };
   
   const handleDownload = async () => {
@@ -46,6 +40,10 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
     try {
       // Fetch the image
       const response = await fetch(processingUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      
       const blob = await response.blob();
       
       // Create a download link

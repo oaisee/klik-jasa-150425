@@ -12,21 +12,22 @@ interface ImageErrorStateProps {
 const ImageErrorState = ({ onRetry, retryCount, publicUrl }: ImageErrorStateProps) => {
   const handleOpenInNewTab = () => {
     if (publicUrl) {
-      // Add cache busting parameter
+      // Add cache busting parameter to force fresh image load
+      const timestamp = Date.now();
       const url = publicUrl.includes('?') 
-        ? `${publicUrl}&_=${Date.now()}` 
-        : `${publicUrl}?_=${Date.now()}`;
+        ? `${publicUrl}&_=${timestamp}` 
+        : `${publicUrl}?_=${timestamp}`;
       
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
   
   return (
-    <div className="flex flex-col justify-center items-center h-[70vh] w-full text-red-500 p-6">
+    <div className="flex flex-col justify-center items-center min-h-[300px] w-full text-red-500 p-6">
       <AlertTriangle size={32} />
       <p className="mt-2 font-medium">Gagal memuat gambar</p>
       <p className="text-sm text-gray-500 mt-1 text-center max-w-md">
-        Server mungkin mengalami masalah saat memuat gambar. Coba muat ulang atau buka di tab baru.
+        Sistem gagal memuat gambar KTP. Silakan coba muat ulang atau buka di tab baru.
       </p>
       
       <div className="flex gap-2 mt-4">
@@ -35,7 +36,7 @@ const ImageErrorState = ({ onRetry, retryCount, publicUrl }: ImageErrorStateProp
           className="flex items-center gap-1"
           onClick={onRetry}
         >
-          <RefreshCw size={16} /> Coba Lagi
+          <RefreshCw size={16} /> Coba Lagi ({retryCount + 1})
         </Button>
         
         {publicUrl && (
@@ -50,9 +51,9 @@ const ImageErrorState = ({ onRetry, retryCount, publicUrl }: ImageErrorStateProp
       </div>
       
       <Alert className="mt-4 w-full max-w-md bg-gray-50">
-        <AlertDescription>
-          <p className="text-xs text-gray-600 truncate">URL: {publicUrl || "Tidak tersedia"}</p>
-          <p className="text-xs text-gray-600">Percobaan ke-{retryCount + 1}</p>
+        <AlertDescription className="text-xs">
+          <p className="text-gray-600 truncate">URL: {publicUrl || "Tidak tersedia"}</p>
+          <p className="text-gray-600">Percobaan ke-{retryCount + 1}</p>
         </AlertDescription>
       </Alert>
     </div>

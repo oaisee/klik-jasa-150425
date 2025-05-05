@@ -36,9 +36,12 @@ export const useKtpVerification = ({
         throw new Error("Anda sudah memiliki permintaan verifikasi yang sedang diproses.");
       }
       
-      // Step 2: Generate a unique filename with timestamp
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `ktp/${userId}-${Date.now()}.${fileExt}`;
+      // Step 2: Generate a unique filename with timestamp and user ID
+      const fileExt = selectedFile.name.split('.').pop() || 'jpg';
+      const timestamp = Date.now();
+      const fileName = `ktp/${userId}-${timestamp}.${fileExt}`;
+      
+      console.log("Uploading file:", fileName, "Size:", selectedFile.size, "Type:", selectedFile.type);
       
       // Step 3: Ensure the verifications bucket exists
       const bucketReady = await ensureBucketExists('verifications');
@@ -52,13 +55,14 @@ export const useKtpVerification = ({
         throw new Error("Gagal mendapatkan URL untuk file.");
       }
       
-      // Step 5: Create verification request record
+      // Step 5: Create verification request record in database
       const requestCreated = await createVerificationRequest(userId, documentUrl);
       if (!requestCreated) {
         throw new Error("Gagal membuat permintaan verifikasi. Silakan coba lagi.");
       }
       
       toast.success("Dokumen KTP berhasil diunggah. Tim kami akan memverifikasi dalam 1x24 jam.");
+      console.log("KTP verification submitted successfully:", documentUrl);
       onVerificationSubmitted();
       onClose();
     } catch (error: any) {

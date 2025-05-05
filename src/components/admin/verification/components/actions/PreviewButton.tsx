@@ -21,7 +21,7 @@ const PreviewButton = ({
     <Button 
       variant="outline" 
       size="sm" 
-      className="text-xs flex items-center gap-1"
+      className="text-xs flex items-center gap-1 hover:bg-blue-50"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

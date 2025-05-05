@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { VerificationRequest } from '@/types/database';
 import { toast } from 'sonner';
@@ -45,14 +44,12 @@ export const fetchVerificationRequestsApi = async () => {
       // Ensure we have a valid document URL
       let documentUrl = req.document_url || '';
       
-      // Add cache busting parameter to force reload of images
-      if (documentUrl) {
-        // Add timestamp to prevent caching
-        const timestamp = Date.now();
-        documentUrl = documentUrl.includes('?') 
-          ? `${documentUrl}&t=${timestamp}` 
-          : `${documentUrl}?t=${timestamp}`;
-      }
+      // Strip any existing query parameters
+      const baseUrl = documentUrl.split('?')[0];
+      
+      // Add fresh timestamp to prevent caching
+      const timestamp = Date.now();
+      documentUrl = `${baseUrl}?t=${timestamp}`;
       
       return {
         id: req.id,

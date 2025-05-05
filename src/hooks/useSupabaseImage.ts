@@ -39,14 +39,14 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
       try {
         console.log(`Attempting to load image (attempt ${retryCount + 1}):`, imageUrl);
         
-        // Try using fetch API with cache busting first
+        // Strategy 1: Try direct fetch with cache control headers
         try {
           const timestamp = new Date().getTime();
-          const fetchUrl = imageUrl.includes('?') 
+          const cacheBustUrl = imageUrl.includes('?') 
             ? `${imageUrl}&t=${timestamp}` 
             : `${imageUrl}?t=${timestamp}`;
             
-          const response = await fetch(fetchUrl, {
+          const response = await fetch(cacheBustUrl, {
             method: 'GET',
             cache: 'no-store',
             headers: {
@@ -59,48 +59,72 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
           if (response.ok) {
             const blob = await response.blob();
             const objectUrl = URL.createObjectURL(blob);
-            console.log("Direct fetch successful, using object URL");
+            console.log("Image loaded successfully via direct fetch");
             setImageData(objectUrl);
             setLoading(false);
             return;
+          } else {
+            console.warn("Direct fetch responded with status:", response.status);
           }
         } catch (fetchError) {
-          console.warn("Direct fetch failed, trying Supabase methods:", fetchError);
+          console.warn("Direct fetch failed:", fetchError);
         }
         
-        // Try direct download via Supabase storage API
-        const result = await fetchImageDirectly(imageUrl);
-        if (result) {
-          console.log("Supabase direct download successful");
-          setImageData(result);
+        // Strategy 2: Try using Supabase storage API
+        try {
+          // Extract bucket and path from the URL
+          const urlParts = imageUrl.split('/public/');
+          if (urlParts.length === 2) {
+            const [_, pathWithBucket] = urlParts;
+            const bucketAndPath = pathWithBucket.split('/');
+            const bucket = bucketAndPath[0];
+            const path = bucketAndPath.slice(1).join('/').split('?')[0]; // Remove query params
+            
+            console.log("Attempting Supabase download - Bucket:", bucket, "Path:", path);
+            
+            const { data, error: downloadError } = await supabase.storage
+              .from(bucket)
+              .download(path);
+              
+            if (downloadError) {
+              console.warn("Supabase download error:", downloadError);
+            } else if (data) {
+              const objectUrl = URL.createObjectURL(data);
+              console.log("Image loaded successfully via Supabase API");
+              setImageData(objectUrl);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (supabaseError) {
+          console.warn("Supabase download failed:", supabaseError);
+        }
+        
+        // Strategy 3: Fallback to using a public URL with cache busting
+        try {
+          const timestamp = new Date().getTime();
+          const publicUrl = imageUrl.includes('?') 
+            ? `${imageUrl}&cb=${timestamp}` 
+            : `${imageUrl}?cb=${timestamp}`;
+          
+          console.log("Using public URL as fallback:", publicUrl);
+          setImageData(publicUrl);
           setLoading(false);
-          return;
+        } catch (fallbackError) {
+          console.error("All loading strategies failed:", fallbackError);
+          setError(true);
+          setLoading(false);
         }
-        
-        // If all else fails, use public URL with cache busting
-        const publicUrl = await getPublicUrl(imageUrl);
-        console.log("Using public URL as fallback:", publicUrl);
-        setImageData(publicUrl);
-        setLoading(false);
       } catch (error) {
-        console.error("Failed to load image:", error);
+        console.error("Error loading image:", error);
         setError(true);
         setLoading(false);
-        
-        // Try public URL as absolute fallback
-        try {
-          console.log("Attempting public URL fallback after error");
-          const publicUrl = await getPublicUrl(imageUrl);
-          setImageData(publicUrl);
-        } catch (e) {
-          console.error("Fallback failed too:", e);
-        }
       }
     };
     
     loadImage();
     
-    // Cleanup function to avoid memory leaks
+    // Cleanup function to revoke object URLs
     return () => {
       if (imageData && imageData.startsWith('blob:')) {
         URL.revokeObjectURL(imageData);
@@ -115,91 +139,4 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
     retryCount,
     handleRetry
   };
-};
-
-// Directly fetch the image using the Supabase storage API
-export const fetchImageDirectly = async (imageUrl: string) => {
-  try {
-    console.log("Attempting to fetch image directly from URL:", imageUrl);
-    
-    // Extract path from Supabase URL
-    // Format: https://[project-ref].supabase.co/storage/v1/object/public/[bucket]/[path]
-    const urlParts = imageUrl.split('/public/');
-    if (urlParts.length !== 2) {
-      console.error("Invalid Supabase URL format:", imageUrl);
-      throw new Error("Invalid URL format");
-    }
-    
-    const [_, pathWithBucket] = urlParts;
-    const bucketAndPath = pathWithBucket.split('/');
-    const bucket = bucketAndPath[0];
-    const path = bucketAndPath.slice(1).join('/');
-    
-    // Remove query parameters from path if present
-    const cleanPath = path.split('?')[0];
-    
-    console.log("Parsed URL - Bucket:", bucket, "Path:", cleanPath);
-    
-    // Download the file directly from Supabase storage
-    const { data, error: downloadError } = await supabase.storage
-      .from(bucket)
-      .download(cleanPath);
-      
-    if (downloadError) {
-      console.error("Supabase download error:", downloadError);
-      throw downloadError;
-    }
-    
-    if (!data) {
-      console.error("No data returned from download");
-      throw new Error("Failed to download image");
-    }
-    
-    // Convert blob to object URL
-    const objectUrl = URL.createObjectURL(data);
-    console.log("Image loaded and converted to object URL");
-    return objectUrl;
-  } catch (err) {
-    console.error("Error fetching image directly:", err);
-    return null;
-  }
-};
-
-// Alternative method: Get public URL with cache busting
-export const getPublicUrl = async (imageUrl: string) => {
-  try {
-    // For already public URLs, just add cache busting
-    if (!imageUrl.includes('supabase') || !imageUrl.includes('/storage/v1/object/public/')) {
-      const cacheBuster = `?t=${new Date().getTime()}`;
-      return imageUrl.includes('?') ? `${imageUrl}&cb=${cacheBuster}` : `${imageUrl}${cacheBuster}`;
-    }
-    
-    const urlParts = imageUrl.split('/public/');
-    if (urlParts.length !== 2) return imageUrl;
-    
-    const [_, pathWithBucket] = urlParts;
-    const bucketAndPath = pathWithBucket.split('/');
-    const bucket = bucketAndPath[0];
-    const path = bucketAndPath.slice(1).join('/');
-    
-    // Remove any existing query parameters
-    const cleanPath = path.split('?')[0];
-    
-    console.log("Getting fresh public URL - Bucket:", bucket, "Path:", cleanPath);
-    
-    const { data } = supabase.storage
-      .from(bucket)
-      .getPublicUrl(cleanPath);
-    
-    if (data?.publicUrl) {
-      // Add cache buster to force fresh image load
-      const cacheBuster = `?t=${new Date().getTime()}`;
-      return data.publicUrl + cacheBuster;
-    }
-    
-    return imageUrl;
-  } catch (err) {
-    console.error("Error generating public URL:", err);
-    return imageUrl;
-  }
 };
