@@ -47,9 +47,11 @@ export const fetchVerificationRequestsApi = async () => {
       
       // Add cache busting parameter to force reload of images
       if (documentUrl) {
+        // Add timestamp to prevent caching
+        const timestamp = Date.now();
         documentUrl = documentUrl.includes('?') 
-          ? `${documentUrl}&t=${Date.now()}` 
-          : `${documentUrl}?t=${Date.now()}`;
+          ? `${documentUrl}&t=${timestamp}` 
+          : `${documentUrl}?t=${timestamp}`;
       }
       
       return {

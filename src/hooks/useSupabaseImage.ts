@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -37,13 +36,17 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
       setError(false);
       
       try {
+        console.log(`Attempting to load image (attempt ${retryCount + 1}):`, imageUrl);
+        
         // Try direct download first
         const result = await fetchImageDirectly(imageUrl);
         
         if (result) {
+          console.log("Direct download successful, setting image data");
           setImageData(result);
         } else {
           // If direct download fails, try public URL
+          console.log("Direct download failed, trying public URL");
           const publicUrl = await getPublicUrl(imageUrl);
           console.log("Using public URL as fallback:", publicUrl);
           setImageData(publicUrl);
@@ -54,8 +57,12 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
         
         // Try public URL as fallback
         try {
+          console.log("Attempting public URL fallback after error");
           const publicUrl = await getPublicUrl(imageUrl);
           setImageData(publicUrl);
+          
+          // Even with public URL, we still keep error state true
+          // so the UI can show the retry button
         } catch (e) {
           console.error("Fallback failed too:", e);
           setError(true);
@@ -102,12 +109,15 @@ export const fetchImageDirectly = async (imageUrl: string) => {
     const bucket = bucketAndPath[0];
     const path = bucketAndPath.slice(1).join('/');
     
-    console.log("Parsed URL - Bucket:", bucket, "Path:", path);
+    // Remove query parameters from path if present
+    const cleanPath = path.split('?')[0];
+    
+    console.log("Parsed URL - Bucket:", bucket, "Path:", cleanPath);
     
     // Download the file directly from Supabase storage
     const { data, error: downloadError } = await supabase.storage
       .from(bucket)
-      .download(path);
+      .download(cleanPath);
       
     if (downloadError) {
       console.error("Supabase download error:", downloadError);
@@ -140,11 +150,14 @@ export const getPublicUrl = async (imageUrl: string) => {
     const bucket = bucketAndPath[0];
     const path = bucketAndPath.slice(1).join('/');
     
-    console.log("Getting fresh public URL - Bucket:", bucket, "Path:", path);
+    // Remove any existing query parameters
+    const cleanPath = path.split('?')[0];
+    
+    console.log("Getting fresh public URL - Bucket:", bucket, "Path:", cleanPath);
     
     const { data } = supabase.storage
       .from(bucket)
-      .getPublicUrl(path);
+      .getPublicUrl(cleanPath);
     
     if (data?.publicUrl) {
       // Add cache buster to force fresh image load
