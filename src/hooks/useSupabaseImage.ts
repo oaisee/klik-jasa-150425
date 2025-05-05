@@ -40,8 +40,10 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
         // Try direct download first
         const result = await fetchImageDirectly(imageUrl);
         
-        // If direct download fails, try public URL
-        if (!result) {
+        if (result) {
+          setImageData(result);
+        } else {
+          // If direct download fails, try public URL
           const publicUrl = await getPublicUrl(imageUrl);
           console.log("Using public URL as fallback:", publicUrl);
           setImageData(publicUrl);
@@ -117,15 +119,12 @@ export const fetchImageDirectly = async (imageUrl: string) => {
       throw new Error("Failed to download image");
     }
     
-    // Convert blob to data URL
+    // Convert blob to object URL
     const objectUrl = URL.createObjectURL(data);
     console.log("Image loaded and converted to object URL");
     return objectUrl;
   } catch (err) {
     console.error("Error fetching image directly:", err);
-    toast.error("Gagal memuat gambar", {
-      description: "Coba muat ulang atau periksa URL gambar"
-    });
     return null;
   }
 };
@@ -148,6 +147,7 @@ export const getPublicUrl = async (imageUrl: string) => {
       .getPublicUrl(path);
     
     if (data?.publicUrl) {
+      // Add cache buster to force fresh image load
       const cacheBuster = `?t=${new Date().getTime()}`;
       return data.publicUrl + cacheBuster;
     }
