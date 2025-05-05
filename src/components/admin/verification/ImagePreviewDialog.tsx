@@ -48,83 +48,12 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
       console.log('Processing image URL:', imageUrl);
       setDebugInfo(prev => `${prev}\nAttempting to process URL...`);
       
-      // Check if this is a Supabase storage URL that needs special handling
+      // With our updated RLS policies, we can use the public URL directly
       if (imageUrl.includes('supabase') && imageUrl.includes('/storage/v1/')) {
-        console.log('Detected Supabase storage URL');
-        setDebugInfo(prev => `${prev}\nDetected Supabase storage URL`);
-        
-        // Extract the path and bucket from the URL
-        let bucket = 'verifications';
-        let filePath = '';
-        
-        if (imageUrl.includes('/public/verifications/')) {
-          const urlParts = imageUrl.split('/public/verifications/');
-          if (urlParts.length === 2) {
-            filePath = urlParts[1];
-            console.log('Extracted file path:', filePath);
-            setDebugInfo(prev => `${prev}\nExtracted path: ${filePath}`);
-          }
-        } else if (imageUrl.includes('/object/')) {
-          // Handle direct object URLs
-          const objectUrlParts = imageUrl.split('/object/');
-          if (objectUrlParts.length === 2) {
-            const pathPart = objectUrlParts[1];
-            // The path might include the bucket name and actual path
-            const pathSegments = pathPart.split('/');
-            if (pathSegments.length > 1) {
-              bucket = pathSegments[0];
-              filePath = pathSegments.slice(1).join('/');
-              console.log('Extracted bucket:', bucket, 'and path:', filePath);
-              setDebugInfo(prev => `${prev}\nExtracted bucket: ${bucket} and path: ${filePath}`);
-            }
-          }
-        }
-        
-        if (filePath) {
-          // First try to get a signed URL (more reliable)
-          console.log(`Getting signed URL for ${bucket}/${filePath}`);
-          setDebugInfo(prev => `${prev}\nAttempting to get signed URL for ${bucket}/${filePath}`);
-          
-          const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-            .from(bucket)
-            .createSignedUrl(filePath, 60); // 60 seconds expiry
-            
-          if (signedUrlData && !signedUrlError) {
-            console.log('Got signed URL:', signedUrlData.signedUrl);
-            setDebugInfo(prev => `${prev}\nSuccessfully got signed URL`);
-            setProcessedUrl(signedUrlData.signedUrl);
-          } else {
-            console.error('Error getting signed URL:', signedUrlError);
-            setDebugInfo(prev => `${prev}\nFailed to get signed URL: ${signedUrlError?.message}`);
-            
-            // Fallback to public URL
-            console.log('Falling back to public URL');
-            setDebugInfo(prev => `${prev}\nFalling back to public URL`);
-            
-            const { data: publicUrlData } = supabase.storage
-              .from(bucket)
-              .getPublicUrl(filePath);
-              
-            if (publicUrlData && publicUrlData.publicUrl) {
-              console.log('Got public URL:', publicUrlData.publicUrl);
-              setDebugInfo(prev => `${prev}\nGot public URL: ${publicUrlData.publicUrl}`);
-              setProcessedUrl(publicUrlData.publicUrl);
-            } else {
-              // If we can't get a public URL either, use the original
-              console.warn('Could not get public URL, using original');
-              setDebugInfo(prev => `${prev}\nCould not get public URL, using original`);
-              setProcessedUrl(imageUrl);
-            }
-          }
-        } else {
-          console.warn('Could not extract file path from URL, using original');
-          setDebugInfo(prev => `${prev}\nCould not extract file path, using original URL`);
-          setProcessedUrl(imageUrl);
-        }
+        setDebugInfo(prev => `${prev}\nUsing public URL with updated storage policies`);
+        setProcessedUrl(imageUrl);
       } else {
-        // Not a Supabase URL, use as-is
-        console.log('Not a Supabase URL, using as-is');
-        setDebugInfo(prev => `${prev}\nNot a Supabase URL, using original`);
+        setDebugInfo(prev => `${prev}\nNot a Supabase URL, using as-is`);
         setProcessedUrl(imageUrl);
       }
     } catch (err) {
@@ -166,7 +95,15 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
     setError(false);
     setRetryCount(count => count + 1);
     setDebugInfo(`Retry attempt ${retryCount + 1}\nOriginal URL: ${imageUrl}`);
-    await processImageUrl();
+    
+    // Try a direct cache-busting approach
+    const cacheBuster = `?cb=${Date.now()}`;
+    const urlWithCacheBuster = imageUrl.includes('?') 
+      ? `${imageUrl}&cb=${Date.now()}` 
+      : `${imageUrl}${cacheBuster}`;
+    
+    setDebugInfo(prev => `${prev}\nAdding cache-buster to URL: ${cacheBuster}`);
+    setProcessedUrl(urlWithCacheBuster);
     
     toast.info("Mencoba memuat ulang gambar...");
   };
@@ -243,7 +180,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
               ) : (
                 <div className="overflow-auto max-h-[70vh] relative">
                   <img 
-                    src={`${processedUrl}${retryCount > 0 ? `?_cb=${Date.now()}` : ''}`}
+                    src={`${processedUrl}`}
                     alt="KTP Document" 
                     className={`mx-auto object-contain transition-transform duration-200 ${loading ? 'hidden' : 'block'}`}
                     style={{ transform: `scale(${zoom / 100})` }}
