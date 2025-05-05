@@ -19,20 +19,33 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   const [zoom, setZoom] = useState(100);
   const [retryCount, setRetryCount] = useState(0);
   
-  // Clean up the URL to ensure it's directly accessible
-  const getCleanUrl = (url: string | null) => {
+  // Convert any Supabase URL to a direct public URL format
+  const getPublicUrl = (url: string | null) => {
     if (!url) return null;
     
-    // Try to ensure we have a direct public URL
-    if (url.includes('verifications') && !url.includes('/storage/v1/object/public/')) {
-      // Convert to public URL format if it's not already
-      const bucketPath = url.split('verifications/')[1];
-      if (bucketPath) {
-        return `https://pnkdbkjwrcnghhgmhzue.supabase.co/storage/v1/object/public/verifications/${bucketPath}`;
-      }
+    // If it's already a public URL with storage/v1/object/public, use it
+    if (url.includes('/storage/v1/object/public/')) {
+      console.log('URL is already in public format:', url);
+      return url;
     }
     
-    // Add cache busting parameter
+    // Try to extract the bucket and path
+    const bucketMatch = url.match(/\/([^\/]+)\/([^\/]+)\/(.*)/);
+    if (bucketMatch) {
+      const bucket = bucketMatch[2];
+      const path = bucketMatch[3];
+      const publicUrl = `https://pnkdbkjwrcnghhgmhzue.supabase.co/storage/v1/object/public/${bucket}/${path}`;
+      console.log('Converted to public URL:', publicUrl);
+      return publicUrl;
+    }
+    
+    // If we can't parse it, return the original URL
+    return url;
+  };
+
+  // Add cache busting parameter to force reload
+  const getCacheBustedUrl = (url: string | null) => {
+    if (!url) return null;
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}t=${Date.now()}`;
   };
@@ -44,7 +57,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   };
 
   const handleImageError = () => {
-    console.error('Failed to load image');
+    console.error('Failed to load image:', imageUrl);
     setLoading(false);
     setError(true);
   };
@@ -70,11 +83,12 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   const openDirectly = (target: '_blank' | '_self' = '_blank') => {
     if (!imageUrl) return;
     
-    // Use the original URL for direct opening
+    const publicUrl = getPublicUrl(imageUrl);
+    
     if (target === '_self') {
-      window.location.href = imageUrl;
+      window.location.href = publicUrl || imageUrl;
     } else {
-      window.open(imageUrl, '_blank');
+      window.open(publicUrl || imageUrl, '_blank');
     }
   };
 
@@ -141,7 +155,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
                   
                   <Alert className="mt-4 w-full max-w-md bg-gray-50">
                     <AlertDescription>
-                      <p className="text-xs text-gray-600 truncate">URL: {imageUrl}</p>
+                      <p className="text-xs text-gray-600 truncate">URL: {getPublicUrl(imageUrl)}</p>
                       <p className="text-xs text-gray-600">Percobaan ke-{retryCount + 1}</p>
                     </AlertDescription>
                   </Alert>
@@ -149,12 +163,13 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
               ) : (
                 <div className="overflow-auto max-h-[70vh] relative">
                   <img 
-                    src={getCleanUrl(imageUrl)}
+                    src={getCacheBustedUrl(getPublicUrl(imageUrl))}
                     alt="KTP Document" 
                     className={`mx-auto object-contain transition-transform duration-200 ${loading ? 'hidden' : 'block'}`}
                     style={{ transform: `scale(${zoom / 100})` }}
                     onLoad={handleImageLoad}
                     onError={handleImageError}
+                    crossOrigin="anonymous"
                   />
                   
                   {!loading && !error && (

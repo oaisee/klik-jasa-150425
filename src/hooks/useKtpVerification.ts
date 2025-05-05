@@ -57,34 +57,16 @@ export const useKtpVerification = ({
         }
       }
       
-      // Check if the 'verifications' bucket exists
-      console.log('Checking if verifications bucket exists...');
-      const { data: buckets, error: bucketListError } = await supabase.storage
-        .listBuckets();
-        
-      if (bucketListError) {
-        console.error('Error checking buckets:', bucketListError);
-        throw new Error('Gagal memeriksa storage bucket. Silakan coba lagi.');
-      }
-      
-      const verificationsBucketExists = buckets?.some(bucket => bucket.name === 'verifications');
-      
-      if (!verificationsBucketExists) {
-        console.error('Verifications bucket does not exist, this should have been created during setup');
-        throw new Error('Bucket penyimpanan verifikasi tidak tersedia. Silakan hubungi administrator.');
-      }
-      
       // Upload KTP to verifications storage bucket
       const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `ktp/${fileName}`;
+      const fileName = `ktp/${userId}-${Date.now()}.${fileExt}`;
       
-      console.log('Uploading to bucket: verifications, path:', filePath);
+      console.log('Uploading to bucket: verifications, path:', fileName);
       
       // Proceed with upload
-      const { error: storageError, data: uploadData } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from('verifications')
-        .upload(filePath, selectedFile, {
+        .upload(fileName, selectedFile, {
           cacheControl: '3600',
           upsert: false
         });
@@ -96,24 +78,13 @@ export const useKtpVerification = ({
       
       console.log('Upload successful, getting public URL');
       
-      // Try to get a signed URL first (for better security and guaranteed access)
-      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+      // Get the public URL directly
+      const { data: publicUrlData } = supabase.storage
         .from('verifications')
-        .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
-        
-      let documentUrl;
-      if (signedUrlData && !signedUrlError) {
-        documentUrl = signedUrlData.signedUrl;
-        console.log('Using signed URL for verification record:', documentUrl);
-      } else {
-        // Fall back to public URL if signed URL fails
-        const { data: publicUrlData } = supabase.storage
-          .from('verifications')
-          .getPublicUrl(filePath);
-        
-        documentUrl = publicUrlData?.publicUrl;
-        console.log('Using public URL for verification record:', documentUrl);
-      }
+        .getPublicUrl(fileName);
+      
+      const documentUrl = publicUrlData?.publicUrl;
+      console.log('Public URL for verification record:', documentUrl);
       
       if (!documentUrl) {
         throw new Error("Gagal mendapatkan URL untuk file.");
