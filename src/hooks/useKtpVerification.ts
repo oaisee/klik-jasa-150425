@@ -64,7 +64,7 @@ export const useKtpVerification = ({
       console.log('Uploading to bucket: verifications, path:', fileName);
       
       // Proceed with upload
-      const { error: storageError, data: uploadData } = await supabase.storage
+      const { error: storageError } = await supabase.storage
         .from('verifications')
         .upload(fileName, selectedFile, {
           cacheControl: '3600',
@@ -75,8 +75,6 @@ export const useKtpVerification = ({
         console.error('Storage upload error:', storageError);
         throw storageError;
       }
-      
-      console.log('Upload successful, getting public URL');
       
       // Get the public URL directly
       const { data: publicUrlData } = supabase.storage

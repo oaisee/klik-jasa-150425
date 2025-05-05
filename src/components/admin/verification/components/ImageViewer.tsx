@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import ImageViewerControls from './ImageViewerControls';
 import ImageErrorState from './ImageErrorState';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ImageViewerProps {
   imageUrl: string | null;
@@ -13,35 +14,70 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   const [error, setError] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [retryCount, setRetryCount] = useState(0);
+  const [directUrl, setDirectUrl] = useState<string | null>(null);
 
-  // Convert any Supabase URL to a direct public URL format
-  const getPublicUrl = (url: string | null) => {
+  const handleDirectImageLoad = async (url: string | null) => {
     if (!url) return null;
     
-    // If it's already a public URL with storage/v1/object/public, use it
-    if (url.includes('/storage/v1/object/public/')) {
-      return url;
-    }
-    
-    // Try to extract the bucket and path
-    const bucketMatch = url.match(/\/([^\/]+)\/([^\/]+)\/(.*)/);
-    if (bucketMatch) {
+    try {
+      // If the URL already contains the bucket name, extract it
+      const bucketMatch = url.match(/\/([^\/]+)\/([^\/]+)\/(.*)/);
+      if (!bucketMatch) return url;
+      
       const bucket = bucketMatch[2];
       const path = bucketMatch[3];
-      const publicUrl = `https://pnkdbkjwrcnghhgmhzue.supabase.co/storage/v1/object/public/${bucket}/${path}`;
-      return publicUrl;
+      
+      console.log("Fetching direct URL from Supabase for bucket:", bucket, "path:", path);
+      
+      // Use Supabase storage API to get a fresh URL with current time to avoid cache issues
+      const { data } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(path, {
+          download: false,
+          transform: {
+            width: 1200,
+            quality: 80,
+          }
+        });
+      
+      if (data?.publicUrl) {
+        console.log("Got direct public URL:", data.publicUrl);
+        // Add cache-busting parameter
+        const cacheBuster = `?t=${Date.now()}`;
+        return data.publicUrl + cacheBuster;
+      }
+    } catch (err) {
+      console.error("Error getting direct URL:", err);
     }
     
-    // If we can't parse it, return the original URL
-    return url;
+    // Fallback to original URL with cache buster
+    const cacheBuster = `?t=${Date.now()}`;
+    return url + cacheBuster;
   };
 
-  // Add cache busting parameter to force reload
-  const getCacheBustedUrl = (url: string | null) => {
-    if (!url) return null;
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}t=${Date.now()}`;
-  };
+  useEffect(() => {
+    const loadDirectUrl = async () => {
+      if (!imageUrl) {
+        setDirectUrl(null);
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      
+      try {
+        const url = await handleDirectImageLoad(imageUrl);
+        setDirectUrl(url);
+      } catch (error) {
+        console.error("Failed to get direct URL:", error);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadDirectUrl();
+  }, [imageUrl, retryCount]);
 
   const handleImageLoad = () => {
     setLoading(false);
@@ -49,6 +85,7 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   };
 
   const handleImageError = () => {
+    console.error("Image failed to load:", directUrl);
     setLoading(false);
     setError(true);
   };
@@ -62,24 +99,10 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   };
 
   const handleRetry = () => {
-    if (!imageUrl) return;
-    
+    setRetryCount(count => count + 1);
     setLoading(true);
     setError(false);
-    setRetryCount(count => count + 1);
   };
-
-  // Reset state when image URL changes
-  useEffect(() => {
-    if (imageUrl) {
-      setLoading(true);
-      setError(false);
-      setZoom(100);
-    }
-  }, [imageUrl, retryCount]);
-
-  const publicUrl = getPublicUrl(imageUrl);
-  const cacheBustedUrl = getCacheBustedUrl(publicUrl);
 
   if (!imageUrl) {
     return (
@@ -101,21 +124,23 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
     return <ImageErrorState 
       onRetry={handleRetry} 
       retryCount={retryCount} 
-      publicUrl={publicUrl}
+      publicUrl={directUrl || imageUrl}
     />;
   }
 
   return (
     <div className="overflow-auto max-h-[70vh] relative">
-      <img 
-        src={cacheBustedUrl}
-        alt="KTP Document" 
-        className="mx-auto object-contain transition-transform duration-200"
-        style={{ transform: `scale(${zoom / 100})` }}
-        onLoad={handleImageLoad}
-        onError={handleImageError}
-        crossOrigin="anonymous"
-      />
+      {directUrl && (
+        <img 
+          src={directUrl}
+          alt="KTP Document" 
+          className="mx-auto object-contain transition-transform duration-200"
+          style={{ transform: `scale(${zoom / 100})` }}
+          onLoad={handleImageLoad}
+          onError={handleImageError}
+          crossOrigin="anonymous"
+        />
+      )}
       
       <ImageViewerControls 
         zoom={zoom} 

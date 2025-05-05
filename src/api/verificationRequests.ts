@@ -39,32 +39,12 @@ export const fetchVerificationRequestsApi = async () => {
       return acc;
     }, {});
 
-    // Ensure URLs are properly formatted
-    const getProperDocumentUrl = (url) => {
-      if (!url) return '';
-      
-      // If it's already a public URL with storage/v1/object/public, use it
-      if (url.includes('/storage/v1/object/public/')) {
-        return url;
-      }
-      
-      // Try to extract the bucket and path
-      const bucketMatch = url.match(/\/([^\/]+)\/([^\/]+)\/(.*)/);
-      if (bucketMatch) {
-        const bucket = bucketMatch[2];
-        const path = bucketMatch[3];
-        return `https://pnkdbkjwrcnghhgmhzue.supabase.co/storage/v1/object/public/${bucket}/${path}`;
-      }
-      
-      return url;
-    };
-
     // Transform the data to match our VerificationRequest type
     const mappedData: VerificationRequest[] = (requestsData || []).map(req => {
       return {
         id: req.id,
         user_id: req.user_id || '',
-        document_url: getProperDocumentUrl(req.document_url),
+        document_url: req.document_url || '',
         document_type: req.document_type,
         status: (req.status as 'pending' | 'approved' | 'rejected'),
         notes: req.notes || undefined,
