@@ -61,6 +61,22 @@ export const useKtpVerification = ({
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `ktp/${userId}-${Date.now()}.${fileExt}`;
       
+      // Ensure the verifications bucket exists
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const verificationsBucketExists = buckets?.some(bucket => bucket.name === 'verifications');
+      
+      if (!verificationsBucketExists) {
+        console.log('Verifications bucket does not exist, creating it now');
+        const { error: createBucketError } = await supabase.storage.createBucket('verifications', {
+          public: false // Set to public or private as needed
+        });
+        
+        if (createBucketError) {
+          console.error('Error creating verifications bucket:', createBucketError);
+          throw new Error('Gagal membuat bucket untuk verifikasi. Silakan coba lagi.');
+        }
+      }
+      
       console.log('Uploading to bucket: verifications, path:', fileName);
       
       // Upload KTP to verifications storage bucket

@@ -42,10 +42,20 @@ export const fetchVerificationRequestsApi = async () => {
 
     // Transform the data to match our VerificationRequest type
     const mappedData: VerificationRequest[] = (requestsData || []).map(req => {
+      // Ensure we have a valid document URL
+      let documentUrl = req.document_url || '';
+      
+      // Add cache busting parameter to force reload of images
+      if (documentUrl) {
+        documentUrl = documentUrl.includes('?') 
+          ? `${documentUrl}&t=${Date.now()}` 
+          : `${documentUrl}?t=${Date.now()}`;
+      }
+      
       return {
         id: req.id,
         user_id: req.user_id || '',
-        document_url: req.document_url || '',
+        document_url: documentUrl,
         document_type: req.document_type,
         status: (req.status as 'pending' | 'approved' | 'rejected'),
         notes: req.notes || undefined,

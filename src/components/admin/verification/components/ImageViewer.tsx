@@ -4,6 +4,7 @@ import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import ImageViewerControls from './ImageViewerControls';
 import ImageErrorState from './ImageErrorState';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ImageViewerProps {
   imageUrl: string | null;
@@ -14,51 +15,96 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   const [error, setError] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [retryCount, setRetryCount] = useState(0);
-  const [directUrl, setDirectUrl] = useState<string | null>(null);
+  const [imageData, setImageData] = useState<string | null>(null);
 
-  const getSafeImageUrl = async (url: string | null) => {
-    if (!url) return null;
-    
+  // Directly fetch the image using the Supabase storage API
+  const fetchImageDirectly = async (url: string) => {
     try {
-      // Extract bucket name and path from URL
-      // Format: https://pnkdbkjwrcnghhgmhzue.supabase.co/storage/v1/object/public/[bucket]/[path]
+      setLoading(true);
+      setError(false);
+      
+      console.log("Attempting to fetch image from URL:", url);
+      
+      // Extract path from Supabase URL
+      // Format: https://[project-ref].supabase.co/storage/v1/object/public/[bucket]/[path]
+      const urlParts = url.split('/public/');
+      if (urlParts.length !== 2) {
+        console.error("Invalid Supabase URL format:", url);
+        throw new Error("Invalid URL format");
+      }
+      
+      const [_, pathWithBucket] = urlParts;
+      const bucketAndPath = pathWithBucket.split('/');
+      const bucket = bucketAndPath[0];
+      const path = bucketAndPath.slice(1).join('/');
+      
+      console.log("Parsed URL - Bucket:", bucket, "Path:", path);
+      
+      // Download the file directly from Supabase storage
+      const { data, error: downloadError } = await supabase.storage
+        .from(bucket)
+        .download(path);
+        
+      if (downloadError) {
+        console.error("Supabase download error:", downloadError);
+        throw downloadError;
+      }
+      
+      if (!data) {
+        console.error("No data returned from download");
+        throw new Error("Failed to download image");
+      }
+      
+      // Convert blob to data URL
+      const url = URL.createObjectURL(data);
+      console.log("Image loaded and converted to object URL");
+      setImageData(url);
+      return url;
+    } catch (err) {
+      console.error("Error fetching image directly:", err);
+      setError(true);
+      toast.error("Gagal memuat gambar", {
+        description: "Coba muat ulang atau periksa URL gambar"
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Alternative method: Get public URL with cache busting
+  const getPublicUrl = async (url: string) => {
+    try {
       const urlParts = url.split('/public/');
       if (urlParts.length !== 2) return url;
       
-      const [prefix, pathWithBucket] = urlParts;
-      const [bucket, ...pathParts] = pathWithBucket.split('/');
-      const path = pathParts.join('/');
+      const [_, pathWithBucket] = urlParts;
+      const bucketAndPath = pathWithBucket.split('/');
+      const bucket = bucketAndPath[0];
+      const path = bucketAndPath.slice(1).join('/');
       
-      console.log("Fetching from bucket:", bucket, "path:", path);
+      console.log("Getting fresh public URL - Bucket:", bucket, "Path:", path);
       
-      // Get a fresh URL with a timestamp to avoid caching issues
       const { data } = supabase.storage
         .from(bucket)
-        .getPublicUrl(path, {
-          transform: {
-            quality: 90,
-          }
-        });
+        .getPublicUrl(path);
       
       if (data?.publicUrl) {
-        const timestamp = new Date().getTime();
-        const cacheBuster = `?t=${timestamp}`;
+        const cacheBuster = `?t=${new Date().getTime()}`;
         return data.publicUrl + cacheBuster;
       }
       
-      // If extraction failed, add cache buster to original URL
-      return url + `?t=${new Date().getTime()}`;
+      return url;
     } catch (err) {
-      console.error("Error generating safe image URL:", err);
-      // Return original URL with cache buster as fallback
-      return url + `?t=${new Date().getTime()}`;
+      console.error("Error generating public URL:", err);
+      return url;
     }
   };
 
   useEffect(() => {
     const loadImage = async () => {
       if (!imageUrl) {
-        setDirectUrl(null);
+        setImageData(null);
         setLoading(false);
         return;
       }
@@ -67,16 +113,38 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
       setError(false);
       
       try {
-        const safeUrl = await getSafeImageUrl(imageUrl);
-        console.log("Generated safe URL:", safeUrl);
-        setDirectUrl(safeUrl);
+        // Try direct download first
+        const result = await fetchImageDirectly(imageUrl);
+        
+        // If direct download fails, try public URL
+        if (!result) {
+          const publicUrl = await getPublicUrl(imageUrl);
+          console.log("Using public URL as fallback:", publicUrl);
+          setImageData(publicUrl);
+        }
       } catch (error) {
-        console.error("Failed to get direct URL:", error);
+        console.error("Failed to load image:", error);
         setError(true);
+        
+        // Try public URL as fallback
+        try {
+          const publicUrl = await getPublicUrl(imageUrl);
+          setImageData(publicUrl);
+        } catch (e) {
+          console.error("Fallback failed too:", e);
+          setError(true);
+        }
       }
     };
     
     loadImage();
+    
+    // Cleanup function to avoid memory leaks
+    return () => {
+      if (imageData && imageData.startsWith('blob:')) {
+        URL.revokeObjectURL(imageData);
+      }
+    };
   }, [imageUrl, retryCount]);
 
   const handleImageLoad = () => {
@@ -86,7 +154,7 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   };
 
   const handleImageError = () => {
-    console.error("Image failed to load:", directUrl);
+    console.error("Image failed to load:", imageData);
     setLoading(false);
     setError(true);
   };
@@ -126,21 +194,20 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
     return <ImageErrorState 
       onRetry={handleRetry} 
       retryCount={retryCount}
-      publicUrl={directUrl || imageUrl}
+      publicUrl={imageData || imageUrl}
     />;
   }
 
   return (
     <div className="overflow-auto max-h-[70vh] relative">
-      {directUrl && (
+      {imageData && (
         <img 
-          src={directUrl}
+          src={imageData}
           alt="KTP Document" 
           className="mx-auto object-contain transition-transform duration-200"
           style={{ transform: `scale(${zoom / 100})` }}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          crossOrigin="anonymous"
         />
       )}
       
