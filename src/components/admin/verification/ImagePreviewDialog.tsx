@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import ImageViewer from './components/ImageViewer';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, Download } from 'lucide-react';
+import { RefreshCw, Download, X } from 'lucide-react';
 
 interface ImagePreviewDialogProps {
   isOpen: boolean;
@@ -25,14 +25,14 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
       
       setProcessingUrl(url);
     }
-  }, [isOpen, imageUrl]);
+  }, [isOpen, imageUrl, retryCount]);
 
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
     
     // Generate a new URL with updated timestamp
-    if (processingUrl) {
-      const baseUrl = processingUrl.split('?')[0];
+    if (imageUrl) {
+      const baseUrl = imageUrl.split('?')[0];
       const refreshedUrl = `${baseUrl}?_=${Date.now()}`;
       setProcessingUrl(refreshedUrl);
     }
@@ -77,8 +77,8 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) onClose();
     }}>
-      <DialogContent className="max-w-4xl">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl p-0 overflow-hidden">
+        <DialogHeader className="p-4 border-b">
           <DialogTitle className="flex items-center justify-between">
             <span>Dokumen KTP</span>
             <div className="flex gap-2">
@@ -106,11 +106,17 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
           </DialogTitle>
         </DialogHeader>
         
-        <div className="relative rounded-md overflow-hidden border bg-gray-50">
+        <div className="relative overflow-hidden border-t border-b bg-gray-50">
           <ImageViewer 
             imageUrl={processingUrl} 
             key={`image-viewer-${retryCount}`} 
           />
+        </div>
+        
+        <div className="p-4 flex justify-end">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            <X size={14} className="mr-2" /> Tutup
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

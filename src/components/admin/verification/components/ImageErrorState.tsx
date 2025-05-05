@@ -12,21 +12,26 @@ interface ImageErrorStateProps {
 const ImageErrorState = ({ onRetry, retryCount, publicUrl }: ImageErrorStateProps) => {
   const handleOpenInNewTab = () => {
     if (publicUrl) {
-      window.open(publicUrl, '_blank', 'noopener,noreferrer');
+      // Add cache busting parameter
+      const url = publicUrl.includes('?') 
+        ? `${publicUrl}&_=${Date.now()}` 
+        : `${publicUrl}?_=${Date.now()}`;
+      
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
   
   return (
-    <div className="flex flex-col justify-center items-center h-[70vh] w-full text-red-500">
+    <div className="flex flex-col justify-center items-center h-[70vh] w-full text-red-500 p-6">
       <AlertTriangle size={32} />
       <p className="mt-2 font-medium">Gagal memuat gambar</p>
       <p className="text-sm text-gray-500 mt-1 text-center max-w-md">
-        Coba muat ulang gambar atau buka di tab baru.
+        Server mungkin mengalami masalah saat memuat gambar. Coba muat ulang atau buka di tab baru.
       </p>
       
       <div className="flex gap-2 mt-4">
         <Button 
-          variant="outline" 
+          variant="default" 
           className="flex items-center gap-1"
           onClick={onRetry}
         >

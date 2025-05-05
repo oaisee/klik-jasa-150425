@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -38,37 +39,62 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
       try {
         console.log(`Attempting to load image (attempt ${retryCount + 1}):`, imageUrl);
         
-        // Try direct download first
-        const result = await fetchImageDirectly(imageUrl);
-        
-        if (result) {
-          console.log("Direct download successful, setting image data");
-          setImageData(result);
-        } else {
-          // If direct download fails, try public URL
-          console.log("Direct download failed, trying public URL");
-          const publicUrl = await getPublicUrl(imageUrl);
-          console.log("Using public URL as fallback:", publicUrl);
-          setImageData(publicUrl);
+        // Try using fetch API with cache busting first
+        try {
+          const timestamp = new Date().getTime();
+          const fetchUrl = imageUrl.includes('?') 
+            ? `${imageUrl}&t=${timestamp}` 
+            : `${imageUrl}?t=${timestamp}`;
+            
+          const response = await fetch(fetchUrl, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          });
+          
+          if (response.ok) {
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            console.log("Direct fetch successful, using object URL");
+            setImageData(objectUrl);
+            setLoading(false);
+            return;
+          }
+        } catch (fetchError) {
+          console.warn("Direct fetch failed, trying Supabase methods:", fetchError);
         }
+        
+        // Try direct download via Supabase storage API
+        const result = await fetchImageDirectly(imageUrl);
+        if (result) {
+          console.log("Supabase direct download successful");
+          setImageData(result);
+          setLoading(false);
+          return;
+        }
+        
+        // If all else fails, use public URL with cache busting
+        const publicUrl = await getPublicUrl(imageUrl);
+        console.log("Using public URL as fallback:", publicUrl);
+        setImageData(publicUrl);
+        setLoading(false);
       } catch (error) {
         console.error("Failed to load image:", error);
         setError(true);
+        setLoading(false);
         
-        // Try public URL as fallback
+        // Try public URL as absolute fallback
         try {
           console.log("Attempting public URL fallback after error");
           const publicUrl = await getPublicUrl(imageUrl);
           setImageData(publicUrl);
-          
-          // Even with public URL, we still keep error state true
-          // so the UI can show the retry button
         } catch (e) {
           console.error("Fallback failed too:", e);
-          setError(true);
         }
-      } finally {
-        setLoading(false);
       }
     };
     
@@ -94,7 +120,7 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
 // Directly fetch the image using the Supabase storage API
 export const fetchImageDirectly = async (imageUrl: string) => {
   try {
-    console.log("Attempting to fetch image from URL:", imageUrl);
+    console.log("Attempting to fetch image directly from URL:", imageUrl);
     
     // Extract path from Supabase URL
     // Format: https://[project-ref].supabase.co/storage/v1/object/public/[bucket]/[path]
@@ -142,6 +168,12 @@ export const fetchImageDirectly = async (imageUrl: string) => {
 // Alternative method: Get public URL with cache busting
 export const getPublicUrl = async (imageUrl: string) => {
   try {
+    // For already public URLs, just add cache busting
+    if (!imageUrl.includes('supabase') || !imageUrl.includes('/storage/v1/object/public/')) {
+      const cacheBuster = `?t=${new Date().getTime()}`;
+      return imageUrl.includes('?') ? `${imageUrl}&cb=${cacheBuster}` : `${imageUrl}${cacheBuster}`;
+    }
+    
     const urlParts = imageUrl.split('/public/');
     if (urlParts.length !== 2) return imageUrl;
     
