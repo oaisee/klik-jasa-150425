@@ -18,6 +18,15 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   
   useEffect(() => {
     if (isOpen && imageUrl) {
+      console.log("Opening preview with URL:", imageUrl);
+      
+      // If it's already a signed URL, use it directly
+      if (imageUrl.includes('token=')) {
+        console.log("Using signed URL directly");
+        setProcessingUrl(imageUrl);
+        return;
+      }
+      
       // Add cache busting parameter to force fresh image load
       const timestamp = Date.now();
       const url = imageUrl.includes('?') 

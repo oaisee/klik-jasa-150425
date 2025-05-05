@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { VerificationRequest } from '@/types/database';
 import { toast } from 'sonner';
@@ -45,13 +44,39 @@ export const fetchVerificationRequestsApi = async () => {
       // Ensure we have a valid document URL
       let documentUrl = req.document_url || '';
       
-      // Check if this is a Supabase storage URL
-      if (documentUrl && documentUrl.includes('/storage/v1/object/public/')) {
-        // Already a Supabase URL, just add timestamp to prevent caching
-        const timestamp = Date.now();
-        documentUrl = documentUrl.includes('?') 
-          ? `${documentUrl}&t=${timestamp}` 
-          : `${documentUrl}?t=${timestamp}`;
+      // If this is not already a signed URL, create one
+      if (documentUrl && !documentUrl.includes('token=')) {
+        // Try to create a signed URL for better access
+        (async () => {
+          try {
+            // Extract bucket and path from URL
+            if (documentUrl.includes('/storage/v1/object/public/')) {
+              const urlParts = documentUrl.split('/storage/v1/object/public/');
+              if (urlParts.length === 2) {
+                const pathWithParams = urlParts[1].split('?')[0];
+                const pathParts = pathWithParams.split('/');
+                const bucket = pathParts[0];
+                const filePath = pathParts.slice(1).join('/');
+                
+                console.log(`Creating signed URL for bucket: ${bucket}, path: ${filePath}`);
+                
+                // Try to get a signed URL with 24 hour expiry
+                const { data: signedData, error: signedError } = await supabase.storage
+                  .from(bucket)
+                  .createSignedUrl(filePath, 60 * 60 * 24);
+                  
+                if (!signedError && signedData?.signedUrl) {
+                  documentUrl = signedData.signedUrl;
+                  console.log(`Created signed URL: ${documentUrl.substring(0, 50)}...`);
+                } else if (signedError) {
+                  console.error('Error creating signed URL:', signedError);
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Error processing document URL:', e);
+          }
+        })();
       }
       
       return {

@@ -104,7 +104,7 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
       )}
       
       <div className="flex justify-center items-center min-h-[400px] p-4">
-        {/* Use a loading skeleton while image is loading */}
+        {/* Only show skeleton when image is loading but not yet loaded */}
         {!loadedSuccessfully && (
           <Skeleton className="w-4/5 h-4/5 max-w-xl" />
         )}
@@ -121,6 +121,7 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
           }}
           onLoad={handleImageLoad}
           onError={handleImageError}
+          crossOrigin="anonymous" // Add this to handle CORS issues
         />
       </div>
       

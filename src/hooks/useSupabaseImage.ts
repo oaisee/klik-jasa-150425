@@ -40,6 +40,14 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
       try {
         console.log(`Attempting to load image (attempt ${retryCount + 1}):`, imageUrl);
         
+        // For signed URLs, use directly without any processing
+        if (imageUrl.includes('token=')) {
+          console.log("Detected signed URL, using directly");
+          setImageData(imageUrl);
+          setLoading(false);
+          return;
+        }
+        
         // Extract bucket and path from the URL if it's a Supabase storage URL
         let bucket = '';
         let filePath = '';
@@ -117,7 +125,7 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
           }
         }
         
-        // Strategy 3: Try to create a signed URL
+        // Strategy 3: Try to create a signed URL if we have bucket and path
         if (bucket && filePath) {
           try {
             console.log("Attempting to create signed URL");
@@ -138,21 +146,10 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
           }
         }
         
-        // Strategy 4: Fallback to using a public URL with cache busting
-        try {
-          const timestamp = new Date().getTime();
-          const publicUrl = imageUrl.includes('?') 
-            ? `${imageUrl}&cb=${timestamp}` 
-            : `${imageUrl}?cb=${timestamp}`;
-          
-          console.log("Using public URL as fallback:", publicUrl);
-          setImageData(publicUrl);
-          setLoading(false);
-        } catch (fallbackError) {
-          console.error("All loading strategies failed:", fallbackError);
-          setError(true);
-          setLoading(false);
-        }
+        // Strategy 4: Fallback to using original URL directly
+        console.log("Using original URL as fallback:", imageUrl);
+        setImageData(imageUrl);
+        setLoading(false);
       } catch (error) {
         console.error("Error loading image:", error);
         setError(true);
