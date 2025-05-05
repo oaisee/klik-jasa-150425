@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ensureBucketExists, uploadFileToBucket } from '@/utils/supabaseStorage';
+import { checkExistingVerifications, createVerificationRequest } from '@/services/verificationService';
 
 interface UseKtpVerificationProps {
   userId: string;
@@ -24,101 +25,37 @@ export const useKtpVerification = ({
     setErrorMessage(null);
     
     try {
-      // Check for existing verification requests
-      console.log('Checking for existing verification requests for user:', userId);
+      // Step 1: Check for existing verification requests
+      const { hasApproved, hasPending } = await checkExistingVerifications(userId);
       
-      const { data: existingVerifications, error: fetchError } = await supabase
-        .from('verification_requests')
-        .select('id, status')
-        .eq('user_id', userId);
-      
-      if (fetchError) {
-        console.error('Error checking existing verification requests:', fetchError);
-        throw new Error('Gagal memeriksa verifikasi yang sudah ada. Silakan coba lagi.');
+      if (hasApproved) {
+        throw new Error("Anda sudah terverifikasi sebagai penyedia jasa.");
       }
       
-      console.log('Existing verification requests:', existingVerifications);
-      
-      // Filter for pending or approved verifications
-      const pendingOrApprovedVerifications = existingVerifications?.filter(v => 
-        v.status === 'pending' || v.status === 'approved'
-      ) || [];
-      
-      if (pendingOrApprovedVerifications.length > 0) {
-        const hasApproved = pendingOrApprovedVerifications.some(v => v.status === 'approved');
-        const hasPending = pendingOrApprovedVerifications.some(v => v.status === 'pending');
-        
-        if (hasApproved) {
-          throw new Error("Anda sudah terverifikasi sebagai penyedia jasa.");
-        }
-        
-        if (hasPending) {
-          throw new Error("Anda sudah memiliki permintaan verifikasi yang sedang diproses.");
-        }
+      if (hasPending) {
+        throw new Error("Anda sudah memiliki permintaan verifikasi yang sedang diproses.");
       }
       
-      // Generate a unique filename with timestamp
+      // Step 2: Generate a unique filename with timestamp
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `ktp/${userId}-${Date.now()}.${fileExt}`;
       
-      // Ensure the verifications bucket exists
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const verificationsBucketExists = buckets?.some(bucket => bucket.name === 'verifications');
-      
-      if (!verificationsBucketExists) {
-        console.log('Verifications bucket does not exist, creating it now');
-        const { error: createBucketError } = await supabase.storage.createBucket('verifications', {
-          public: false // Set to public or private as needed
-        });
-        
-        if (createBucketError) {
-          console.error('Error creating verifications bucket:', createBucketError);
-          throw new Error('Gagal membuat bucket untuk verifikasi. Silakan coba lagi.');
-        }
+      // Step 3: Ensure the verifications bucket exists
+      const bucketReady = await ensureBucketExists('verifications');
+      if (!bucketReady) {
+        throw new Error('Gagal membuat bucket untuk verifikasi. Silakan coba lagi.');
       }
       
-      console.log('Uploading to bucket: verifications, path:', fileName);
-      
-      // Upload KTP to verifications storage bucket
-      const { error: storageError, data: uploadData } = await supabase.storage
-        .from('verifications')
-        .upload(fileName, selectedFile, {
-          cacheControl: '0',
-          upsert: false
-        });
-        
-      if (storageError) {
-        console.error('Storage upload error:', storageError);
-        throw storageError;
-      }
-      
-      console.log('Upload successful:', uploadData);
-      
-      // Get the public URL directly
-      const { data: publicUrlData } = supabase.storage
-        .from('verifications')
-        .getPublicUrl(fileName);
-      
-      const documentUrl = publicUrlData?.publicUrl;
-      console.log('Public URL for verification record:', documentUrl);
-      
+      // Step 4: Upload KTP to verifications storage bucket
+      const documentUrl = await uploadFileToBucket('verifications', fileName, selectedFile);
       if (!documentUrl) {
         throw new Error("Gagal mendapatkan URL untuk file.");
       }
       
-      // Create verification request record
-      const { error: dbError } = await supabase
-        .from('verification_requests')
-        .insert({
-          user_id: userId,
-          document_url: documentUrl,
-          status: 'pending',
-          document_type: 'ktp'
-        });
-        
-      if (dbError) {
-        console.error('Database insert error:', dbError);
-        throw dbError;
+      // Step 5: Create verification request record
+      const requestCreated = await createVerificationRequest(userId, documentUrl);
+      if (!requestCreated) {
+        throw new Error("Gagal membuat permintaan verifikasi. Silakan coba lagi.");
       }
       
       toast.success("Dokumen KTP berhasil diunggah. Tim kami akan memverifikasi dalam 1x24 jam.");
