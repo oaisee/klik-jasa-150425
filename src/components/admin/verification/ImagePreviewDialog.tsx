@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState, useEffect } from 'react';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
-import { AlertTriangle, ZoomIn, ZoomOut, RefreshCw, ExternalLink } from 'lucide-react';
+import { AlertTriangle, ZoomIn, ZoomOut, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -79,18 +79,6 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
     
     toast.info("Mencoba memuat ulang gambar...");
   };
-  
-  const openDirectly = (target: '_blank' | '_self' = '_blank') => {
-    if (!imageUrl) return;
-    
-    const publicUrl = getPublicUrl(imageUrl);
-    
-    if (target === '_self') {
-      window.location.href = publicUrl || imageUrl;
-    } else {
-      window.open(publicUrl || imageUrl, '_blank');
-    }
-  };
 
   // Reset state when dialog opens or image URL changes
   useEffect(() => {
@@ -124,34 +112,16 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
                   <AlertTriangle size={32} />
                   <p className="mt-2 font-medium">Gagal memuat gambar</p>
                   <p className="text-sm text-gray-500 mt-1 text-center max-w-md">
-                    Coba gunakan tombol "Buka Langsung" untuk mengakses gambar secara langsung.
+                    Coba muat ulang gambar atau periksa URL gambar.
                   </p>
                   
-                  <div className="flex flex-wrap gap-2 mt-4 justify-center">
-                    <Button 
-                      variant="outline" 
-                      className="flex items-center gap-1"
-                      onClick={handleRetry}
-                    >
-                      <RefreshCw size={16} /> Coba Lagi
-                    </Button>
-                    
-                    <Button 
-                      variant="outline"
-                      className="flex items-center gap-1"
-                      onClick={() => openDirectly('_blank')}
-                    >
-                      <ExternalLink size={16} /> Buka di Tab Baru
-                    </Button>
-                    
-                    <Button 
-                      variant="default"
-                      className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
-                      onClick={() => openDirectly('_self')}
-                    >
-                      <ExternalLink size={16} /> Buka Langsung
-                    </Button>
-                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="flex items-center gap-1 mt-4"
+                    onClick={handleRetry}
+                  >
+                    <RefreshCw size={16} /> Coba Lagi
+                  </Button>
                   
                   <Alert className="mt-4 w-full max-w-md bg-gray-50">
                     <AlertDescription>
