@@ -1,11 +1,12 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import { AlertTriangle, ZoomIn, ZoomOut, RefreshCw, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ImagePreviewDialogProps {
   isOpen: boolean;
@@ -18,16 +19,24 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   const [error, setError] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [retryCount, setRetryCount] = useState(0);
+  const [finalUrl, setFinalUrl] = useState<string | null>(null);
 
-  // Reset states when dialog opens or image changes
+  // Process and prepare the URL when dialog opens or imageUrl changes
   useEffect(() => {
     if (isOpen && imageUrl) {
       setLoading(true);
       setError(false);
       setZoom(100);
-      console.log('Opening image with URL:', imageUrl);
+      
+      // Add cache-busting parameter directly to the URL
+      const timestamp = Date.now();
+      const cacheBuster = imageUrl.includes('?') ? `&t=${timestamp}` : `?t=${timestamp}`;
+      
+      const newUrl = `${imageUrl}${cacheBuster}`;
+      console.log('Prepared image URL with cache buster:', newUrl);
+      setFinalUrl(newUrl);
     }
-  }, [isOpen, imageUrl]);
+  }, [isOpen, imageUrl, retryCount]);
 
   const handleImageLoad = () => {
     setLoading(false);
@@ -38,7 +47,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   const handleImageError = () => {
     setLoading(false);
     setError(true);
-    console.error('Failed to load image from URL:', imageUrl);
+    console.error('Failed to load image from URL:', finalUrl);
   };
 
   const handleZoomIn = () => {
@@ -56,9 +65,14 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
     setError(false);
     setRetryCount(count => count + 1);
     
-    // Add cache-busting parameter to force a fresh request
-    const cacheBuster = `?cb=${Date.now()}`;
     toast.info("Mencoba memuat ulang gambar...");
+  };
+  
+  const openDirectlySameTab = () => {
+    if (!imageUrl) return;
+    
+    // Force image to open in the same tab to avoid popup blockers
+    window.location.href = imageUrl;
   };
 
   return (
@@ -71,7 +85,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
         </DialogHeader>
         
         <div className="relative">
-          {imageUrl && (
+          {finalUrl ? (
             <>
               {loading && (
                 <div className="flex justify-center items-center h-[70vh] w-full">
@@ -84,13 +98,10 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
                   <AlertTriangle size={32} />
                   <p className="mt-2 font-medium">Gagal memuat gambar</p>
                   <p className="text-sm text-gray-500 mt-1 text-center max-w-md">
-                    URL mungkin tidak valid atau gambar telah dihapus.
-                    <span className="block mt-1">
-                      Dokumen mungkin memerlukan autentikasi atau telah kedaluwarsa.
-                    </span>
+                    Coba gunakan tombol "Buka Langsung" untuk mengakses gambar secara langsung.
                   </p>
                   
-                  <div className="flex gap-2 mt-4">
+                  <div className="flex flex-wrap gap-2 mt-4 justify-center">
                     <Button 
                       variant="outline" 
                       className="flex items-center gap-1"
@@ -102,28 +113,37 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
                     <Button 
                       variant="outline"
                       className="flex items-center gap-1"
-                      onClick={() => window.open(imageUrl, '_blank')}
+                      onClick={() => window.open(imageUrl || '', '_blank')}
                     >
                       <ExternalLink size={16} /> Buka di Tab Baru
+                    </Button>
+                    
+                    <Button 
+                      variant="default"
+                      className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
+                      onClick={openDirectlySameTab}
+                    >
+                      <ExternalLink size={16} /> Buka Langsung
                     </Button>
                   </div>
                   
                   <Alert className="mt-4 w-full max-w-md bg-gray-50">
                     <AlertDescription>
-                      <p className="text-xs text-gray-600">URL: {imageUrl}</p>
-                      <p className="text-xs text-gray-600">Retry count: {retryCount}</p>
+                      <p className="text-xs text-gray-600 truncate">URL: {imageUrl}</p>
+                      <p className="text-xs text-gray-600">Percobaan ke-{retryCount + 1}</p>
                     </AlertDescription>
                   </Alert>
                 </div>
               ) : (
                 <div className="overflow-auto max-h-[70vh] relative">
                   <img 
-                    src={`${imageUrl}${retryCount > 0 ? `?cb=${Date.now()}` : ''}`}
+                    src={finalUrl}
                     alt="KTP Document" 
                     className={`mx-auto object-contain transition-transform duration-200 ${loading ? 'hidden' : 'block'}`}
                     style={{ transform: `scale(${zoom / 100})` }}
                     onLoad={handleImageLoad}
                     onError={handleImageError}
+                    crossOrigin="anonymous"
                   />
                   
                   {!loading && !error && (
@@ -142,6 +162,10 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
                 </div>
               )}
             </>
+          ) : (
+            <div className="flex flex-col justify-center items-center h-[70vh] w-full text-gray-500">
+              <p>Tidak ada URL gambar yang valid</p>
+            </div>
           )}
         </div>
       </DialogContent>
