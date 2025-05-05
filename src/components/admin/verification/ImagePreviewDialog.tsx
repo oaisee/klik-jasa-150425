@@ -1,12 +1,11 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import { AlertTriangle, ZoomIn, ZoomOut, RefreshCw, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ImagePreviewDialogProps {
   isOpen: boolean;
@@ -19,35 +18,35 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
   const [error, setError] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [retryCount, setRetryCount] = useState(0);
-  const [finalUrl, setFinalUrl] = useState<string | null>(null);
-
-  // Process and prepare the URL when dialog opens or imageUrl changes
-  useEffect(() => {
-    if (isOpen && imageUrl) {
-      setLoading(true);
-      setError(false);
-      setZoom(100);
-      
-      // Add cache-busting parameter directly to the URL
-      const timestamp = Date.now();
-      const cacheBuster = imageUrl.includes('?') ? `&t=${timestamp}` : `?t=${timestamp}`;
-      
-      const newUrl = `${imageUrl}${cacheBuster}`;
-      console.log('Prepared image URL with cache buster:', newUrl);
-      setFinalUrl(newUrl);
+  
+  // Clean up the URL to ensure it's directly accessible
+  const getCleanUrl = (url: string | null) => {
+    if (!url) return null;
+    
+    // Try to ensure we have a direct public URL
+    if (url.includes('verifications') && !url.includes('/storage/v1/object/public/')) {
+      // Convert to public URL format if it's not already
+      const bucketPath = url.split('verifications/')[1];
+      if (bucketPath) {
+        return `https://pnkdbkjwrcnghhgmhzue.supabase.co/storage/v1/object/public/verifications/${bucketPath}`;
+      }
     }
-  }, [isOpen, imageUrl, retryCount]);
+    
+    // Add cache busting parameter
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${Date.now()}`;
+  };
 
   const handleImageLoad = () => {
+    console.log('Image loaded successfully');
     setLoading(false);
     setError(false);
-    console.log('Image loaded successfully');
   };
 
   const handleImageError = () => {
+    console.error('Failed to load image');
     setLoading(false);
     setError(true);
-    console.error('Failed to load image from URL:', finalUrl);
   };
 
   const handleZoomIn = () => {
@@ -68,12 +67,25 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
     toast.info("Mencoba memuat ulang gambar...");
   };
   
-  const openDirectlySameTab = () => {
+  const openDirectly = (target: '_blank' | '_self' = '_blank') => {
     if (!imageUrl) return;
     
-    // Force image to open in the same tab to avoid popup blockers
-    window.location.href = imageUrl;
+    // Use the original URL for direct opening
+    if (target === '_self') {
+      window.location.href = imageUrl;
+    } else {
+      window.open(imageUrl, '_blank');
+    }
   };
+
+  // Reset state when dialog opens or image URL changes
+  useEffect(() => {
+    if (isOpen && imageUrl) {
+      setLoading(true);
+      setError(false);
+      setZoom(100);
+    }
+  }, [isOpen, imageUrl, retryCount]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -85,7 +97,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
         </DialogHeader>
         
         <div className="relative">
-          {finalUrl ? (
+          {imageUrl ? (
             <>
               {loading && (
                 <div className="flex justify-center items-center h-[70vh] w-full">
@@ -113,7 +125,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
                     <Button 
                       variant="outline"
                       className="flex items-center gap-1"
-                      onClick={() => window.open(imageUrl || '', '_blank')}
+                      onClick={() => openDirectly('_blank')}
                     >
                       <ExternalLink size={16} /> Buka di Tab Baru
                     </Button>
@@ -121,7 +133,7 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
                     <Button 
                       variant="default"
                       className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
-                      onClick={openDirectlySameTab}
+                      onClick={() => openDirectly('_self')}
                     >
                       <ExternalLink size={16} /> Buka Langsung
                     </Button>
@@ -137,13 +149,12 @@ const ImagePreviewDialog = ({ isOpen, onClose, imageUrl }: ImagePreviewDialogPro
               ) : (
                 <div className="overflow-auto max-h-[70vh] relative">
                   <img 
-                    src={finalUrl}
+                    src={getCleanUrl(imageUrl)}
                     alt="KTP Document" 
                     className={`mx-auto object-contain transition-transform duration-200 ${loading ? 'hidden' : 'block'}`}
                     style={{ transform: `scale(${zoom / 100})` }}
                     onLoad={handleImageLoad}
                     onError={handleImageError}
-                    crossOrigin="anonymous"
                   />
                   
                   {!loading && !error && (
