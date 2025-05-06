@@ -7,12 +7,7 @@ import VerificationInstructions from './VerificationInstructions';
 import ErrorDisplay from './ErrorDisplay';
 import KtpFileManager from './KtpFileManager';
 import { useKtpVerification } from '@/hooks/useKtpVerification';
-
-interface KtpVerificationProps {
-  userId: string;
-  onVerificationSubmitted: () => void;
-  onClose: () => void;
-}
+import { KtpVerificationProps } from '@/types/verification';
 
 const KtpVerification = ({ 
   userId,

@@ -1,50 +1,47 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadFileToBucket, ensureBucketExists } from '@/utils/supabaseStorage';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
+import { KtpVerificationProps } from '@/types/verification';
 
-export const useKtpVerification = (userId: string) => {
+export const useKtpVerification = ({ userId, onVerificationSubmitted, onClose }: KtpVerificationProps) => {
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleFileSelect = (file: File) => {
-    setSelectedFile(file);
-    setError(null);
-  };
-
-  const uploadKtpDocument = async (): Promise<boolean> => {
-    if (!selectedFile) {
-      setError('Silakan pilih file KTP terlebih dahulu');
+  const handleUpload = async (file: File): Promise<boolean> => {
+    if (!file) {
+      setErrorMessage('Silakan pilih file KTP terlebih dahulu');
       return false;
     }
 
     if (!userId) {
-      setError('User ID tidak valid');
+      setErrorMessage('User ID tidak valid');
       return false;
     }
 
     setUploading(true);
-    setError(null);
+    setErrorMessage(null);
     setSuccess(false);
 
     try {
       // Ensure the KTP documents bucket exists
       const bucketExists = await ensureBucketExists('ktp_documents');
       if (!bucketExists) {
-        setError('Gagal mempersiapkan penyimpanan untuk dokumen');
+        setErrorMessage('Gagal mempersiapkan penyimpanan untuk dokumen');
         setUploading(false);
         return false;
       }
 
       // Generate a unique filename with user ID and timestamp
-      const fileExt = selectedFile.name.split('.').pop();
+      const fileExt = file.name.split('.').pop();
       const fileName = `${userId}_${uuidv4()}.${fileExt}`;
       const filePath = `${userId}/${fileName}`;
 
       // Upload the file to Supabase Storage
-      const fileUrl = await uploadFileToBucket('ktp_documents', filePath, selectedFile);
+      const fileUrl = await uploadFileToBucket('ktp_documents', filePath, file);
 
       if (!fileUrl) {
         throw new Error('Gagal mengupload dokumen KTP');
@@ -67,11 +64,14 @@ export const useKtpVerification = (userId: string) => {
         throw new Error('Gagal membuat permintaan verifikasi');
       }
 
+      toast.success('Verifikasi KTP berhasil dikirim');
       setSuccess(true);
+      onVerificationSubmitted();
+      onClose();
       return true;
     } catch (err) {
       console.error('Error in KTP verification process:', err);
-      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses verifikasi');
+      setErrorMessage(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses verifikasi');
       return false;
     } finally {
       setUploading(false);
@@ -80,11 +80,9 @@ export const useKtpVerification = (userId: string) => {
 
   return {
     uploading,
-    error,
+    errorMessage,
+    setErrorMessage,
     success,
-    selectedFile,
-    handleFileSelect,
-    uploadKtpDocument,
-    setError
+    handleUpload
   };
 };
