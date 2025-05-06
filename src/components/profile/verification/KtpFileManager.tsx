@@ -24,9 +24,9 @@ const KtpFileManager = ({ onFileSelect, setErrorMessage }: KtpFileManagerProps) 
       }
       
       // Check file type
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
       if (!validTypes.includes(file.type)) {
-        setErrorMessage("Format file tidak valid. Gunakan JPG, PNG, atau PDF.");
+        setErrorMessage("Format file tidak valid. Gunakan format JPG atau PNG.");
         return;
       }
       
@@ -35,19 +35,14 @@ const KtpFileManager = ({ onFileSelect, setErrorMessage }: KtpFileManagerProps) 
       setSelectedFile(file);
       onFileSelect(file);
       
-      // Create preview (for images only)
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target) {
-            setPreview(event.target.result as string);
-          }
-        };
-        reader.readAsDataURL(file);
-      } else {
-        // For non-image files (like PDFs), show a generic icon or message
-        setPreview(null);
-      }
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target) {
+          setPreview(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 

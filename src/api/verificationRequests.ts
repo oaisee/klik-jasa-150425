@@ -39,47 +39,40 @@ export const fetchVerificationRequestsApi = async () => {
       return acc;
     }, {});
 
-    // Transform the data to match our VerificationRequest type
-    const mappedData: VerificationRequest[] = (requestsData || []).map(req => {
-      // Ensure we have a valid document URL
+    // Process each verification request and create signed URLs for images
+    const mappedData: VerificationRequest[] = [];
+    
+    for (const req of requestsData || []) {
       let documentUrl = req.document_url || '';
       
       // If this is not already a signed URL, create one
       if (documentUrl && !documentUrl.includes('token=')) {
-        // Try to create a signed URL for better access
-        (async () => {
-          try {
-            // Extract bucket and path from URL
-            if (documentUrl.includes('/storage/v1/object/public/')) {
-              const urlParts = documentUrl.split('/storage/v1/object/public/');
-              if (urlParts.length === 2) {
-                const pathWithParams = urlParts[1].split('?')[0];
-                const pathParts = pathWithParams.split('/');
-                const bucket = pathParts[0];
-                const filePath = pathParts.slice(1).join('/');
+        try {
+          // Extract bucket and path from URL
+          if (documentUrl.includes('/storage/v1/object/public/')) {
+            const urlParts = documentUrl.split('/storage/v1/object/public/');
+            if (urlParts.length === 2) {
+              const pathWithParams = urlParts[1].split('?')[0];
+              const pathParts = pathWithParams.split('/');
+              const bucket = pathParts[0];
+              const filePath = pathParts.slice(1).join('/');
+              
+              // Get a signed URL with 24 hour expiry
+              const { data: signedData, error: signedError } = await supabase.storage
+                .from(bucket)
+                .createSignedUrl(filePath, 60 * 60 * 24);
                 
-                console.log(`Creating signed URL for bucket: ${bucket}, path: ${filePath}`);
-                
-                // Try to get a signed URL with 24 hour expiry
-                const { data: signedData, error: signedError } = await supabase.storage
-                  .from(bucket)
-                  .createSignedUrl(filePath, 60 * 60 * 24);
-                  
-                if (!signedError && signedData?.signedUrl) {
-                  documentUrl = signedData.signedUrl;
-                  console.log(`Created signed URL: ${documentUrl.substring(0, 50)}...`);
-                } else if (signedError) {
-                  console.error('Error creating signed URL:', signedError);
-                }
+              if (!signedError && signedData?.signedUrl) {
+                documentUrl = signedData.signedUrl;
               }
             }
-          } catch (e) {
-            console.error('Error processing document URL:', e);
           }
-        })();
+        } catch (e) {
+          console.error('Error processing document URL:', e);
+        }
       }
       
-      return {
+      mappedData.push({
         id: req.id,
         user_id: req.user_id || '',
         document_url: documentUrl,
@@ -93,8 +86,8 @@ export const fetchVerificationRequestsApi = async () => {
           full_name: 'Unknown User',
           phone: ''
         }
-      };
-    });
+      });
+    }
     
     return mappedData;
   } catch (error) {

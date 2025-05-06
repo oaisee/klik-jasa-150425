@@ -13,7 +13,7 @@ interface ImageViewerProps {
 const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
   const [zoom, setZoom] = useState(100);
   const [loadedSuccessfully, setLoadedSuccessfully] = useState(false);
-  const [containerHeight, setContainerHeight] = useState(400); // Increased default height
+  const [containerHeight, setContainerHeight] = useState(400);
   const imgRef = useRef<HTMLImageElement>(null);
   
   const { imageData, loading, error, retryCount, handleRetry } = useSupabaseImage(imageUrl);
@@ -23,12 +23,10 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
     setZoom(100);
     setLoadedSuccessfully(false);
     setContainerHeight(400); // Reset to default height
-    
-    console.log("Image URL or retry count changed:", imageUrl, "retry:", retryCount);
   }, [imageUrl, retryCount]);
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    console.log("Image loaded successfully", e.currentTarget.naturalHeight, e.currentTarget.naturalWidth);
+    console.log("Image loaded successfully");
     setLoadedSuccessfully(true);
     
     // Set container height based on image size
@@ -37,7 +35,6 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
       // Set minimum height of 400px or the image height + padding, whichever is larger
       const newHeight = Math.max(imgElement.naturalHeight + 80, 400);
       setContainerHeight(newHeight);
-      console.log("Setting container height to:", newHeight);
     }
   };
 
@@ -67,7 +64,7 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
       <div className="flex justify-center items-center h-[400px] w-full">
         <div className="text-center">
           <LoadingIndicator size="lg" text="Memuat gambar..." />
-          <p className="text-xs text-gray-500 mt-4">URL: {imageUrl.substring(0, 50)}...</p>
+          <p className="text-xs text-gray-500 mt-4">Memuat dari URL yang diberikan...</p>
         </div>
       </div>
     );
@@ -92,19 +89,13 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
         maxHeight: '70vh' 
       }}
     >
-      {!loadedSuccessfully && !loading && !error && (
+      {!loadedSuccessfully && (
         <div className="absolute inset-0 flex items-center justify-center flex-col">
           <LoadingIndicator size="lg" text="Memproses gambar..." />
-          <div className="max-w-md px-4 text-center">
-            <p className="text-xs text-gray-500 mt-4 break-words">
-              Memproses gambar dari: {imageUrl.substring(0, 50)}...
-            </p>
-          </div>
         </div>
       )}
       
       <div className="flex justify-center items-center min-h-[400px] p-4">
-        {/* Only show skeleton when image is loading but not yet loaded */}
         {!loadedSuccessfully && (
           <Skeleton className="w-4/5 h-4/5 max-w-xl" />
         )}
@@ -121,7 +112,7 @@ const ImageViewer = ({ imageUrl }: ImageViewerProps) => {
           }}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          crossOrigin="anonymous" // Add this to handle CORS issues
+          crossOrigin="anonymous"
         />
       </div>
       

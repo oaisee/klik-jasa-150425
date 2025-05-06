@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 /**
  * Ensures a specific storage bucket exists
@@ -32,8 +31,6 @@ export const ensureBucketExists = async (bucketName: string): Promise<boolean> =
         return false;
       }
       
-      // Set bucket policies - removing the setPublic() call since it doesn't exist
-      // The bucket is already public because we set public: true when creating it
       console.log(`${bucketName} bucket created successfully with public access`);
     }
     
@@ -82,7 +79,6 @@ export const uploadFileToBucket = async (
     
     const publicUrl = publicUrlData?.publicUrl || null;
     
-    // Log the URL for debugging
     if (publicUrl) {
       console.log('Generated public URL:', publicUrl);
     } else {

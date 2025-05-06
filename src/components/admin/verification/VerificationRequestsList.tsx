@@ -54,7 +54,6 @@ const VerificationRequestsList = () => {
     setPreviewImage(url);
     
     // We'll let the ImagePreviewDialog component handle the loading state
-    // This helps with race conditions between setting states
     setTimeout(() => {
       setIsPreviewLoading(false);
     }, 300);
@@ -73,15 +72,6 @@ const VerificationRequestsList = () => {
     toast.info('Menyegarkan data...');
     handleRefresh();
   };
-
-  // Log data for debugging
-  console.log('Verification requests data:', { 
-    filteredRequests, 
-    loading, 
-    hasActiveFilters, 
-    totalRequests: requests.length,
-    initialized
-  });
 
   return (
     <Card>

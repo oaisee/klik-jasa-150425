@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/utils/formatters';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSupabaseImage } from '@/hooks/useSupabaseImage';
 
 interface VerificationTableProps {
   requests: VerificationRequest[];
@@ -22,6 +23,52 @@ interface VerificationTableProps {
   onPreviewImage: (url: string) => void;
   isPreviewLoading: boolean;
 }
+
+const KtpThumbnail = ({ url, onClick }: { url: string; onClick: () => void }) => {
+  const { imageData, loading, error } = useSupabaseImage(url);
+  
+  if (loading) {
+    return (
+      <div className="w-32 h-20 rounded-md bg-gray-100 border flex items-center justify-center">
+        <Skeleton className="h-16 w-28" />
+      </div>
+    );
+  }
+  
+  if (error || !imageData) {
+    return (
+      <div className="w-32 h-20 rounded-md bg-gray-100 border flex items-center justify-center">
+        <span className="text-gray-400 text-xs">Gagal memuat</span>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="relative group">
+      <div className="w-32 h-20 rounded-md overflow-hidden bg-gray-100 border flex items-center justify-center">
+        <img
+          src={imageData}
+          alt="KTP"
+          className="max-w-full max-h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+            e.currentTarget.className = 'w-8 h-8 text-gray-400';
+          }}
+        />
+      </div>
+      <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-md">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-white"
+          onClick={onClick}
+        >
+          <Eye size={18} />
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const VerificationTable = ({
   requests,
@@ -70,29 +117,10 @@ const VerificationTable = ({
               <TableCell>
                 <div className="relative">
                   {request.document_url ? (
-                    <div className="relative group">
-                      <div className="w-32 h-20 rounded-md overflow-hidden bg-gray-100 border flex items-center justify-center">
-                        <img
-                          src={request.document_url}
-                          alt="KTP"
-                          className="max-w-full max-h-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = '/placeholder.svg';
-                            e.currentTarget.className = 'w-8 h-8 text-gray-400';
-                          }}
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-md">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-white"
-                          onClick={() => onPreviewImage(request.document_url)}
-                        >
-                          <Eye size={18} />
-                        </Button>
-                      </div>
-                    </div>
+                    <KtpThumbnail 
+                      url={request.document_url} 
+                      onClick={() => onPreviewImage(request.document_url)}
+                    />
                   ) : (
                     <div className="w-32 h-20 rounded-md bg-gray-100 border flex items-center justify-center">
                       <span className="text-gray-400 text-xs">Tidak ada gambar</span>
