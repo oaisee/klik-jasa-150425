@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { VerificationRequest } from '@/types/database';
 import { toast } from 'sonner';
@@ -57,6 +58,8 @@ export const fetchVerificationRequestsApi = async () => {
               const bucket = pathParts[0];
               const filePath = pathParts.slice(1).join('/');
               
+              console.log('Creating signed URL for document', bucket, filePath);
+              
               // Get a signed URL with 24 hour expiry
               const { data: signedData, error: signedError } = await supabase.storage
                 .from(bucket)
@@ -64,6 +67,9 @@ export const fetchVerificationRequestsApi = async () => {
                 
               if (!signedError && signedData?.signedUrl) {
                 documentUrl = signedData.signedUrl;
+                console.log('Created signed URL successfully');
+              } else if (signedError) {
+                console.error('Error creating signed URL:', signedError);
               }
             }
           }

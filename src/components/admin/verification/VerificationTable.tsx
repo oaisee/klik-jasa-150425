@@ -37,20 +37,21 @@ const KtpThumbnail = ({ url, onClick }: { url: string; onClick: () => void }) =>
   
   if (error || !imageData) {
     return (
-      <div className="w-32 h-20 rounded-md bg-gray-100 border flex items-center justify-center">
-        <span className="text-gray-400 text-xs">Gagal memuat</span>
+      <div className="w-32 h-20 rounded-md bg-gray-100 border flex items-center justify-center text-center p-1">
+        <span className="text-gray-400 text-xs">Gagal memuat gambar</span>
       </div>
     );
   }
   
   return (
-    <div className="relative group">
+    <div className="relative group cursor-pointer" onClick={onClick}>
       <div className="w-32 h-20 rounded-md overflow-hidden bg-gray-100 border flex items-center justify-center">
         <img
           src={imageData}
           alt="KTP"
-          className="max-w-full max-h-full object-cover"
+          className="max-w-full max-h-full object-contain"
           onError={(e) => {
+            console.error('Image load error in KtpThumbnail');
             e.currentTarget.src = '/placeholder.svg';
             e.currentTarget.className = 'w-8 h-8 text-gray-400';
           }}
@@ -61,7 +62,10 @@ const KtpThumbnail = ({ url, onClick }: { url: string; onClick: () => void }) =>
           variant="ghost" 
           size="icon" 
           className="text-white"
-          onClick={onClick}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick();
+          }}
         >
           <Eye size={18} />
         </Button>
@@ -106,73 +110,79 @@ const VerificationTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {requests.map((request) => (
-            <TableRow key={request.id}>
-              <TableCell className="font-medium">
-                {request.profile?.full_name || 'Tanpa Nama'}
+          {requests.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                Tidak ada data permintaan verifikasi
               </TableCell>
-              <TableCell>
-                {request.profile?.phone || '-'}
-              </TableCell>
-              <TableCell>
-                <div className="relative">
+            </TableRow>
+          ) : (
+            requests.map((request) => (
+              <TableRow key={request.id}>
+                <TableCell className="font-medium">
+                  {request.profile?.full_name || 'Tanpa Nama'}
+                </TableCell>
+                <TableCell>
+                  {request.profile?.phone || '-'}
+                </TableCell>
+                <TableCell>
                   {request.document_url ? (
                     <KtpThumbnail 
                       url={request.document_url} 
                       onClick={() => onPreviewImage(request.document_url)}
                     />
                   ) : (
-                    <div className="w-32 h-20 rounded-md bg-gray-100 border flex items-center justify-center">
+                    <div className="w-32 h-20 rounded-md bg-gray-100 border flex items-center justify-center text-center">
                       <span className="text-gray-400 text-xs">Tidak ada gambar</span>
                     </div>
                   )}
-                </div>
-              </TableCell>
-              <TableCell>
-                {getStatusBadge(request.status)}
-              </TableCell>
-              <TableCell>
-                {formatDate(request.created_at || '')}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-                  {request.status === 'pending' && (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onApprove(request.id)}
-                        disabled={!!processingId}
-                        className="text-green-600 border-green-200 hover:bg-green-50"
-                      >
-                        <Check size={14} className="mr-1" />
-                        Setuju
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onReject(request.id)}
-                        disabled={!!processingId}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
-                      >
-                        <X size={14} className="mr-1" />
-                        Tolak
-                      </Button>
-                    </>
-                  )}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onPreviewImage(request.document_url)}
-                    disabled={isPreviewLoading}
-                  >
-                    <Eye size={14} className="mr-1" />
-                    Detail
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+                </TableCell>
+                <TableCell>
+                  {getStatusBadge(request.status)}
+                </TableCell>
+                <TableCell>
+                  {formatDate(request.created_at || '')}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    {request.status === 'pending' && (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onApprove(request.id)}
+                          disabled={!!processingId || isPreviewLoading}
+                          className="text-green-600 border-green-200 hover:bg-green-50"
+                        >
+                          <Check size={14} className="mr-1" />
+                          Setuju
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onReject(request.id)}
+                          disabled={!!processingId || isPreviewLoading}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          <X size={14} className="mr-1" />
+                          Tolak
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => request.document_url && onPreviewImage(request.document_url)}
+                      disabled={isPreviewLoading || !request.document_url}
+                    >
+                      <Eye size={14} className="mr-1" />
+                      Detail
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

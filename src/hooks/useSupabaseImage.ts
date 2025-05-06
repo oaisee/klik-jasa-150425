@@ -37,8 +37,11 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
       setError(false);
       
       try {
+        console.log('Loading image from URL:', imageUrl);
+        
         // Priority 1: If it's a signed URL, use it directly
         if (imageUrl.includes('token=')) {
+          console.log('Using signed URL directly');
           setImageData(imageUrl);
           setLoading(false);
           return;
@@ -55,20 +58,25 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
             const pathParts = pathWithParams.split('?')[0].split('/');
             bucket = pathParts[0];
             filePath = pathParts.slice(1).join('/');
+            console.log('Extracted bucket:', bucket, 'and path:', filePath);
           }
         }
 
         // Priority 2: Try to create a signed URL (most reliable approach)
         if (bucket && filePath) {
           try {
+            console.log('Creating signed URL for bucket:', bucket, 'path:', filePath);
             const { data: signedUrlData, error: signedUrlError } = await supabase.storage
               .from(bucket)
               .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
               
             if (!signedUrlError && signedUrlData?.signedUrl) {
+              console.log('Successfully created signed URL');
               setImageData(signedUrlData.signedUrl);
               setLoading(false);
               return;
+            } else if (signedUrlError) {
+              console.error('Error creating signed URL:', signedUrlError);
             }
           } catch (signedUrlError) {
             console.warn("Signed URL creation failed:", signedUrlError);
@@ -77,6 +85,7 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
         
         // Priority 3: Try direct fetch with cache control
         try {
+          console.log('Trying direct fetch with cache control');
           const timestamp = new Date().getTime();
           const cacheBustUrl = imageUrl.includes('?') 
             ? `${imageUrl}&t=${timestamp}` 
@@ -93,11 +102,14 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
           });
           
           if (response.ok) {
+            console.log('Direct fetch successful');
             const blob = await response.blob();
             const objectUrl = URL.createObjectURL(blob);
             setImageData(objectUrl);
             setLoading(false);
             return;
+          } else {
+            console.warn('Direct fetch failed with status:', response.status);
           }
         } catch (fetchError) {
           console.warn("Direct fetch failed:", fetchError);
@@ -106,15 +118,19 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
         // Priority 4: Try Supabase download if we have bucket and path
         if (bucket && filePath) {
           try {
+            console.log('Trying Supabase download API');
             const { data, error: downloadError } = await supabase.storage
               .from(bucket)
               .download(filePath);
               
             if (!downloadError && data) {
+              console.log('Supabase download successful');
               const objectUrl = URL.createObjectURL(data);
               setImageData(objectUrl);
               setLoading(false);
               return;
+            } else if (downloadError) {
+              console.error('Supabase download error:', downloadError);
             }
           } catch (supabaseError) {
             console.warn("Supabase download failed:", supabaseError);
@@ -122,6 +138,7 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
         }
         
         // Priority 5: Use original URL as last resort
+        console.log('Using original URL as last resort');
         setImageData(imageUrl);
         setLoading(false);
       } catch (error) {

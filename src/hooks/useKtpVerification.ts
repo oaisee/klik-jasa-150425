@@ -1,89 +1,78 @@
-
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { ensureBucketExists, uploadFileToBucket } from '@/utils/supabaseStorage';
-import { checkExistingVerifications, createVerificationRequest } from '@/services/verificationService';
+import { supabase } from '@/integrations/supabase/client';
+import { uploadFileToBucket, ensureBucketExists } from '@/utils/supabaseStorage';
+import { v4 as uuidv4 } from 'uuid';
 
-interface UseKtpVerificationProps {
-  userId: string;
-  onVerificationSubmitted: () => void;
-  onClose: () => void;
-}
-
-export const useKtpVerification = ({ 
-  userId, 
-  onVerificationSubmitted, 
-  onClose 
-}: UseKtpVerificationProps) => {
+export const useKtpVerification = (userId: string) => {
   const [uploading, setUploading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const handleUpload = async (selectedFile: File) => {
-    if (!selectedFile || !userId) return;
-    
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file);
+    setError(null);
+  };
+
+  const uploadKtpDocument = async (): Promise<boolean> => {
+    if (!selectedFile) {
+      setError('Silakan pilih file KTP terlebih dahulu');
+      return false;
+    }
+
+    if (!userId) {
+      setError('User ID tidak valid');
+      return false;
+    }
+
     setUploading(true);
-    setErrorMessage(null);
-    
+    setError(null);
+    setSuccess(false);
+
     try {
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-      if (!validTypes.includes(selectedFile.type)) {
-        throw new Error("Format file tidak valid. Gunakan file JPG atau PNG.");
+      // Ensure the KTP documents bucket exists
+      const bucketExists = await ensureBucketExists('ktp_documents');
+      if (!bucketExists) {
+        setError('Gagal mempersiapkan penyimpanan untuk dokumen');
+        setUploading(false);
+        return false;
       }
-      
-      // Validate file size (max 5MB)
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        throw new Error("Ukuran file terlalu besar. Maksimal 5MB.");
+
+      // Generate a unique filename with user ID and timestamp
+      const fileExt = selectedFile.name.split('.').pop();
+      const fileName = `${userId}_${uuidv4()}.${fileExt}`;
+      const filePath = `${userId}/${fileName}`;
+
+      // Upload the file to Supabase Storage
+      const fileUrl = await uploadFileToBucket('ktp_documents', filePath, selectedFile);
+
+      if (!fileUrl) {
+        throw new Error('Gagal mengupload dokumen KTP');
       }
-      
-      console.log("File selected for upload:", selectedFile.name, "Size:", selectedFile.size, "Type:", selectedFile.type);
-      
-      // Step 1: Check for existing verification requests
-      const { hasApproved, hasPending } = await checkExistingVerifications(userId);
-      
-      if (hasApproved) {
-        throw new Error("Anda sudah terverifikasi sebagai penyedia jasa.");
+
+      console.log('KTP document uploaded successfully:', fileUrl);
+
+      // Create a verification request in the database
+      const { error: insertError } = await supabase
+        .from('verification_requests')
+        .insert({
+          user_id: userId,
+          document_url: fileUrl,
+          document_type: 'ktp',
+          status: 'pending'
+        });
+
+      if (insertError) {
+        console.error('Error creating verification request:', insertError);
+        throw new Error('Gagal membuat permintaan verifikasi');
       }
-      
-      if (hasPending) {
-        throw new Error("Anda sudah memiliki permintaan verifikasi yang sedang diproses.");
-      }
-      
-      // Step 2: Generate a unique filename with timestamp and user ID
-      const fileExt = selectedFile.name.split('.').pop() || 'jpg';
-      const timestamp = Date.now();
-      const fileName = `ktp/${userId}-${timestamp}.${fileExt}`;
-      
-      console.log("Uploading file:", fileName);
-      
-      // Step 3: Ensure the verifications bucket exists
-      const bucketReady = await ensureBucketExists('verifications');
-      if (!bucketReady) {
-        throw new Error('Gagal membuat bucket untuk verifikasi. Silakan coba lagi.');
-      }
-      
-      // Step 4: Upload KTP to verifications storage bucket
-      const documentUrl = await uploadFileToBucket('verifications', fileName, selectedFile);
-      if (!documentUrl) {
-        throw new Error("Gagal mendapatkan URL untuk file. Pastikan file dapat diupload.");
-      }
-      
-      console.log("Successfully uploaded to URL:", documentUrl);
-      
-      // Step 5: Create verification request record in database
-      const requestCreated = await createVerificationRequest(userId, documentUrl);
-      if (!requestCreated) {
-        throw new Error("Gagal membuat permintaan verifikasi. Silakan coba lagi.");
-      }
-      
-      toast.success("Dokumen KTP berhasil diunggah. Tim kami akan memverifikasi dalam 1x24 jam.");
-      console.log("KTP verification submitted successfully:", documentUrl);
-      onVerificationSubmitted();
-      onClose();
-    } catch (error: any) {
-      console.error('Error uploading KTP:', error);
-      setErrorMessage(error.message || "Gagal mengunggah KTP. Silakan coba lagi.");
-      toast.error(error.message || "Gagal mengunggah KTP. Silakan coba lagi.");
+
+      setSuccess(true);
+      return true;
+    } catch (err) {
+      console.error('Error in KTP verification process:', err);
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan saat memproses verifikasi');
+      return false;
     } finally {
       setUploading(false);
     }
@@ -91,8 +80,11 @@ export const useKtpVerification = ({
 
   return {
     uploading,
-    errorMessage,
-    setErrorMessage,
-    handleUpload
+    error,
+    success,
+    selectedFile,
+    handleFileSelect,
+    uploadKtpDocument,
+    setError
   };
 };

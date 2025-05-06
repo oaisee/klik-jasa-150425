@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const ensureBucketExists = async (bucketName: string): Promise<boolean> => {
   try {
+    console.log(`Checking if ${bucketName} bucket exists...`);
+    
     // Check if bucket exists
     const { data: buckets, error: listError } = await supabase.storage.listBuckets();
     
@@ -32,6 +34,8 @@ export const ensureBucketExists = async (bucketName: string): Promise<boolean> =
       }
       
       console.log(`${bucketName} bucket created successfully with public access`);
+    } else {
+      console.log(`${bucketName} bucket already exists`);
     }
     
     return true;
