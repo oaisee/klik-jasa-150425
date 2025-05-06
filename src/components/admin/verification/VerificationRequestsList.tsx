@@ -4,13 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import LoadingIndicator from '@/components/shared/LoadingIndicator';
 import EmptyState from '@/components/shared/EmptyState';
 import { FileX, RefreshCw } from 'lucide-react';
-import VerificationRequestItem from './VerificationRequestItem';
-import ImagePreviewDialog from './ImagePreviewDialog';
-import VerificationFilters from './VerificationFilters';
 import VerificationSummary from './VerificationSummary';
+import VerificationFilters from './VerificationFilters';
+import ImagePreviewDialog from './ImagePreviewDialog';
 import { useVerificationRequests } from '@/hooks/useVerificationRequests';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import VerificationTable from './VerificationTable';
 
 const VerificationRequestsList = () => {
   console.log('VerificationRequestsList rendering');
@@ -118,18 +118,15 @@ const VerificationRequestsList = () => {
             <LoadingIndicator text="Memuat permintaan verifikasi..." />
           </div>
         ) : filteredRequests.length > 0 ? (
-          <div className="space-y-4 mt-4">
-            {filteredRequests.map((request) => (
-              <VerificationRequestItem
-                key={request.id}
-                request={request}
-                onApprove={handleApprove}
-                onReject={handleReject}
-                onPreviewImage={handleOpenImagePreview}
-                processingId={processingId}
-                isPreviewLoading={isPreviewLoading && previewImage === request.document_url}
-              />
-            ))}
+          <div className="mt-4">
+            <VerificationTable 
+              requests={filteredRequests}
+              processingId={processingId}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onPreviewImage={handleOpenImagePreview}
+              isPreviewLoading={isPreviewLoading}
+            />
           </div>
         ) : initialized ? (
           <div className="py-10">

@@ -131,7 +131,7 @@ export const useSupabaseImage = (imageUrl: string | null): UseSupabaseImageResul
             console.log("Attempting to create signed URL");
             const { data: signedUrlData, error: signedUrlError } = await supabase.storage
               .from(bucket)
-              .createSignedUrl(filePath, 60); // 60 seconds expiry
+              .createSignedUrl(filePath, 60 * 60); // 1 hour expiry
               
             if (signedUrlError) {
               console.warn("Failed to create signed URL:", signedUrlError);
